@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+TEXT="parseltongue -- Generic input parsing library, speaking in tongues"
+AUTHORS="Roberto Di Remigio, and contributors."
+
+python .githooks/license_maintainer.py "$TEXT" "$AUTHORS"
