@@ -1,4 +1,4 @@
-Welcome to parseltongue's documentation!
+Welcome to parselglossy's documentation!
 ======================================
 
 .. toctree::

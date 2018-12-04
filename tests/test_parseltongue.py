@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-"""Tests for `parseltongue` package."""
+"""Tests for `parselglossy` package."""
 
 import pytest
 
 from click.testing import CliRunner
 
-from parseltongue import parseltongue
-from parseltongue import cli
+from parselglossy import parselglossy
+from parselglossy import cli
 
 
 @pytest.fixture
@@ -32,7 +31,7 @@ def test_command_line_interface():
     runner = CliRunner()
     result = runner.invoke(cli.main)
     assert result.exit_code == 0
-    assert 'parseltongue.cli.main' in result.output
+    assert 'parselglossy.cli.main' in result.output
     help_result = runner.invoke(cli.main, ['--help'])
     assert help_result.exit_code == 0
     assert '--help  Show this message and exit.' in help_result.output

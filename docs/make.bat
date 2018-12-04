@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=parseltongue
+set SPHINXPROJ=parselglossy
 
 if "%1" == "" goto help
 

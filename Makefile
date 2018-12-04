@@ -51,7 +51,7 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 lint: ## check style with flake8
-	flake8 parseltongue tests
+	flake8 parselglossy tests
 
 test: ## run tests quickly with the default Python
 	py.test
@@ -60,15 +60,15 @@ test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
-	coverage run --source parseltongue -m pytest
+	coverage run --source parselglossy -m pytest
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html
 
 docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/parseltongue.rst
+	rm -f docs/parselglossy.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ parseltongue
+	sphinx-apidoc -o docs/ parselglossy
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html
@@ -79,7 +79,7 @@ servedocs: docs ## compile the docs watching for changes
 release: dist ## package and upload a release
 	twine upload dist/*
 executable:
-	pyinstaller --name parseltongue parseltongue/cli.py
+	pyinstaller --name parselglossy parselglossy/cli.py
 
 dist: clean ## builds source and wheel package
 	python setup.py sdist

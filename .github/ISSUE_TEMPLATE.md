@@ -1,4 +1,4 @@
-* parseltongue version:
+* parselglossy version:
 * Python version:
 * Operating System:
 

@@ -2,6 +2,6 @@
 Usage
 =====
 
-To use parseltongue in a project::
+To use parselglossy in a project::
 
-    import parseltongue
+    import parselglossy

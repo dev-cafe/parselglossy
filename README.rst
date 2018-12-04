@@ -1,32 +1,32 @@
 ============
-parseltongue
+parselglossy
 ============
 
 
-.. image:: https://img.shields.io/pypi/v/parseltongue.svg
-        :target: https://pypi.python.org/pypi/parseltongue
+.. image:: https://img.shields.io/pypi/v/parselglossy.svg
+        :target: https://pypi.python.org/pypi/parselglossy
 
-.. image:: https://img.shields.io/travis/robertodr/parseltongue.svg
-        :target: https://travis-ci.org/robertodr/parseltongue
+.. image:: https://img.shields.io/travis/dev-cafe/parselglossy.svg
+        :target: https://travis-ci.org/dev-cafe/parselglossy
 
-.. image:: https://readthedocs.org/projects/parseltongue/badge/?version=latest
-        :target: https://parseltongue.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/parselglossy/badge/?version=latest
+        :target: https://parselglossy.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
 
-.. image:: https://pyup.io/repos/github/robertodr/parseltongue/shield.svg
-     :target: https://pyup.io/repos/github/robertodr/parseltongue/
+.. image:: https://pyup.io/repos/github/dev-cafe/parselglossy/shield.svg
+     :target: https://pyup.io/repos/github/dev-cafe/parselglossy/
      :alt: Updates
 
 
 
 Generic input parsing library, speaking in tongues
 
-.. image:: https://github.com/dev-cafe/parseltongue/raw/master/docs/assets/parse.jpg
+.. image:: https://github.com/dev-cafe/parselglossy/raw/master/docs/gfx/parse.jpg
      :alt: Parse all the inputs!
 
 * Free software: MIT license
-* Documentation: https://parseltongue.readthedocs.io.
+* Documentation: https://parselglossy.readthedocs.io.
 
 
 Features

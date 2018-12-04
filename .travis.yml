@@ -1,11 +1,12 @@
 # Config file for automatic testing at travis-ci.org
 
+dist: xenial
 language: python
 python:
+  - 3.7
   - 3.6
   - 3.5
   - 3.4
-  - 2.7
 
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -U tox-travis
@@ -25,5 +26,5 @@ deploy:
     secure: PLEASE_REPLACE_ME
   on:
     tags: true
-    repo: robertodr/parseltongue
+    repo: dev-cafe/parselglossy
     python: 3.6

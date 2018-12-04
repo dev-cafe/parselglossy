@@ -3,7 +3,6 @@
 """Update encrypted deploy password in Travis config file
 """
 
-
 from __future__ import print_function
 import base64
 import json
@@ -14,14 +13,12 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 
-
 try:
     from urllib import urlopen
 except:
     from urllib.request import urlopen
 
-
-GITHUB_REPO = 'robertodr/parseltongue'
+GITHUB_REPO = 'dev-cafe/parselglossy'
 TRAVIS_CONFIG_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '.travis.yml')
 
@@ -113,10 +110,12 @@ def main(args):
 if '__main__' == __name__:
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--repo', default=GITHUB_REPO,
-                        help='GitHub repo (default: %s)' % GITHUB_REPO)
-    parser.add_argument('--password',
-                        help='PyPI password (will prompt if not provided)')
+    parser.add_argument(
+        '--repo',
+        default=GITHUB_REPO,
+        help='GitHub repo (default: %s)' % GITHUB_REPO)
+    parser.add_argument(
+        '--password', help='PyPI password (will prompt if not provided)')
 
     args = parser.parse_args()
     main(args)

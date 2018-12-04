@@ -8,13 +8,13 @@ Installation
 Stable release
 --------------
 
-To install parseltongue, run this command in your terminal:
+To install parselglossy, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install parseltongue
+    $ pip install parselglossy
 
-This is the preferred method to install parseltongue, as it will always install the most recent stable release.
+This is the preferred method to install parselglossy, as it will always install the most recent stable release.
 
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
@@ -26,19 +26,19 @@ you through the process.
 From sources
 ------------
 
-The sources for parseltongue can be downloaded from the `Github repo`_.
+The sources for parselglossy can be downloaded from the `Github repo`_.
 
 You can either clone the public repository:
 
 .. code-block:: console
 
-    $ git clone git://github.com/robertodr/parseltongue
+    $ git clone git://github.com/dev-cafe/parselglossy
 
 Or download the `tarball`_:
 
 .. code-block:: console
 
-    $ curl  -OL https://github.com/robertodr/parseltongue/tarball/master
+    $ curl  -OL https://github.com/dev-cafe/parselglossy/tarball/master
 
 Once you have a copy of the source, you can install it with:
 
@@ -47,5 +47,5 @@ Once you have a copy of the source, you can install it with:
     $ python setup.py install
 
 
-.. _Github repo: https://github.com/robertodr/parseltongue
-.. _tarball: https://github.com/robertodr/parseltongue/tarball/master
+.. _Github repo: https://github.com/dev-cafe/parselglossy
+.. _tarball: https://github.com/dev-cafe/parselglossy/tarball/master

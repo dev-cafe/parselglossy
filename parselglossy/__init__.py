@@ -1,6 +1,6 @@
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
-# Copyright (C) YEAR AUTHORS
+# Copyright (C) 2018 Roberto Di Remigio, and contributors.
 #
 # This file is part of parselglossy.
 #
@@ -17,7 +17,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# Roberto Di Remigio, and contributors. OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
@@ -25,3 +25,18 @@
 # For information on the complete list of contributors to the
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
+
+# -*- coding: utf-8 -*-
+"""Top-level package for parselglossy."""
+
+__author__ = """Roberto Di Remigio"""
+__email__ = 'roberto.diremigio@gmail.com'
+__version__ = '0.1.0'
+__copyright__ = "Copyright 2018, dev-cafe"
+__credits__ = [
+    "Jonas Juselius", "Roberto Di Remigio", "Radovan Bast", "Luca Frediani",
+    "Stig Rune Jensen", "Ville Weijo"
+]
+__license__ = "MIT"
+__maintainer__ = "Roberto Di Remigio, Radovan Bast, Stig Rune Jensen"
+__status__ = "Production"

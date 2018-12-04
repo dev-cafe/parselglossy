@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = python -msphinx
-SPHINXPROJ    = parseltongue
+SPHINXPROJ    = parselglossy
 SOURCEDIR     = .
 BUILDDIR      = _build
 
