@@ -1,6 +1,6 @@
 jobs:
 
-- job: 'Windows Test'
+- job: 'Windows'
   pool:
     vmImage: 'vs2017-win2016'
   strategy:
@@ -21,7 +21,7 @@ jobs:
   steps:
   - template: .ci/azure-steps.yml
 
-- job: 'macOS Test'
+- job: 'macOS'
   pool:
     vmImage: 'macOS-10.13'
   strategy:
