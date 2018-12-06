@@ -14,6 +14,10 @@ parselglossy
         :target: https://dev.azure.com/dev-cafe/parselglossy/_build/latest?definitionId=1
         :alt: Windows build status
 
+.. image:: https://img.shields.io/azure-devops/build/dev-cafe/32bdf3ae-88b4-469b-b30c-e255f012c562/1/master.svg?logo=apple
+        :target: https://dev.azure.com/dev-cafe/parselglossy/_build/latest?definitionId=1
+        :alt: macOS build status
+
 .. image:: https://readthedocs.org/projects/parselglossy/badge/?version=latest
         :target: https://parselglossy.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
