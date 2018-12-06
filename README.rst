@@ -6,18 +6,21 @@ parselglossy
 .. image:: https://img.shields.io/pypi/v/parselglossy.svg
         :target: https://pypi.python.org/pypi/parselglossy
 
-.. image:: https://img.shields.io/travis/dev-cafe/parselglossy.svg
+.. image:: https://img.shields.io/travis/dev-cafe/parselglossy/master.svg?logo=linux&logoColor=white
         :target: https://travis-ci.org/dev-cafe/parselglossy
+        :alt: Linux build status
+
+.. image:: https://img.shields.io/azure-devops/build/dev-cafe/32bdf3ae-88b4-469b-b30c-e255f012c562/1/master.svg?logo=windows
+        :target: https://travis-ci.org/dev-cafe/parselglossy
+        :alt: Windows build status
 
 .. image:: https://readthedocs.org/projects/parselglossy/badge/?version=latest
         :target: https://parselglossy.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-
 .. image:: https://pyup.io/repos/github/dev-cafe/parselglossy/shield.svg
-     :target: https://pyup.io/repos/github/dev-cafe/parselglossy/
-     :alt: Updates
-
+        :target: https://pyup.io/repos/github/dev-cafe/parselglossy/
+        :alt: Updates
 
 
 Generic input parsing library, speaking in tongues
