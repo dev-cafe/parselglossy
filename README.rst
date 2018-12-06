@@ -11,7 +11,7 @@ parselglossy
         :alt: Linux build status
 
 .. image:: https://img.shields.io/azure-devops/build/dev-cafe/32bdf3ae-88b4-469b-b30c-e255f012c562/1/master.svg?logo=windows
-        :target: https://travis-ci.org/dev-cafe/parselglossy
+        :target: https://dev.azure.com/dev-cafe/parselglossy/_build/latest?definitionId=1
         :alt: Windows build status
 
 .. image:: https://readthedocs.org/projects/parselglossy/badge/?version=latest
