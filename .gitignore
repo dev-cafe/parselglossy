@@ -106,3 +106,4 @@ ENV/
 
 # Development stuff
 .direnv
+.dir-locals.el

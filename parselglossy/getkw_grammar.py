@@ -26,71 +26,41 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-import logging
+import pyparsing as pp
+
+from .atoms import bool_t, data_t, num_t, str_t
 
 
-def to_bool(toks):
-    truthy = ['1', 'TRUE', 'ON', 'YES', 'Y']
-    falsey = ['0', 'FALSE', 'OFF', 'NO', 'N']
+def getkw():
+    LBRACKET, RBRACKET, EQ, COMMA = map(pp.Suppress, "[]=,")
+    NEWLINE = pp.Literal('\n').suppress()
 
-    defined = False
-    if toks[0] is None:
-        defined = False
-    elif toks[0].upper() in falsey:
-        defined = False
-    elif toks[0].upper() in truthy:
-        defined = True
-    else:
-        defined = False
+    _name = pp.Word(pp.alphas + '_', pp.alphanums + '_')
+    _key = _name + EQ
 
-    return defined
+    # A scalar value (bool, int, float, complex, str)
+    scalar = bool_t ^ num_t ^ str_t
+    # An array value ([bool], [int], [float], [complex], [str])
+    array = LBRACKET + pp.delimitedList(scalar ^ NEWLINE) + RBRACKET
 
+    _value = scalar ^ array
 
-def to_int(toks):
-    return int(toks[0])
+    kv_dict = pp.Dict(pp.OneOrMore(pp.Group(_key + _value)))
+    grammar = pp.OneOrMore(pp.Group(data_t) | pp.Group(kv_dict))('getkw')
 
-
-def to_float(toks):
-    return float(toks[0])
+    return grammar
 
 
-def to_str(toks):
-    return str(toks[0])
-
-
-def to_scalar(token):
-    logging.info('token to_scalar')
-    logging.info(F'key = {token[0]}\n scalar = {token[1]}')
-    return tuple(token)
-
-
-def to_array(token):
-    logging.info('token to_array')
-    logging.info(F'key = {token[0]}\n array = {token[1:]}')
-    return (token[0], token[1:])
-
-
-def to_data(token):
-    logging.info('token to_data')
-    logging.info(F'key = {token[0]}\n data = {token[1]}')
-    return (token[0], token[1])
-
-
-def to_section(token):
-    logging.info('token to_section')
-    logging.info(F'key = {token[0]}\n section = {token[1:]}\n')
-    print(F'token to_section {token}')
-    print(F'key = {token[0]}\n section = {token[1:]}\n')
-    print(F'{token[0]}<{token[1:]}>')
-    #return (token[0], token[1])
-
-
-def end_of_section(token):
-    print(F'gotcha!')
-
-
-def parse_error(s, t, d, err):
+def flatten_dict(pp_dict):
     """
-    Raises error from pyparsing
+    pyparsing will generate a dictionary with key 'getkw' to contain all our
+    results. key-value pairs are stored in sub-dictionaries, whereas raw data
+    will appear as a list with one tuple as element.
     """
-    raise err
+    parsed = {}
+    for el in pp_dict['getkw']:
+        if isinstance(el, dict):
+            parsed.update(el)
+        elif isinstance(el, list):
+            parsed.update({el[0][0]: el[0][1]})
+    return parsed
