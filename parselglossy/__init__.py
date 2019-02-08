@@ -1,6 +1,6 @@
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
-# Copyright (C) 2018 Roberto Di Remigio, and contributors.
+# Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
 #
 # This file is part of parselglossy.
 #

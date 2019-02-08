@@ -3,5 +3,5 @@ from io import StringIO
 import pytest
 
 
-def pytest_namespace():
-    return {'getkw_keywords_json': StringIO()}
+def pytest_configure():
+    pytest.getkw_keywords_json = StringIO()

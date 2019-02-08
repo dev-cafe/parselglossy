@@ -1,6 +1,6 @@
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
-# Copyright (C) 2018 Roberto Di Remigio, and contributors.
+# Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
 #
 # This file is part of parselglossy.
 #
@@ -27,9 +27,9 @@
 #
 
 from pyparsing import (Combine, Dict, Forward, Group, Literal, Optional,
-                       ParseException, Regex, SkipTo, StringEnd, Suppress,
-                       Word, ZeroOrMore, alphanums, alphas, delimitedList,
-                       line, lineno, nums, pythonStyleComment, quotedString,
+                       ParseException, Regex, SkipTo, StringEnd, Suppress, Word,
+                       ZeroOrMore, alphanums, alphas, delimitedList, line,
+                       lineno, nums, pythonStyleComment, quotedString,
                        removeQuotes)
 
 from . import token_actions
@@ -75,7 +75,8 @@ def new_BNF():
     data_keyword = data
     input = scalar_keyword | array_keyword | data_keyword
 
-    bnf = ZeroOrMore(input) + StringEnd().setFailAction(token_actions.parse_error)
+    bnf = ZeroOrMore(input) + StringEnd().setFailAction(
+        token_actions.parse_error)
     bnf.ignore(pythonStyleComment)
 
     return Dict(bnf)
