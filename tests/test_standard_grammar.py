@@ -11,14 +11,14 @@ from parselglossy import standard_grammar
 
 @pytest.fixture
 def keywords():
-    return F"""
+    keys = """
 int = 42
-dbl = {math.pi}
+dbl = {PI}
 bool = on
 str = "fooffa"
 
-int_array = {list(range(1, 5))}
-dbl_array = [{math.pi}, {math.e}, {math.tau}]
+int_array = {LIST}
+dbl_array = [{PI}, {E}, {TAU}]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 
@@ -27,6 +27,8 @@ H 0.0 0.0 0.0
 F 1.0 1.0 1.0
 $end
 """
+    return keys.format(
+        PI=math.pi, E=math.e, TAU=math.tau, LIST=list(range(1, 5)))
 
 
 keyword_ref = {
@@ -52,15 +54,15 @@ def test_keyword(keywords):
 
 @pytest.fixture
 def sections():
-    return F"""
+    sects = """
 defs {{
 int = 42
-dbl = {math.pi}
+dbl = {PI}
 bool = on
 str = "fooffa"
 
-int_array = {list(range(1, 5))}
-dbl_array = [{math.pi}, {math.e}, {math.tau}]
+int_array = {LIST}
+dbl_array = [{PI}, {E}, {TAU}]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 
@@ -72,12 +74,12 @@ $end
 
 defs<apa> {{
 int = 42
-dbl = {math.pi}
+dbl = {PI}
 bool = on
 str = "fooffa"
 
-int_array = {list(range(1, 5))}
-dbl_array = [{math.pi}, {math.e}, {math.tau}]
+int_array = {LIST}
+dbl_array = [{PI}, {E}, {TAU}]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 
@@ -89,12 +91,12 @@ $end
 
 defs<gorilla> {{
 int = 42
-dbl = {math.pi}
+dbl = {PI}
 bool = on
 str = "fooffa"
 
-int_array = {list(range(1, 5))}
-dbl_array = [{math.pi}, {math.e}, {math.tau}]
+int_array = {LIST}
+dbl_array = [{PI}, {E}, {TAU}]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 
@@ -104,6 +106,8 @@ F 1.0 1.0 1.0
 $end
 }}
 """
+    return sects.format(
+        PI=math.pi, E=math.e, TAU=math.tau, LIST=list(range(1, 5)))
 
 
 section_ref = {
@@ -117,7 +121,6 @@ section_ref = {
     'str_array': ["foo", "bar", "lorem", "IpSuM"],
     'raw': "H 0.0 0.0 0.0\nF 1.0 1.0 1.0\n"
 }
-
 
 #def test_section(sections):
 #    bnf = standard_grammar.BNF()

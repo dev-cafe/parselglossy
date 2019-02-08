@@ -12,10 +12,10 @@ from parselglossy.atoms import ComplexEncoder, as_complex
 
 @pytest.fixture
 def keywords():
-    return F"""
+    keys = """
 int = 42
-dbl = {math.pi}
-cmplx = -1 -{math.e}*I
+dbl = {PI}
+cmplx = -1 -{E}*I
 bool = on
 str = "fooffa"
 
@@ -24,12 +24,14 @@ H 0.0 0.0 0.0
 F 1.0 1.0 1.0
 $end
 
-int_array = {list(range(1, 5))}
-dbl_array = [{math.pi}, {math.e}, {math.tau}]
-cmplx_array = [{math.pi} -2*j, {math.e}-2.0*J, {math.tau}+1.5*i]
+int_array = {LIST}
+dbl_array = [{PI}, {E}, {TAU}]
+cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
+    return keys.format(
+        PI=math.pi, E=math.e, TAU=math.tau, LIST=list(range(1, 5)))
 
 
 # yapf: disable
