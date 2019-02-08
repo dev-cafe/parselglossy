@@ -36,10 +36,17 @@ Generic input parsing library, speaking in tongues
 * Documentation: https://parselglossy.readthedocs.io.
 
 
+Requirements
+------------
+
+* Python 3.6 or later. We have plans to support Py 3.4+ once the dust settles.
+
+
 Features
 --------
 
 * TODO
+
 
 Credits
 -------
