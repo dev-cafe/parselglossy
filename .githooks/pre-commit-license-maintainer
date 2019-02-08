@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
 TEXT="parselglossy -- Generic input parsing library, speaking in tongues"
-AUTHORS="Roberto Di Remigio, and contributors."
+AUTHORS="Roberto Di Remigio, Radovan Bast, and contributors."
 
 python .githooks/license_maintainer.py "$TEXT" "$AUTHORS"
