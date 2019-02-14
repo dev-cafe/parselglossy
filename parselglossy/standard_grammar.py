@@ -46,9 +46,9 @@ def new_BNF():
     EDATA = Literal('$end').suppress()
     NEWLINE = Literal('\n').suppress()
     # Atoms
-    bool_t = Regex('([Yy]es|[Nn]o|[Tt]rue|[Ff]alse|[Oo]n|[Oo]ff)')
+    bool_t = Regex(r'([Yy]es|[Nn]o|[Tt]rue|[Ff]alse|[Oo]n|[Oo]ff)')
     int_t = Word(nums)
-    float_t = Regex('[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?')
+    float_t = Regex(r'[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?')
     str_t = quotedString.setParseAction(removeQuotes) ^ Word(
         alphanums + r'!$%&*+-./<>?@^_|~')
     # Tokens
@@ -97,9 +97,9 @@ def BNF():
     dmark = Literal('$').suppress()
     end_data = Literal('$end').suppress()
     prtable = alphanums + r'!$%&*+-./<>?@^_|~'
-    int_t = Regex('[-]?\d+')
-    float_t = Regex('-?\d+\.\d*([eE]?[+-]?\d+)?')
-    bool_t = Regex('([Yy]es|[Nn]o|[Tt]rue|[Ff]alse|[Oo]n|[Oo]ff)')
+    int_t = Regex(r'[-]?\d+')
+    float_t = Regex(r'-?\d+\.\d*([eE]?[+-]?\d+)?')
+    bool_t = Regex(r'([Yy]es|[Nn]o|[Tt]rue|[Ff]alse|[Oo]n|[Oo]ff)')
 
     # Helper definitions
     kstr = quotedString.setParseAction(
