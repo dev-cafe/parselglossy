@@ -31,7 +31,7 @@ bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
     return keys.format(
-        PI=math.pi, E=math.e, TAU=math.tau, LIST=list(range(1, 5)))
+        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
 
 
 # yapf: disable
@@ -42,8 +42,8 @@ keyword_ref = {
     , 'bool': True
     , 'str': 'fooffa'
     , 'int_array': list(range(1, 5))
-    , 'dbl_array': [math.pi, math.e, math.tau]
-    , 'cmplx_array': [complex(math.pi, -2.0), complex(math.e, -2.0), complex(math.tau, 1.5)]
+    , 'dbl_array': [math.pi, math.e, 2.0*math.pi]
+    , 'cmplx_array': [complex(math.pi, -2.0), complex(math.e, -2.0), complex(2.0*math.pi, 1.5)]
     , 'bool_array': [True, True, True, False, True, False]
     , 'str_array': ["foo", "bar", "lorem", "IpSuM"]
     , 'raw': "H 0.0 0.0 0.0\nF 1.0 1.0 1.0\n"
