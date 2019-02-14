@@ -60,33 +60,34 @@ def to_str(toks):
 
 def to_scalar(token):
     logging.info('token to_scalar')
-    logging.info(F'key = {token[0]}\n scalar = {token[1]}')
+    logging.info('key = {key}\n scalar = {scalar}'.format(
+        key=token[0], scalar=token[1]))
     return tuple(token)
 
 
 def to_array(token):
     logging.info('token to_array')
-    logging.info(F'key = {token[0]}\n array = {token[1:]}')
+    logging.info('key = {key}\n array = {array}'.format(
+        key=token[0], array=token[1:]))
     return (token[0], token[1:])
 
 
 def to_data(token):
     logging.info('token to_data')
-    logging.info(F'key = {token[0]}\n data = {token[1]}')
+    logging.info('key = {key}\n data = {data}'.format(
+        key=token[0], data=token[1]))
     return (token[0], token[1])
 
 
 def to_section(token):
     logging.info('token to_section')
-    logging.info(F'key = {token[0]}\n section = {token[1:]}\n')
-    print(F'token to_section {token}')
-    print(F'key = {token[0]}\n section = {token[1:]}\n')
-    print(F'{token[0]}<{token[1:]}>')
+    logging.info('key = {key}\n section = {section}'.format(
+        key=token[0], section=token[1:]))
     #return (token[0], token[1])
 
 
 def end_of_section(token):
-    print(F'gotcha!')
+    print('gotcha!')
 
 
 def parse_error(s, t, d, err):
