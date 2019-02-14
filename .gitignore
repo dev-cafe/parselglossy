@@ -89,6 +89,7 @@ venv/
 .env/
 env/
 ENV/
+Pipfile.lock
 
 
 # Spyder project settings
