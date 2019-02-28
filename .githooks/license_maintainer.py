@@ -71,8 +71,9 @@ def add_header(filepath, header, TEXT, YEAR, AUTHORS):
                 f = open(filepath, 'w')
                 f.writelines(output)
             except IOError as err:
-                print(('Something went wrong trying to add header to {:s}: {:s}'.
-                       format(filepath, err)))
+                print(
+                    ('Something went wrong trying to add header to {:s}: {:s}'.
+                     format(filepath, err)))
             finally:
                 f.close()
         os.remove(tmpfil)
@@ -82,13 +83,12 @@ def prepare_header(stub, YEAR, AUTHORS):
     """
     Update year and author information in license header template
     """
-    with open(stub, 'r') as l:
-        header = l.read().rstrip()
+    rep = {'<YEAR>': str(YEAR), '<AUTHORS>': AUTHORS}
+    regex = re.compile('|'.join(map(re.escape, rep.keys())))
+    with open(stub, 'r') as temp:
         # Insert correct YEAR and AUTHORS in stub
-        rep = {'YEAR': str(YEAR), 'AUTHORS': AUTHORS}
-        rep = dict((re.escape(k), v) for k, v in rep.items())
-        pattern = re.compile("|".join(list(rep.keys())))
-        header = pattern.sub(lambda m: rep[re.escape(m.group(0))], header)
+        header = temp.read()
+    header = regex.sub(lambda match: rep[match.group(0)], header)
     return header
 
 
@@ -136,7 +136,7 @@ def license_maintainer(TEXT, AUTHORS):
 
     headerize = file_license(os.path.join(project_root_dir, '.gitattributes'))
 
-    for fname, license in list(headerize.items()):
+    for fname, license in headerize.items():
         # Prepare header
         header = prepare_header(
             os.path.join(project_root_dir, license), YEAR, AUTHORS)
