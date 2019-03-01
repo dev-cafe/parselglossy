@@ -6,13 +6,14 @@ import json
 import math
 
 import pytest
-from parselglossy import getkw_grammar
+
+from parselglossy import getkw
 from parselglossy.atoms import ComplexEncoder, as_complex
 
 
 @pytest.fixture
 def keywords():
-    keys = """
+    keys = """topsect {{
 int = 42
 dbl = {PI}
 cmplx = -1 -{E}*I
@@ -29,6 +30,7 @@ dbl_array = [{PI}, {E}, {TAU}]
 cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
+}}
 """
     return keys.format(
         PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
@@ -53,14 +55,13 @@ keyword_ref = {
 
 @pytest.mark.dependency()
 def test_keyword(keywords):
-    grammar = getkw_grammar.getkw()
-    tokens = grammar.parseString(keywords).asDict()
-    result = getkw_grammar.flatten_dict(tokens)
+    grammar = getkw.grammar()
+    tokens = grammar.parseString(keywords).asDict()['topsect']
 
     # dump to JSON
-    json.dump(result, pytest.getkw_keywords_json, cls=ComplexEncoder)
+    json.dump(tokens, pytest.getkw_keywords_json, cls=ComplexEncoder)
 
-    assert result == keyword_ref
+    assert tokens == keyword_ref
 
 
 @pytest.mark.dependency(depends=['test_keyword'])

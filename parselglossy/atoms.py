@@ -88,6 +88,7 @@ data_t.setName('raw data')
 # Flatten to a key-value tuple
 data_t.setParseAction(lambda token: (token['key'], token['value']))
 
+fortranStyleComment = pp.Regex(r"!.*").setName("Fortran style comment")
 
 class ComplexEncoder(json.JSONEncoder):
     def default(self, obj):

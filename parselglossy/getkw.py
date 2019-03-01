@@ -28,39 +28,38 @@
 
 import pyparsing as pp
 
-from .atoms import bool_t, data_t, num_t, str_t
+from .atoms import bool_t, data_t, fortranStyleComment, num_t, str_t
 
 
-def getkw():
-    LBRACKET, RBRACKET, EQ, COMMA = map(pp.Suppress, "[]=,")
+def grammar():
+    LBRACKET, RBRACKET, EQ, COMMA = map(pp.Suppress, '[]=,')
     NEWLINE = pp.Literal('\n').suppress()
+    LBRACE, RBRACE, STAG, ETAG = map(pp.Suppress, '{}<>')
 
-    _name = pp.Word(pp.alphas + '_', pp.alphanums + '_')
-    _key = _name + EQ
+    # Define key
+    key = pp.Word(pp.alphas + '_', pp.alphanums + '_')
 
     # A scalar value (bool, int, float, complex, str)
     scalar = bool_t ^ num_t ^ str_t
     # An array value ([bool], [int], [float], [complex], [str])
     array = LBRACKET + pp.delimitedList(scalar ^ NEWLINE) + RBRACKET
 
-    _value = scalar ^ array
+    value = scalar ^ array
 
-    kv_dict = pp.Dict(pp.OneOrMore(pp.Group(_key + _value)))
-    grammar = pp.OneOrMore(pp.Group(data_t) | pp.Group(kv_dict))('getkw')
+    # Define key-value pairs, i.e. our keywords
+    pair = pp.Group(key + EQ + value)
 
-    return grammar
+    # Define values and section recursively
+    section = pp.Forward()
+    values = pp.Forward()
+    section << pp.Group(key + LBRACE + values + RBRACE)
+    values << pp.Dict(pp.OneOrMore(pair | data_t | section))
 
+    # Define input
+    input = pp.Dict(pp.OneOrMore(section))
 
-def flatten_dict(pp_dict):
-    """
-    pyparsing will generate a dictionary with key 'getkw' to contain all our
-    results. key-value pairs are stored in sub-dictionaries, whereas raw data
-    will appear as a list with one tuple as element.
-    """
-    parsed = {}
-    for el in pp_dict['getkw']:
-        if isinstance(el, dict):
-            parsed.update(el)
-        elif isinstance(el, list):
-            parsed.update({el[0][0]: el[0][1]})
-    return parsed
+    # Ignore Python (#), C/C++ (/* */ and //), and Fortran (!) style comments
+    comment = pp.cppStyleComment | pp.pythonStyleComment | fortranStyleComment
+    input.ignore(comment)
+
+    return input
