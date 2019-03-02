@@ -36,7 +36,6 @@ import click
 @click.group()
 def main(args=None):
     """Console script for parselglossy."""
-    click.echo("Command-line interface to parselglossy.")
     return 0
 
 
