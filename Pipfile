@@ -14,9 +14,8 @@ pyls-isort = "*"
 pyls-mypy = "*"
 pytest = "*"
 pytest-cov = "*"
-pytest-dependency = "*"
 pytest-runner = "*"
-python-language-server = {extras = ["rope", "pyflakes", "mccabe", "pycodestyle", "pydocstyle", "yapf"], version = "*"}
+python-language-server = {extras = ["rope", "pyflakes", "mccabe", "pycodestyle", "pydocstyle", "yapf"],version = "*"}
 twine = "*"
 watchdog = "*"
 wheel = "*"
