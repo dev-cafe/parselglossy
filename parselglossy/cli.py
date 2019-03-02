@@ -29,17 +29,105 @@
 # -*- coding: utf-8 -*-
 """Console script for parselglossy."""
 import sys
+
 import click
 
 
-@click.command()
+@click.group()
 def main(args=None):
     """Console script for parselglossy."""
-    click.echo("Replace this message by putting your code into "
-               "parselglossy.cli.main")
-    click.echo("See click documentation at http://click.pocoo.org/")
+    click.echo("Command-line interface to parselglossy.")
     return 0
 
+
+@click.command()
+@click.option(
+    '--dump-ir/--no-dump-ir',
+    default=False,
+    help='serialize IR to JSON file',
+    metavar='<dumpir>')
+@click.argument('infile', metavar='<infile>')
+def lex(dumpir, infile):
+    """Run lexer to obtain JSON intermediate representation.
+
+    \b
+    Parameters
+    ----------
+    dumpir : bool
+             Whether to serialize IR to JSON. Location and name of file are
+             determined based on the input file.
+    infile : str or path
+            The input file to be parsed.
+    """
+    ir = {}
+    return ir
+
+
+@click.command()
+@click.option(
+    '--dump-fr/--no-dump-fr',
+    default=False,
+    help='serialize FR to JSON file',
+    metavar='<dumpfr>')
+def validate(dumpfr, ir):
+    """Validate intermediate representation into final representation.
+
+    \b
+    Parameters
+    ----------
+    dumpir : bool
+             Whether to serialize FR to JSON. Location and name of file are
+             determined based on the input file.
+    ir : dict
+         Intermediate representation of the input file.
+    """
+    fr = {}
+    return fr
+
+
+@click.command()
+@click.option(
+    '--dump/--no-dump',
+    default=False,
+    help='serialize parsed input to JSON file',
+    metavar='<dump>')
+@click.argument('infile', metavar='<infile>')
+def parse(dump, infile):
+    """Parse input file.
+
+    \b
+    Parameters
+    ----------
+    dumpir : bool
+             Whether to serialize parsed input to JSON. Location and name of file are
+             determined based on the input file.
+    infile : str or path
+            The input file to be parsed.
+    """
+    ir = lex(infile, dump)
+    fr = validate(dump, ir)
+    return fr
+
+
+@click.command()
+@click.option('--doc-type', type=click.Choice(['md', 'rst', 'tex']))
+def doc(doctype):
+    """Generate documentation from validation specs.
+
+    \b
+    Parameters
+    ----------
+    doctype : str
+              Format of the generated documentation.
+              Valid choices are `md`, `rst`, and `tex`.
+    """
+    pass
+
+
+main.add_command(lex)
+main.add_command(validate)
+main.add_command(parse)
+main.add_command(doc)
 
 if __name__ == "__main__":
     sys.exit(main())  # pragma: no cover
