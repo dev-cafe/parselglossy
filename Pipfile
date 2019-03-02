@@ -16,7 +16,7 @@ pytest = "*"
 pytest-cov = "*"
 pytest-dependency = "*"
 pytest-runner = "*"
-python-language-server = "*"
+python-language-server = {extras = ["rope", "pyflakes", "mccabe", "pycodestyle", "pydocstyle", "yapf"], version = "*"}
 twine = "*"
 watchdog = "*"
 wheel = "*"
