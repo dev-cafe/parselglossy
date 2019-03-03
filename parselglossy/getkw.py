@@ -56,7 +56,7 @@ def grammar():
     values << pp.Dict(pp.OneOrMore(pair | data_t | section))
 
     # Define input
-    input = pp.Dict(pp.ZeroOrMore(values) | pp.ZeroOrMore(section))
+    input = pp.Dict(pp.OneOrMore(values) | pp.OneOrMore(section))
 
     # Ignore Python (#), C/C++ (/* */ and //), and Fortran (!) style comments
     comment = pp.cppStyleComment | pp.pythonStyleComment | fortranStyleComment

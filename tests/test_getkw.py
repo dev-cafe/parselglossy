@@ -94,7 +94,7 @@ def section(name):
 ])
 def test_section(name):
     """Test an input made of one section, tagged or untagged."""
-    ref_dict = {name: reference}
+    ref_dict = {name: dict(reference)}
     grammar = getkw.grammar()
     tokens = grammar.parseString(section(name)).asDict()
 
@@ -127,7 +127,7 @@ foo<bar> {{
 
 def test_flat_sections(flat):
     """Test an input made of two unnested sections, tagged or untagged."""
-    ref_dict = {'topsect': reference, 'foo<bar>': reference}
+    ref_dict = {'topsect': dict(reference), 'foo<bar>': dict(reference)}
     grammar = getkw.grammar()
     tokens = grammar.parseString(flat).asDict()
 
@@ -160,7 +160,7 @@ def nested():
 
 def test_nested_sections(nested):
     """Test an input made of two nested sections, tagged or untagged."""
-    ref_dict = {'topsect': reference}
+    ref_dict = {'topsect': dict(reference)}
     ref_dict['topsect']['foo<bar>'] = dict(reference)
     grammar = getkw.grammar()
     tokens = grammar.parseString(nested).asDict()
@@ -178,7 +178,7 @@ def test_nested_sections(nested):
 
 
 def keywords_and_section(name):
-    stuff = """/* This is a comment */
+    template = """/* This is a comment */
 int = 42
 // This is another comment
 dbl = {PI}
@@ -203,13 +203,15 @@ cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = stuff.format(
+    stuff = contents().format(
+        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    inp = template.format(
         PI=math.pi,
         E=math.e,
         TAU=2.0 * math.pi,
         LIST=list(range(1, 5)),
         NAME=name,
-        CONTENTS=contents())
+        CONTENTS=stuff)
     return inp
 
 
@@ -219,7 +221,8 @@ str_array = [foo, bar, "lorem", "IpSuM"]
 ])
 def test_keywords_and_section(name):
     """Test an input made of keywords, one section, tagged or untagged, and more keywords."""
-    ref_dict = dict(reference, **({name: reference}))
+    ref_dict = dict(reference)
+    ref_dict[name] = dict(reference)
     grammar = getkw.grammar()
     tokens = grammar.parseString(keywords_and_section(name)).asDict()
 
