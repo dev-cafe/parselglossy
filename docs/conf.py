@@ -12,8 +12,9 @@ from parselglossy import __version__ as psversion  # isort:skip
 
 # -- General configuration ---------------------------------------------
 
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.viewcode', 'guzzle_sphinx_theme']
+extensions = [
+    'sphinx.ext.autodoc', 'sphinx.ext.viewcode', 'guzzle_sphinx_theme'
+]
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
@@ -34,10 +35,8 @@ html_title = "parselglossy Documentation"
 html_short_title = "parselglossy {}".format(version)
 html_show_sourcelink = False
 html_sidebars = {
-    '**': ['logo-text.html',
-           'globaltoc.html',
-           'localtoc.html',
-           'searchbox.html']
+    '**':
+    ['logo-text.html', 'globaltoc.html', 'localtoc.html', 'searchbox.html']
 }
 html_theme_path = guzzle_sphinx_theme.html_theme_path()
 html_theme = 'guzzle_sphinx_theme'
