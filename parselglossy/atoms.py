@@ -58,6 +58,7 @@ bool_t.setName('bool')
 bool_t.setParseAction(to_bool)
 
 int_t = pp.pyparsing_common.signed_integer
+int_t.setParseAction(pp.tokenMap(int))
 float_t = pp.Regex(r'[+-]?\d+\.?\d*([eE][+-]?\d+)?')
 float_t.setName('float')
 float_t.setParseAction(pp.tokenMap(float))
@@ -89,6 +90,7 @@ data_t.setName('raw data')
 data_t.setParseAction(lambda token: (token['key'], token['value']))
 
 fortranStyleComment = pp.Regex(r"!.*").setName("Fortran style comment")
+
 
 class ComplexEncoder(json.JSONEncoder):
     def default(self, obj):

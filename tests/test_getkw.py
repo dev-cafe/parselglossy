@@ -11,7 +11,7 @@ from parselglossy import getkw
 from parselglossy.atoms import ComplexEncoder, as_complex
 
 # yapf: disable
-reference_contents = {
+reference = {
      'int': 42
    , 'dbl': math.pi
    , 'cmplx': complex(-1, -math.e)
@@ -23,20 +23,6 @@ reference_contents = {
    , 'bool_array': [True, True, True, False, True, False]
    , 'str_array': ["foo", "bar", "lorem", "IpSuM"]
    , 'raw': "H 0.0 0.0 0.0\nF 1.0 1.0 1.0\n"
-}
-
-refs = {
-      'keywords' : reference_contents
-    , 'untagged' : {
-          'topsect' : reference_contents
-      }
-    , 'tagged' : {
-          'foo<bar>' : reference_contents
-      }
-    , 'flat' : {
-          'topsect' : reference_contents
-        , 'foo<bar>' : reference_contents
-      }
 }
 # yapf: enable
 
@@ -81,7 +67,7 @@ def test_keyword(keywords):
     grammar = getkw.grammar()
     tokens = grammar.parseString(keywords).asDict()['topsect']
 
-    assert tokens == refs['keywords']
+    assert tokens == reference
     # dump to JSON
     getkw_json = StringIO()
     json.dump(tokens, getkw_json, cls=ComplexEncoder)
@@ -90,7 +76,7 @@ def test_keyword(keywords):
     # load from JSON
     tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
-    assert tokens == refs['keywords']
+    assert tokens == reference
 
 
 def section(name):
@@ -103,15 +89,16 @@ def section(name):
     return sect.format(NAME=name, CONTENTS=stuff)
 
 
-@pytest.mark.parametrize('name,which', [
-    ('topsect', 'untagged'),
-    ('foo<bar>', 'tagged'),
+@pytest.mark.parametrize('name', [
+    'topsect',
+    'foo<bar>',
 ])
-def test_section(name, which):
+def test_section(name):
+    ref_dict = {name: reference}
     grammar = getkw.grammar()
     tokens = grammar.parseString(section(name)).asDict()
 
-    assert tokens == refs[which]
+    assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
     json.dump(tokens, getkw_json, cls=ComplexEncoder)
@@ -120,7 +107,7 @@ def test_section(name, which):
     # load from JSON
     tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
-    assert tokens == refs[which]
+    assert tokens == ref_dict
 
 
 @pytest.fixture
@@ -139,10 +126,11 @@ foo<bar> {{
 
 
 def test_flat_sections(flat):
+    ref_dict = {'topsect': reference, 'foo<bar>': reference}
     grammar = getkw.grammar()
     tokens = grammar.parseString(flat).asDict()
 
-    assert tokens == refs['flat']
+    assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
     json.dump(tokens, getkw_json, cls=ComplexEncoder)
@@ -151,4 +139,37 @@ def test_flat_sections(flat):
     # load from JSON
     tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
-    assert tokens == refs['flat']
+    assert tokens == ref_dict
+
+
+@pytest.fixture
+def nested():
+    stuff = contents().format(
+        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    sects = """topsect {{
+    {CONTENTS:s}
+
+    foo<bar> {{
+        {CONTENTS:s}
+    }}
+}}
+"""
+    return sects.format(CONTENTS=stuff)
+
+
+def test_nested_sections(nested):
+    ref_dict = {'topsect': reference}
+    ref_dict['topsect']['foo<bar>'] = dict(reference)
+    grammar = getkw.grammar()
+    tokens = grammar.parseString(nested).asDict()
+
+    assert tokens == ref_dict
+    # dump to JSON
+    getkw_json = StringIO()
+    json.dump(tokens, getkw_json, cls=ComplexEncoder)
+    del tokens
+
+    # load from JSON
+    tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
+
+    assert tokens == ref_dict
