@@ -7,7 +7,6 @@ import math
 from io import StringIO
 
 import pytest
-
 from parselglossy import getkw
 from parselglossy.atoms import ComplexEncoder, as_complex
 
@@ -29,34 +28,45 @@ reference_contents = {
 refs = {
      'keywords' : reference_contents
     , 'untagged' : {'topsect' : reference_contents}
-    , 'tagged' : {'foo' : reference_contents}
+    , 'tagged' : {'foo<bar>' : reference_contents}
 }
 # yapf: enable
 
 
-@pytest.fixture
-def keywords():
-    keys = """topsect {{
+def contents():
+    contents = """/* This is a comment */
 int = 42
+// This is another comment
 dbl = {PI}
 cmplx = -1 -{E}*I
 bool = on
 str = "fooffa"
 
+! Yet another comment
 $raw
 H 0.0 0.0 0.0
 F 1.0 1.0 1.0
 $end
 
+# I love comments!
 int_array = {LIST}
 dbl_array = [{PI}, {E}, {TAU}]
 cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
+"""
+    return contents
+
+
+@pytest.fixture
+def keywords():
+    stuff = contents().format(
+        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    keys = """topsect {{
+    {CONTENTS:s}
 }}
 """
-    return keys.format(
-        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    return keys.format(CONTENTS=stuff)
 
 
 def test_keyword(keywords):
@@ -77,38 +87,21 @@ def test_keyword(keywords):
 
 
 def section(name):
+    stuff = contents().format(
+        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
     sect = """{NAME} {{
-int = 42
-dbl = {PI}
-cmplx = -1 -{E}*I
-bool = on
-str = "fooffa"
-
-$raw
-H 0.0 0.0 0.0
-F 1.0 1.0 1.0
-$end
-
-int_array = {LIST}
-dbl_array = [{PI}, {E}, {TAU}]
-cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
-bool_array = [on, true, yes, False, True, false]
-str_array = [foo, bar, "lorem", "IpSuM"]
+    {CONTENTS:s}
 }}
 """
-    return sect.format(
-        NAME=name,
-        PI=math.pi,
-        E=math.e,
-        TAU=2.0 * math.pi,
-        LIST=list(range(1, 5)))
+    return sect.format(NAME=name, CONTENTS=stuff)
 
 
 @pytest.mark.parametrize('name,which', [
     ('topsect', 'untagged'),
-    ('foo', 'tagged'),
+    ('foo<bar>', 'tagged'),
 ])
 def test_section(name, which):
+    print(section(name))
     grammar = getkw.grammar()
     tokens = grammar.parseString(section(name)).asDict()
 

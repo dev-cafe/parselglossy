@@ -34,10 +34,10 @@ from .atoms import bool_t, data_t, fortranStyleComment, num_t, str_t
 def grammar():
     LBRACKET, RBRACKET, EQ, COMMA = map(pp.Suppress, '[]=,')
     NEWLINE = pp.Literal('\n').suppress()
-    LBRACE, RBRACE, STAG, ETAG = map(pp.Suppress, '{}<>')
+    LBRACE, RBRACE = map(pp.Suppress, '{}')
 
     # Define key
-    key = pp.Word(pp.alphas + '_', pp.alphanums + '_')
+    key = pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')
 
     # A scalar value (bool, int, float, complex, str)
     scalar = bool_t ^ num_t ^ str_t
