@@ -1,0 +1,12 @@
+version: 2
+formats:
+  - epub
+  - pdf
+python:
+  version: 3.6
+   install:
+      - requirements: docs/requirements.txt
+sphinx:
+  builder: html
+  configuration: docs/conf.py
+
