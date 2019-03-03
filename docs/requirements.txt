@@ -1,2 +1,2 @@
-Sphinx
-guzzle_sphinx_theme
+Sphinx==1.8.4
+guzzle_sphinx_theme==0.7.11
