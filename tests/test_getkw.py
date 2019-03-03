@@ -26,9 +26,17 @@ reference_contents = {
 }
 
 refs = {
-     'keywords' : reference_contents
-    , 'untagged' : {'topsect' : reference_contents}
-    , 'tagged' : {'foo<bar>' : reference_contents}
+      'keywords' : reference_contents
+    , 'untagged' : {
+          'topsect' : reference_contents
+      }
+    , 'tagged' : {
+          'foo<bar>' : reference_contents
+      }
+    , 'flat' : {
+          'topsect' : reference_contents
+        , 'foo<bar>' : reference_contents
+      }
 }
 # yapf: enable
 
@@ -73,11 +81,10 @@ def test_keyword(keywords):
     grammar = getkw.grammar()
     tokens = grammar.parseString(keywords).asDict()['topsect']
 
+    assert tokens == refs['keywords']
     # dump to JSON
     getkw_json = StringIO()
     json.dump(tokens, getkw_json, cls=ComplexEncoder)
-
-    assert tokens == refs['keywords']
     del tokens
 
     # load from JSON
@@ -101,18 +108,47 @@ def section(name):
     ('foo<bar>', 'tagged'),
 ])
 def test_section(name, which):
-    print(section(name))
     grammar = getkw.grammar()
     tokens = grammar.parseString(section(name)).asDict()
 
+    assert tokens == refs[which]
     # dump to JSON
     getkw_json = StringIO()
     json.dump(tokens, getkw_json, cls=ComplexEncoder)
-
-    assert tokens == refs[which]
     del tokens
 
     # load from JSON
     tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
     assert tokens == refs[which]
+
+
+@pytest.fixture
+def flat():
+    stuff = contents().format(
+        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    sects = """topsect {{
+    {CONTENTS:s}
+}}
+
+foo<bar> {{
+    {CONTENTS:s}
+}}
+"""
+    return sects.format(CONTENTS=stuff)
+
+
+def test_flat_sections(flat):
+    grammar = getkw.grammar()
+    tokens = grammar.parseString(flat).asDict()
+
+    assert tokens == refs['flat']
+    # dump to JSON
+    getkw_json = StringIO()
+    json.dump(tokens, getkw_json, cls=ComplexEncoder)
+    del tokens
+
+    # load from JSON
+    tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
+
+    assert tokens == refs['flat']
