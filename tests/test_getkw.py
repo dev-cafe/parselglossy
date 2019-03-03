@@ -298,3 +298,65 @@ def test_keywords_and_flat_sections(keywords_and_flat_sections):
     tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
     assert tokens == ref_dict
+
+
+@pytest.fixture
+def keywords_and_nested_sections():
+    stuff = contents().format(
+        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    template = """/* This is a comment */
+int = 42
+// This is another comment
+dbl = {PI}
+cmplx = -1 -{E}*I
+bool = on
+str = "fooffa"
+
+! Yet another comment
+$raw
+H 0.0 0.0 0.0
+F 1.0 1.0 1.0
+$end
+
+topsect {{
+    {CONTENTS}
+
+    foo<bar> {{
+        {CONTENTS}
+    }}
+}}
+
+# I love comments!
+int_array = {LIST}
+dbl_array = [{PI}, {E}, {TAU}]
+cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
+bool_array = [on, true, yes, False, True, false]
+str_array = [foo, bar, "lorem", "IpSuM"]
+"""
+    inp = template.format(
+        PI=math.pi,
+        E=math.e,
+        TAU=2.0 * math.pi,
+        LIST=list(range(1, 5)),
+        CONTENTS=stuff)
+    return inp
+
+
+def test_keywords_and_nested_sections(keywords_and_nested_sections):
+    """Test an input made of keywords and two nested sections, interspersed."""
+    ref_dict = dict(reference)
+    ref_dict['topsect'] = dict(reference)
+    ref_dict['topsect']['foo<bar>'] = dict(reference)
+    grammar = getkw.grammar()
+    tokens = grammar.parseString(keywords_and_nested_sections).asDict()
+
+    assert tokens == ref_dict
+    # dump to JSON
+    getkw_json = StringIO()
+    json.dump(tokens, getkw_json, cls=ComplexEncoder)
+    del tokens
+
+    # load from JSON
+    tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
+
+    assert tokens == ref_dict
