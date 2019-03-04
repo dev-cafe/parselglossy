@@ -20,9 +20,10 @@ parselglossy Documentation
 Generic input parsing library, speaking in tongues.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
+   design
    installation
    usage
    contributing
