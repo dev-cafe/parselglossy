@@ -22,10 +22,6 @@ parselglossy
         :target: https://parselglossy.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/dev-cafe/parselglossy/shield.svg
-        :target: https://pyup.io/repos/github/dev-cafe/parselglossy/
-        :alt: Updates
-
 
 
 .. epigraph::
