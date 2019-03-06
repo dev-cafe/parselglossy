@@ -363,7 +363,7 @@ def test_keywords_and_nested_sections(keywords_and_nested_sections):
 
 
 @pytest.fixture
-def data_only():
+def data_only_section():
     stuff = """molecule {
 $coords
 H  0.0000  0.0000 -0.7000
@@ -374,13 +374,13 @@ $end
     return stuff
 
 
-def test_data_only(data_only):
+def test_data_only_section(data_only_section):
     ref = {
         'molecule': {
             'coords': 'H  0.0000  0.0000 -0.7000\nH  0.0000  0.0000  0.7000\n'
         }
     }
     grammar = getkw.grammar()
-    tokens = grammar.parseString(data_only).asDict()
+    tokens = grammar.parseString(data_only_section).asDict()
 
     assert tokens == ref
