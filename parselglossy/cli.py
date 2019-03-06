@@ -28,13 +28,12 @@
 
 # -*- coding: utf-8 -*-
 """Console script for parselglossy."""
-import sys
 
 import click
 
 
 @click.group()
-def main(args=None):
+def cli(args=None):
     """Console script for parselglossy."""
     return 0
 
@@ -123,10 +122,7 @@ def doc(doctype):
     pass
 
 
-main.add_command(lex)
-main.add_command(validate)
-main.add_command(parse)
-main.add_command(doc)
-
-if __name__ == "__main__":
-    sys.exit(main())  # pragma: no cover
+cli.add_command(lex)
+cli.add_command(validate)
+cli.add_command(parse)
+cli.add_command(doc)

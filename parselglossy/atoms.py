@@ -59,6 +59,7 @@ bool_t.setParseAction(to_bool)
 
 int_t = pp.pyparsing_common.signed_integer
 int_t.setParseAction(pp.tokenMap(int))
+
 float_t = pp.Regex(r'[+-]?\d+\.?\d*([eE][+-]?\d+)?')
 float_t.setName('float')
 float_t.setParseAction(pp.tokenMap(float))
