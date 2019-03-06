@@ -360,3 +360,27 @@ def test_keywords_and_nested_sections(keywords_and_nested_sections):
     tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
     assert tokens == ref_dict
+
+
+@pytest.fixture
+def data_only():
+    stuff = """molecule {
+$coords
+H  0.0000  0.0000 -0.7000
+H  0.0000  0.0000  0.7000
+$end
+}
+    """
+    return stuff
+
+
+def test_data_only(data_only):
+    ref = {
+        'molecule': {
+            'coords': 'H  0.0000  0.0000 -0.7000\nH  0.0000  0.0000  0.7000\n'
+        }
+    }
+    grammar = getkw.grammar()
+    tokens = grammar.parseString(data_only).asDict()
+
+    assert tokens == ref

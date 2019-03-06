@@ -83,11 +83,9 @@ num_t.setName('numeric')
 
 SDATA = pp.Literal('$').suppress()
 EDATA = pp.CaselessLiteral('$end').suppress()
-data_t = pp.Combine(SDATA + pp.Word(pp.alphas + '_', pp.alphanums + '_'))(
-    'key') + pp.SkipTo(EDATA)('value') + EDATA
-data_t.setName('raw data')
-# Flatten to a key-value tuple
-data_t.setParseAction(lambda token: (token['key'], token['value']))
+data_t = pp.Group(
+    pp.Combine(SDATA + pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')) +
+    pp.SkipTo(EDATA) + EDATA)
 
 fortranStyleComment = pp.Regex(r"!.*").setName("Fortran style comment")
 
