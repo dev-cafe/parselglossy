@@ -5,11 +5,12 @@ steps:
     architecture: 'x64'
 
 - script: |
-    python -m pip install --upgrade pip tox
+    python -m pip install --upgrade pip pipenv
+    pipenv install --three -e .
   displayName: 'Install dependencies'
 
 - script: |
-    tox -e $(pyver)
+    pipenv run py.test -v parselglossy/tests/ --doctest-modules
   displayName: 'Running tests'
 
 - task: PublishTestResults@2

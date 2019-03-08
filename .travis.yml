@@ -8,9 +8,16 @@ python:
   - 3.5
   - 3.4
 
-install: pip install -U tox-travis
+install:
+  - pip install -U pipenv
+  - pipenv install --three -e .
 
-script: tox
+script:
+  - pipenv run flake8 parselglossy
+  - pipenv run py.test -v --cov=parselglossy parselglossy/tests/ --doctest-module
+
+after_success:
+  - codecov
 
 deploy:
   provider: pypi
