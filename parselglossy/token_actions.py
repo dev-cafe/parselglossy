@@ -83,7 +83,7 @@ def to_section(token):
     logging.info('token to_section')
     logging.info('key = {key}\n section = {section}'.format(
         key=token[0], section=token[1:]))
-    #return (token[0], token[1])
+    return (token[0], token[1])
 
 
 def end_of_section(token):

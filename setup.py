@@ -20,7 +20,9 @@ setup_requirements = [
 ]
 
 test_requirements = [
+    'coverage',
     'pytest',
+    'pytest-cov',
 ]
 
 setup(

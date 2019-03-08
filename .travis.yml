@@ -9,12 +9,13 @@ python:
   - 3.4
 
 install:
-  - pip install -U pipenv
-  - pipenv install --three -e .
+  - pip install --upgrade pip
+  - pip install -U flake8 pytest pytest-cov pytest-dependency codecov
+  - pip install -e .
 
 script:
-  - pipenv run flake8 parselglossy
-  - pipenv run py.test -v --cov=parselglossy parselglossy/tests/ --doctest-module
+  - flake8 parselglossy
+  - py.test -v --cov=parselglossy tests/ --doctest-module
 
 after_success:
   - codecov
