@@ -1,0 +1,8 @@
+title: "this is an example"
+scf:
+  functional: 'B3LYP'
+  max_num_iterations: 20
+  some_acceleration: True
+  thresholds:
+    some_integral_screening: 0.0002
+    energy: 0.00001
