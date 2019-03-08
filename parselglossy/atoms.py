@@ -38,13 +38,13 @@ truthy = ['TRUE', 'ON', 'YES', 'Y']
 falsey = ['FALSE', 'OFF', 'NO', 'N']
 
 
-def to_bool(token):
+def to_bool(x):
     defined = False
-    if token[0] is None:
+    if x is None:
         defined = False
-    elif token[0].upper() in falsey:
+    elif x.upper() in falsey:
         defined = False
-    elif token[0].upper() in truthy:
+    elif x.upper() in truthy:
         defined = True
     else:
         defined = False
@@ -55,29 +55,21 @@ def to_bool(token):
 bool_t = functools.reduce(lambda x, y: x ^ y,
                           map(pp.CaselessLiteral, truthy + falsey))
 bool_t.setName('bool')
-bool_t.setParseAction(to_bool)
+bool_t.setParseAction(lambda token: to_bool(token[0]))
 
 int_t = pp.pyparsing_common.signed_integer
-int_t.setParseAction(pp.tokenMap(int))
 
-float_t = pp.Regex(r'[+-]?\d+\.?\d*([eE][+-]?\d+)?')
-float_t.setName('float')
-float_t.setParseAction(pp.tokenMap(float))
+float_t = pp.pyparsing_common.sci_real
 
 str_t = pp.quotedString.setParseAction(pp.removeQuotes) ^ pp.Word(pp.alphanums)
 str_t.setName('str')
 str_t.setParseAction(pp.tokenMap(str))
 
-
-def to_complex(token):
-    return complex(token[0], token[1]) if len(token) == 2 else complex(
-        0.0, token[0])
-
-
 I_unit = functools.reduce(lambda x, y: x ^ y,
                           map(pp.CaselessLiteral, ['*j', '*i'])).suppress()
-complex_t = pp.OneOrMore(float_t | int_t) + I_unit
-complex_t.setParseAction(to_complex)
+complex_t = pp.OneOrMore(pp.pyparsing_common.number) + I_unit
+complex_t.setParseAction(lambda token: complex(token[0], token[1])
+                         if len(token) == 2 else complex(0.0, token[0]))
 
 num_t = complex_t | float_t | int_t
 num_t.setName('numeric')
