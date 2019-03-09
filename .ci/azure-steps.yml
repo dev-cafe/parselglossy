@@ -5,7 +5,7 @@ steps:
     architecture: 'x64'
 
 - script: |
-    python -m pip install --upgrade pip
+    pip install --upgrade pip
     pip install -U flake8 pytest pytest-cov pytest-dependency codecov
     pip install -e .
   displayName: 'Install dependencies'

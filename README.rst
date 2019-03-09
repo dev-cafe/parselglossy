@@ -18,6 +18,9 @@ parselglossy
         :target: https://dev.azure.com/dev-cafe/parselglossy/_build/latest?definitionId=1
         :alt: macOS build status
 
+.. image:: https://codecov.io/gh/dev-cafe/parselglossy/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/dev-cafe/parselglossy
+
 .. image:: https://readthedocs.org/projects/parselglossy/badge/?version=latest
         :target: https://parselglossy.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
