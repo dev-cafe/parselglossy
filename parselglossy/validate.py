@@ -1,18 +1,13 @@
-import yaml
 import re
 from typing import Any
 
 
-def read_yaml_file(file_name: str) -> str:
-    '''
-    Reads a YAML file and returns it as a dictionary.
-    '''
-    with open(file_name, 'r') as f:
-        try:
-            d = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print(e)
-    return d
+class InputError(Exception):
+    pass
+
+
+class TemplateError(Exception):
+    pass
 
 
 def type_matches(value: Any, expected_type: str) -> bool:
@@ -54,14 +49,6 @@ def type_matches(value: Any, expected_type: str) -> bool:
         return type(value).__name__ == expected_type
 
 
-class InputError(Exception):
-    pass
-
-
-class TemplateError(Exception):
-    pass
-
-
 def validate_node(input_dict, template_dict):
     '''
     Verify a node. A node is either the root of the input or it is a section.
@@ -85,7 +72,8 @@ def validate_node(input_dict, template_dict):
         template_keywords = []
 
     # stop if we find a keyword without documentation
-    keywords_no_doc = [x['keyword'] for x in template_dict['keywords'] if 'documentation' not in x or x['documentation'].strip() == '']
+    keywords_no_doc = [x['keyword'] for x in template_dict['keywords']
+                       if 'documentation' not in x or x['documentation'].strip() == '']
     if len(keywords_no_doc) > 0:
         raise TemplateError('keyword(s) without any documentation: {}'.format(keywords_no_doc))
 
@@ -143,15 +131,11 @@ def check_predicates_node(input_dict, input_dict_node, template_dict_node):
     else:
         template_sections = []
 
-    if 'keywords' in template_dict_node:
-        template_keywords = [x['keyword'] for x in template_dict_node['keywords']]
-    else:
-        template_keywords = []
-
     # go through the predicates
     for keyword in input_keywords:
         template_keyword = list(filter(lambda x: x['keyword'] == keyword, template_dict_node['keywords']))[0]
-        value = input_dict_node[keyword]
+        # this value is used by eval() so we skip E841 warning of flake8
+        value = input_dict_node[keyword]  # noqa
         if 'predicates' in template_keyword:
             for predicate in template_keyword['predicates']:
                 try:
@@ -166,16 +150,3 @@ def check_predicates_node(input_dict, input_dict_node, template_dict_node):
         input_section = input_dict_node[section]
         template_section = list(filter(lambda x: x['section'] == section, template_dict_node['sections']))[0]
         check_predicates_node(input_dict, input_section, template_section)
-
-
-if __name__ == '__main__':
-    input_dict = read_yaml_file('example.yml')
-    template_dict = read_yaml_file('template.yml')
-
-    # checks everything except predicates
-    input_dict = validate_node(input_dict, template_dict)
-
-    # now that all keywords have some value, we can check predicates
-    check_predicates_node(input_dict, input_dict, template_dict)
-
-    print(input_dict)
