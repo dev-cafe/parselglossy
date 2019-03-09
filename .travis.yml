@@ -8,9 +8,17 @@ python:
   - 3.5
   - 3.4
 
-install: pip install -U tox-travis
+install:
+  - pip install --upgrade pip
+  - pip install -U flake8 pytest pytest-cov pytest-dependency codecov
+  - pip install -e .
 
-script: tox
+script:
+  - flake8 parselglossy
+  - py.test -v --cov=parselglossy tests/ --doctest-module
+
+after_success:
+  - codecov
 
 deploy:
   provider: pypi

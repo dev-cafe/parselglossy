@@ -26,10 +26,9 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-from pyparsing import (Combine, Dict, Forward, Group, Literal, Optional,
-                       ParseException, Regex, SkipTo, StringEnd, Suppress, Word,
-                       ZeroOrMore, alphanums, alphas, delimitedList, line,
-                       lineno, nums, pythonStyleComment, quotedString,
+from pyparsing import (Combine, Dict, Group, Literal, Regex, SkipTo, StringEnd,
+                       Suppress, Word, ZeroOrMore, alphanums, alphas,
+                       delimitedList, nums, pythonStyleComment, quotedString,
                        removeQuotes)
 
 from . import token_actions
@@ -66,7 +65,7 @@ def new_BNF():
     bool_t.setParseAction(token_actions.to_bool)
     int_t.setParseAction(token_actions.to_int)
     float_t.setParseAction(token_actions.to_float)
-    #str_t.setParseAction(token_actions.to_str)  # Maybe uppercase the string?
+    # str_t.setParseAction(token_actions.to_str)  # Maybe uppercase the string?
     data.setParseAction(token_actions.to_data)
 
     # Step 3: define grammar
@@ -115,11 +114,11 @@ def BNF():
     keyword = name + eql + kstr
     vector = name + eql + vec
     data = Combine(dmark + name) + SkipTo(end_data) + end_data
-    #section = Forward()
+    # section = Forward()
     sect_def = (sect | tag_sect)
-    #input = section | data | vector | keyword
+    # input = section | data | vector | keyword
     input = sect_def | data | vector | keyword | sect_end
-    #section << sect_def + ZeroOrMore(input) + sect_end
+    # section << sect_def + ZeroOrMore(input) + sect_end
 
     # Parsing actions
     int_t.setParseAction(token_actions.to_int)
