@@ -15,15 +15,9 @@ requirements = [
     'pyparsing>=2.2',
 ]
 
-setup_requirements = [
-    'pytest-runner',
-]
+setup_requirements = []
 
-test_requirements = [
-    'coverage',
-    'pytest',
-    'pytest-cov',
-]
+test_requirements = []
 
 setup(
     author="Roberto Di Remigio",
