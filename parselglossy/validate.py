@@ -119,7 +119,7 @@ def validate_node(input_dict: JsonDict, template_dict: JsonDict) -> JsonDict:
         template_keyword = list(filter(lambda x: x['keyword'] == keyword, template_dict['keywords']))[0]
         _type = template_keyword['type']
         if not type_matches(input_dict[keyword], _type):
-            raise InputError("incorrect type for keyword: {0}, expected '{1}' type".format(keyword, _type))
+            raise InputError("incorrect type for keyword: '{0}', expected '{1}' type".format(keyword, _type))
 
     # fill missing input keywords with template defaults
     for keyword in set(template_keywords).difference(set(input_keywords)):
@@ -183,10 +183,10 @@ def check_predicates_node(input_dict: JsonDict,
             for predicate in template_keyword['predicates']:
                 try:
                     r = eval(predicate)
-                except SyntaxError:
-                    raise TemplateError('syntax error in predicate {} in keyword {}'.format(predicate, keyword))
+                except (SyntaxError, NameError):
+                    raise TemplateError("error in predicate '{}' in keyword '{}'".format(predicate, keyword))
                 if not r:
-                    raise InputError('predicate {} failed in keyword {}'.format(predicate, keyword))
+                    raise InputError('predicate "{}" failed in keyword "{}"'.format(predicate, keyword))
 
     # if this node contains sections, we descend into these and verify these in turn
     for section in template_sections:

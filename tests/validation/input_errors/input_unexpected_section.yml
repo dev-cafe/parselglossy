@@ -1,0 +1,10 @@
+title: 'this is my title'
+some_float: 2.4
+some_section:
+  a_short_string: 'short'
+  some_number: 7
+  another_number: 20
+  some_feature: True
+  some_list: [1.0, 2.0, 3.0]
+weird:
+  some_number: 7
