@@ -1,25 +1,7 @@
-import yaml
 import os
 from pathlib import Path
 from parselglossy.validate import validate_node, check_predicates_node
-from typing import Any, Dict
-
-
-JsonDict = Dict[str, Any]
-
-
-def _read_yaml_file(file_name: str) -> JsonDict:
-    '''
-    Reads a YAML file and returns it as a dictionary.
-    '''
-    # convert to str() because
-    # pathlib integrates nicely with open only for python >= 3.6
-    with open(str(file_name), 'r') as f:
-        try:
-            d = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print(e)
-    return d
+from parselglossy.read_yaml import read_yaml_file
 
 
 def test_validation():
@@ -28,8 +10,8 @@ def test_validation():
     input_file = this_path / 'validation' / 'example.yml'
     template_file = this_path / 'validation' / 'template.yml'
 
-    input_dict = _read_yaml_file(input_file)
-    template_dict = _read_yaml_file(template_file)
+    input_dict = read_yaml_file(input_file)
+    template_dict = read_yaml_file(template_file)
 
     # checks everything except predicates
     input_dict = validate_node(input_dict, template_dict)
