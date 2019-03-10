@@ -1,5 +1,8 @@
 import re
-from typing import Any
+from typing import Any, Dict
+
+
+JsonDict = Dict[str, Any]
 
 
 class InputError(Exception):
@@ -11,15 +14,18 @@ class TemplateError(Exception):
 
 
 def type_matches(value: Any, expected_type: str) -> bool:
-    '''
-    Checks whether value has the type expected_type.
+    """Checks whether value has the type expected_type.
+
     If yes, returns True, otherwise False.
 
     Allowed types T are: 'str', 'int', 'float', 'complex', 'bool',
                          as well as 'List[T]'.
 
-    For any other types the function raises ValueError.
-    '''
+    Raises
+    ------
+    ValueError
+        If expected_type is not among the allowed types.
+    """
     allowed_basic_types = ['str', 'int', 'float', 'complex', 'bool']
     allowed_list_types = ['List[{}]'.format(t) for t in allowed_basic_types]
     allowed_types = allowed_basic_types + allowed_list_types
@@ -49,15 +55,31 @@ def type_matches(value: Any, expected_type: str) -> bool:
         return type(value).__name__ == expected_type
 
 
-def validate_node(input_dict, template_dict):
-    '''
-    Verify a node. A node is either the root of the input or it is a section.
-    The node can contain keywords or other sections which we traverse recursively.
+def validate_node(input_dict: JsonDict, template_dict: JsonDict) -> JsonDict:
+    """Validate a node.
 
-    This function modifies input_dict and returns it.
+    A node is either the root of the input or it is a section.  The node can
+    contain keywords or other sections which we traverse recursively.
 
-    Can raise either InputError or TemplateError.
-    '''
+    Parameters
+    ----------
+    input_dict: JsonDict
+        Contains the input to be checked.
+    template_dict: JsonDict
+        Contains the input template to be checked against.
+
+    Returns
+    -------
+    input_dict: JsonDict
+        This function modifies input_dict (e.g. fills in defaults).
+
+    Raises
+    ------
+    InputError
+        This signals an error in the input that is to be parsed.
+    TemplateError
+        This signals an error in the input template.
+    """
     input_sections = [x for x in input_dict if type(input_dict[x]).__name__ == 'dict']
     input_keywords = list(filter(lambda x: x not in input_sections, input_dict.keys()))
 
@@ -114,15 +136,36 @@ def validate_node(input_dict, template_dict):
     return input_dict
 
 
-def check_predicates_node(input_dict, input_dict_node, template_dict_node):
-    '''
-    Check keyword predicates in a node. A node is either the root of the input or it is a section.
-    The node can contain keywords or other sections which we traverse recursively.
+def check_predicates_node(input_dict: JsonDict,
+                          input_dict_node: JsonDict,
+                          template_dict_node: JsonDict) -> None:
+    """Check keyword predicates in a node.
+
+    A node is either the root of the input or it is a section.  The node can
+    contain keywords or other sections which we traverse recursively.
 
     This function does not modify input arguments.
 
-    Can raise either InputError or TemplateError.
-    '''
+    Parameters
+    ----------
+    input_dict: JsonDict
+        Contains the entire input tree.
+    input_dict_node: JsonDict
+        Contains the input to be checked: only current node.
+    template_dict: JsonDict
+        Contains the input template which holds the predicates.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    InputError
+        This signals an error in the input that is to be parsed.
+    TemplateError
+        This signals an error in the input template.
+    """
     input_sections = [x for x in input_dict_node if type(input_dict_node[x]).__name__ == 'dict']
     input_keywords = list(filter(lambda x: x not in input_sections, input_dict_node.keys()))
 

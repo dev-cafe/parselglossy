@@ -6,9 +6,8 @@ JsonDict = Dict[str, Any]
 
 
 def read_yaml_file(file_name: str) -> JsonDict:
-    '''
-    Reads a YAML file and returns it as a dictionary.
-    '''
+    """Reads a YAML file and returns it as a dictionary.
+    """
     # convert to str() because
     # pathlib integrates nicely with open only for python >= 3.6
     with open(str(file_name), 'r') as f:
