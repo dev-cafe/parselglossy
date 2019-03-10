@@ -2,13 +2,19 @@ import os
 from pathlib import Path
 from parselglossy.validate import validate_node, check_predicates_node
 from parselglossy.read_yaml import read_yaml_file
+from typing import Dict, Any
 
 
-def test_validation():
+JsonDict = Dict[str, Any]
+
+
+def _helper(category: str,
+            input_file_name: str,
+            template_file_name: str) -> JsonDict:
     this_path = Path(os.path.dirname(os.path.realpath(__file__)))
 
-    input_file = this_path / 'validation' / 'example.yml'
-    template_file = this_path / 'validation' / 'template.yml'
+    input_file = this_path / 'validation' / category / input_file_name
+    template_file = this_path / 'validation' / category / template_file_name
 
     input_dict = read_yaml_file(input_file)
     template_dict = read_yaml_file(template_file)
@@ -18,6 +24,14 @@ def test_validation():
 
     # now that all keywords have some value, we can check predicates
     check_predicates_node(input_dict, input_dict, template_dict)
+
+    return input_dict
+
+
+def test_validation():
+    input_dict = _helper('overall',
+                         'input.yml',
+                         'template.yml')
 
     reference = {
         'title': 'this is an example',
