@@ -2,9 +2,13 @@ import yaml
 import os
 from pathlib import Path
 from parselglossy.validate import validate_node, check_predicates_node
+from typing import Any, Dict
 
 
-def _read_yaml_file(file_name: str) -> str:
+JsonDict = Dict[str, Any]
+
+
+def _read_yaml_file(file_name: str) -> JsonDict:
     '''
     Reads a YAML file and returns it as a dictionary.
     '''
