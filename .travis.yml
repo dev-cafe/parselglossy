@@ -8,17 +8,20 @@ python:
   - 3.5
   - 3.4
 
+env:
+  - PIPENV_VERBOSITY=-1
+
 install:
   - pip install --upgrade pip
-  - pip install -U flake8 pytest pytest-cov pytest-dependency codecov
-  - pip install -e .
+  - pip install -U pipenv
+  - pipenv install --dev -e .
 
 script:
-  - flake8 parselglossy
-  - py.test -v --cov=parselglossy tests/ --doctest-module
+  - pipenv run flake8 parselglossy
+  - pipenv run py.test -v --cov=parselglossy tests/ --doctest-module
 
 after_success:
-  - codecov
+  - pipenv run codecov
 
 deploy:
   provider: pypi

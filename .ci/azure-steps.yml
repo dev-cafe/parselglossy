@@ -6,10 +6,10 @@ steps:
 
 - script: |
     pip install --upgrade pip
-    pip install -U flake8 pytest pytest-cov pytest-dependency codecov
-    pip install -e .
+    pip install -U pipenv
+    pipenv install --dev -e .
   displayName: 'Install dependencies'
 
 - script: |
-    py.test -v tests/ --doctest-modules
+    pipenv run py.test -v tests/ --doctest-modules
   displayName: 'Running tests'
