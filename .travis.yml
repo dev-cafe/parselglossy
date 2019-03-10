@@ -18,7 +18,7 @@ install:
 
 script:
   - pipenv run flake8 parselglossy
-  - pipenv run py.test -v --cov=parselglossy tests/ --doctest-module
+  - pipenv run py.test -s -v --cov=parselglossy tests/ --doctest-module
 
 after_success:
   - pipenv run codecov
