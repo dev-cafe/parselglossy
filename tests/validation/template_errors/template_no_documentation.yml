@@ -1,0 +1,44 @@
+keywords:
+  - keyword: title
+    type: str
+    documentation: |
+      Title of the calculation.
+  - keyword: some_float
+    type: float
+    default: 1.2
+    documentation: |
+      Some float.
+sections:
+  - section: some_section
+    keywords:
+    - keyword: a_short_string
+      type: str
+      predicates:
+        - '0 < len(value) <= 5'
+#     documentation: |
+#       Some short string.
+    - keyword: some_number
+      type: int
+      default: 5
+      predicates:
+        - "value < input_dict['some_section']['another_number']"
+      documentation: |
+        Some number.
+    - keyword: another_number
+      type: int
+      default: 10
+      predicates:
+        - '0 <= value <= 40'
+        - 'value % 2 == 0'
+        - "value > input_dict['some_section']['some_number']"
+      documentation: |
+        Another number.
+    - keyword: some_feature
+      type: bool
+      default: False
+      documentation: |
+        Some feature.
+    - keyword: some_list
+      type: List[float]
+      documentation: |
+        A list of floats.
