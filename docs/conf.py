@@ -1,20 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+import pathlib
 import sys
 
 import guzzle_sphinx_theme
+from sphinx.apidoc import main
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
 from parselglossy import __version__ as psversion  # isort:skip
 
 # -- General configuration ---------------------------------------------
 
-extensions = [
-    'sphinx.ext.napoleon', 'sphinx.ext.viewcode', 'guzzle_sphinx_theme'
-]
+extensions = ['sphinx.ext.napoleon', 'sphinx.ext.viewcode', 'guzzle_sphinx_theme']
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
@@ -34,10 +33,7 @@ todo_include_todos = False
 html_title = "parselglossy Documentation"
 html_short_title = "parselglossy {}".format(version)
 html_show_sourcelink = False
-html_sidebars = {
-    '**':
-    ['logo-text.html', 'globaltoc.html', 'localtoc.html', 'searchbox.html']
-}
+html_sidebars = {'**': ['logo-text.html', 'globaltoc.html', 'localtoc.html', 'searchbox.html']}
 html_theme_path = guzzle_sphinx_theme.html_theme_path()
 html_theme = 'guzzle_sphinx_theme'
 html_theme_options = {
@@ -45,3 +41,13 @@ html_theme_options = {
     "project_nav_name": "parselglossy",
 }
 html_static_path = ['_static']
+
+
+def run_apidoc(_):
+    cur_dir = pathlib.Path(__file__).parent
+    module = cur_dir.parent / project
+    main(['-e', '-o', str(cur_dir), str(module), '--force'])
+
+
+def setup(app):
+    app.connect('builder-inited', run_apidoc)
