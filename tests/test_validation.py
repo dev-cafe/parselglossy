@@ -9,12 +9,12 @@ from parselglossy.read_yaml import read_yaml_file
 from typing import Dict, Any
 
 
-JsonDict = Dict[str, Any]
+JSONDict = Dict[str, Any]
 
 
 def _helper(category: str,
             input_file_name: str,
-            template_file_name: str) -> JsonDict:
+            template_file_name: str) -> JSONDict:
     this_path = Path(os.path.dirname(os.path.realpath(__file__)))
 
     input_file = this_path / 'validation' / category / input_file_name

@@ -2,7 +2,7 @@ import re
 from typing import Any, Dict
 
 
-JsonDict = Dict[str, Any]
+JSONDict = Dict[str, Any]
 
 
 class InputError(Exception):
@@ -55,7 +55,7 @@ def type_matches(value: Any, expected_type: str) -> bool:
         return type(value).__name__ == expected_type
 
 
-def validate_node(input_dict: JsonDict, template_dict: JsonDict) -> JsonDict:
+def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
     """Validate a node.
 
     A node is either the root of the input or it is a section.  The node can
@@ -63,14 +63,14 @@ def validate_node(input_dict: JsonDict, template_dict: JsonDict) -> JsonDict:
 
     Parameters
     ----------
-    input_dict: JsonDict
+    input_dict: JSONDict
         Contains the input to be checked.
-    template_dict: JsonDict
+    template_dict: JSONDict
         Contains the input template to be checked against.
 
     Returns
     -------
-    input_dict: JsonDict
+    input_dict: JSONDict
         This function modifies input_dict (e.g. fills in defaults).
 
     Raises
@@ -136,9 +136,9 @@ def validate_node(input_dict: JsonDict, template_dict: JsonDict) -> JsonDict:
     return input_dict
 
 
-def check_predicates_node(input_dict: JsonDict,
-                          input_dict_node: JsonDict,
-                          template_dict_node: JsonDict) -> None:
+def check_predicates_node(input_dict: JSONDict,
+                          input_dict_node: JSONDict,
+                          template_dict_node: JSONDict) -> None:
     """Check keyword predicates in a node.
 
     A node is either the root of the input or it is a section.  The node can
@@ -148,11 +148,11 @@ def check_predicates_node(input_dict: JsonDict,
 
     Parameters
     ----------
-    input_dict: JsonDict
+    input_dict: JSONDict
         Contains the entire input tree.
-    input_dict_node: JsonDict
+    input_dict_node: JSONDict
         Contains the input to be checked: only current node.
-    template_dict: JsonDict
+    template_dict: JSONDict
         Contains the input template which holds the predicates.
 
     Returns

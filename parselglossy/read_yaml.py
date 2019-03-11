@@ -2,10 +2,10 @@ import yaml
 from typing import Any, Dict
 
 
-JsonDict = Dict[str, Any]
+JSONDict = Dict[str, Any]
 
 
-def read_yaml_file(file_name: str) -> JsonDict:
+def read_yaml_file(file_name: str) -> JSONDict:
     """Reads a YAML file and returns it as a dictionary.
     """
     # convert to str() because
