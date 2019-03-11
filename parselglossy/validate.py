@@ -27,9 +27,9 @@
 #
 
 import re
-from typing import Any, Dict
+from typing import Any
 
-JSONDict = Dict[str, Any]
+from .utils import JSONDict
 
 
 class InputError(Exception):

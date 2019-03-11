@@ -26,13 +26,14 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
+from pathlib import Path
+
 import yaml
-from typing import Any, Dict
 
-JSONDict = Dict[str, Any]
+from .utils import JSONDict
 
 
-def read_yaml_file(file_name: str) -> JSONDict:
+def read_yaml_file(file_name: Path) -> JSONDict:
     """Reads a YAML file and returns it as a dictionary.
     """
     # convert to str() because
