@@ -48,6 +48,10 @@ def test_validation():
                  'energy': 1e-05
              },
             'another_number': 10,
+            # the complex number is a string here because this is how
+            # pyyaml interprets it
+            # for follow-up please see
+            # https://github.com/dev-cafe/parselglossy/issues/26
             'some_complex_number': '0.0+0.0j'
         }
     }
