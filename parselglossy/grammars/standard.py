@@ -27,11 +27,11 @@
 #
 
 # -*- coding: utf-8 -*-
-"""The original Getkw grammar."""
+"""Extension of the original Getkw grammar allowing complex numbers."""
 
 import pyparsing as pp
 
-from .atoms import bool_t, data_t, float_t, fortranStyleComment, int_t, str_t
+from .atoms import bool_t, data_t, fortranStyleComment, num_t, str_t
 
 
 def grammar():
@@ -42,9 +42,9 @@ def grammar():
     # Define key
     key = pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')
 
-    # A scalar value (bool, int, float, str)
-    scalar = bool_t ^ (float_t | int_t) ^ str_t
-    # An array value ([bool], [int], [float], [str])
+    # A scalar value (bool, int, float, complex, str)
+    scalar = bool_t ^ num_t ^ str_t
+    # An array value ([bool], [int], [float], [complex], [str])
     array = LBRACKET + pp.delimitedList(scalar ^ NEWLINE) + RBRACKET
 
     value = scalar ^ array
