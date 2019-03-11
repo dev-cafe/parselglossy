@@ -26,40 +26,52 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
+# -*- coding: utf-8 -*-
+"""Atoms."""
+
+import functools
+
 import pyparsing as pp
 
-from .atoms import bool_t, data_t, fortranStyleComment, num_t, str_t
+truthy = ['TRUE', 'ON', 'YES', 'Y']
+falsey = ['FALSE', 'OFF', 'NO', 'N']
 
 
-def grammar():
-    LBRACKET, RBRACKET, EQ, COMMA = map(pp.Suppress, '[]=,')
-    NEWLINE = pp.Literal('\n').suppress()
-    LBRACE, RBRACE = map(pp.Suppress, '{}')
+def to_bool(x):
+    defined = False
+    if x is None:
+        defined = False
+    elif x.upper() in falsey:
+        defined = False
+    elif x.upper() in truthy:
+        defined = True
+    else:
+        defined = False
 
-    # Define key
-    key = pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')
+    return defined
 
-    # A scalar value (bool, int, float, complex, str)
-    scalar = bool_t ^ num_t ^ str_t
-    # An array value ([bool], [int], [float], [complex], [str])
-    array = LBRACKET + pp.delimitedList(scalar ^ NEWLINE) + RBRACKET
 
-    value = scalar ^ array
+bool_t = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, truthy + falsey))
+bool_t.setName('bool')
+bool_t.setParseAction(lambda token: to_bool(token[0]))
 
-    # Define key-value pairs, i.e. our keywords
-    pair = pp.Group(key + EQ + value)
+int_t = pp.pyparsing_common.signed_integer
 
-    # Define values and section recursively
-    section = pp.Forward()
-    values = pp.Forward()
-    section << pp.Group(key + LBRACE + values + RBRACE)
-    values << pp.Dict(pp.OneOrMore(pair | data_t | section))
+float_t = pp.pyparsing_common.sci_real
 
-    # Define input
-    input = pp.Dict(pp.OneOrMore(values) | pp.OneOrMore(section))
+str_t = pp.quotedString.setParseAction(pp.removeQuotes) ^ pp.Word(pp.alphanums)
+str_t.setName('str')
+str_t.setParseAction(pp.tokenMap(str))
 
-    # Ignore Python (#), C/C++ (/* */ and //), and Fortran (!) style comments
-    comment = pp.cppStyleComment | pp.pythonStyleComment | fortranStyleComment
-    input.ignore(comment)
+I_unit = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, ['*j', '*i'])).suppress()
+complex_t = pp.OneOrMore(pp.pyparsing_common.number) + I_unit
+complex_t.setParseAction(lambda token: complex(token[0], token[1]) if len(token) == 2 else complex(0.0, token[0]))
 
-    return input
+num_t = complex_t | float_t | int_t
+num_t.setName('numeric')
+
+SDATA = pp.Literal('$').suppress()
+EDATA = pp.CaselessLiteral('$end').suppress()
+data_t = pp.Group(pp.Combine(SDATA + pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')) + pp.SkipTo(EDATA) + EDATA)
+
+fortranStyleComment = pp.Regex(r"!.*").setName("Fortran style comment")

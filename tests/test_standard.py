@@ -37,16 +37,19 @@ from io import StringIO
 
 import pytest
 
-from parselglossy.grammars import getkw
+from parselglossy.grammars import standard
+from parselglossy.utils import ComplexEncoder, as_complex
 
 # yapf: disable
 reference = {
      'int': 42
    , 'dbl': math.pi
+   , 'cmplx': complex(-1, -math.e)
    , 'bool': True
    , 'str': 'fooffa'
    , 'int_array': list(range(1, 5))
    , 'dbl_array': [math.pi, math.e, 2.0*math.pi]
+   , 'cmplx_array': [complex(math.pi, -2.0), complex(math.e, -2.0), complex(2.0*math.pi, 1.5)]
    , 'bool_array': [True, True, True, False, True, False]
    , 'str_array': ["foo", "bar", "lorem", "IpSuM"]
    , 'raw': "H 0.0 0.0 0.0\nF 1.0 1.0 1.0\n"
@@ -59,6 +62,7 @@ def contents():
 int = 42
 // This is another comment
 dbl = {PI}
+cmplx = -1 -{E}*I
 bool = on
 str = "fooffa"
 
@@ -71,6 +75,7 @@ $end
 # I love comments!
 int_array = {LIST}
 dbl_array = [{PI}, {E}, {TAU}]
+cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
@@ -87,17 +92,17 @@ def keywords():
 
 def test_keyword(keywords):
     """Test an input made only of keywords."""
-    grammar = getkw.grammar()
+    grammar = standard.grammar()
     tokens = grammar.parseString(keywords).asDict()
 
     assert tokens == reference
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, cls=ComplexEncoder)
     del tokens
 
     # load from JSON
-    tokens = json.loads(getkw_json.getvalue())
+    tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
     assert tokens == reference
 
@@ -118,17 +123,17 @@ def section(name):
 def test_section(name):
     """Test an input made of one section, tagged or untagged."""
     ref_dict = {name: dict(reference)}
-    grammar = getkw.grammar()
+    grammar = standard.grammar()
     tokens = grammar.parseString(section(name)).asDict()
 
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, cls=ComplexEncoder)
     del tokens
 
     # load from JSON
-    tokens = json.loads(getkw_json.getvalue())
+    tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
     assert tokens == ref_dict
 
@@ -150,17 +155,17 @@ foo<bar> {{
 def test_flat_sections(flat_sections):
     """Test an input made of two unnested sections, tagged or untagged."""
     ref_dict = {'topsect': dict(reference), 'foo<bar>': dict(reference)}
-    grammar = getkw.grammar()
+    grammar = standard.grammar()
     tokens = grammar.parseString(flat_sections).asDict()
 
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, cls=ComplexEncoder)
     del tokens
 
     # load from JSON
-    tokens = json.loads(getkw_json.getvalue())
+    tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
     assert tokens == ref_dict
 
@@ -183,17 +188,17 @@ def test_nested_sections(nested_sections):
     """Test an input made of two nested sections, tagged or untagged."""
     ref_dict = {'topsect': dict(reference)}
     ref_dict['topsect']['foo<bar>'] = dict(reference)
-    grammar = getkw.grammar()
+    grammar = standard.grammar()
     tokens = grammar.parseString(nested_sections).asDict()
 
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, cls=ComplexEncoder)
     del tokens
 
     # load from JSON
-    tokens = json.loads(getkw_json.getvalue())
+    tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
     assert tokens == ref_dict
 
@@ -204,6 +209,7 @@ def keywords_and_section(name):
 int = 42
 // This is another comment
 dbl = {PI}
+cmplx = -1 -{E}*I
 bool = on
 str = "fooffa"
 
@@ -220,6 +226,7 @@ $end
 # I love comments!
 int_array = {LIST}
 dbl_array = [{PI}, {E}, {TAU}]
+cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
@@ -235,17 +242,17 @@ def test_keywords_and_section(name):
     """Test an input made of keywords, one section, tagged or untagged, and more keywords."""
     ref_dict = dict(reference)
     ref_dict[name] = dict(reference)
-    grammar = getkw.grammar()
+    grammar = standard.grammar()
     tokens = grammar.parseString(keywords_and_section(name)).asDict()
 
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, cls=ComplexEncoder)
     del tokens
 
     # load from JSON
-    tokens = json.loads(getkw_json.getvalue())
+    tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
     assert tokens == ref_dict
 
@@ -257,6 +264,7 @@ def keywords_and_flat_sections():
 int = 42
 // This is another comment
 dbl = {PI}
+cmplx = -1 -{E}*I
 bool = on
 str = "fooffa"
 
@@ -277,6 +285,7 @@ foo<bar> {{
 # I love comments!
 int_array = {LIST}
 dbl_array = [{PI}, {E}, {TAU}]
+cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
@@ -289,17 +298,17 @@ def test_keywords_and_flat_sections(keywords_and_flat_sections):
     ref_dict = dict(reference)
     ref_dict['topsect'] = dict(reference)
     ref_dict['foo<bar>'] = dict(reference)
-    grammar = getkw.grammar()
+    grammar = standard.grammar()
     tokens = grammar.parseString(keywords_and_flat_sections).asDict()
 
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, cls=ComplexEncoder)
     del tokens
 
     # load from JSON
-    tokens = json.loads(getkw_json.getvalue())
+    tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
     assert tokens == ref_dict
 
@@ -311,6 +320,7 @@ def keywords_and_nested_sections():
 int = 42
 // This is another comment
 dbl = {PI}
+cmplx = -1 -{E}*I
 bool = on
 str = "fooffa"
 
@@ -331,6 +341,7 @@ topsect {{
 # I love comments!
 int_array = {LIST}
 dbl_array = [{PI}, {E}, {TAU}]
+cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
@@ -343,17 +354,17 @@ def test_keywords_and_nested_sections(keywords_and_nested_sections):
     ref_dict = dict(reference)
     ref_dict['topsect'] = dict(reference)
     ref_dict['topsect']['foo<bar>'] = dict(reference)
-    grammar = getkw.grammar()
+    grammar = standard.grammar()
     tokens = grammar.parseString(keywords_and_nested_sections).asDict()
 
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, cls=ComplexEncoder)
     del tokens
 
     # load from JSON
-    tokens = json.loads(getkw_json.getvalue())
+    tokens = json.loads(getkw_json.getvalue(), object_hook=as_complex)
 
     assert tokens == ref_dict
 
@@ -372,7 +383,7 @@ $end
 
 def test_data_only_section(data_only_section):
     ref = {'molecule': {'coords': 'H  0.0000  0.0000 -0.7000\nH  0.0000  0.0000  0.7000\n'}}
-    grammar = getkw.grammar()
+    grammar = standard.grammar()
     tokens = grammar.parseString(data_only_section).asDict()
 
     assert tokens == ref

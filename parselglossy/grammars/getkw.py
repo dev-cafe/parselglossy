@@ -26,38 +26,43 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-from parselglossy.validate import type_matches
-import pytest
+# -*- coding: utf-8 -*-
+"""The original Getkw grammar."""
+
+import pyparsing as pp
+
+from .atoms import bool_t, data_t, float_t, fortranStyleComment, int_t, str_t
 
 
-def test_type_matches():
+def grammar():
+    LBRACKET, RBRACKET, EQ, COMMA = map(pp.Suppress, '[]=,')
+    NEWLINE = pp.Literal('\n').suppress()
+    LBRACE, RBRACE = map(pp.Suppress, '{}')
 
-    # str
-    assert type_matches('a string', 'str')
-    assert not type_matches(1.0, 'str')
+    # Define key
+    key = pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')
 
-    # float and int
-    assert type_matches(1.0, 'float')
-    assert type_matches(1.0e-8, 'float')
-    assert type_matches(1, 'int')
-    assert not type_matches(1, 'float')
+    # A scalar value (bool, int, float, str)
+    scalar = bool_t ^ (float_t | int_t) ^ str_t
+    # An array value ([bool], [int], [float], [str])
+    array = LBRACKET + pp.delimitedList(scalar ^ NEWLINE) + RBRACKET
 
-    # complex
-    assert type_matches(1.0 + 1.0j, 'complex')
+    value = scalar ^ array
 
-    # bool
-    assert type_matches(True, 'bool')
-    assert type_matches(False, 'bool')
-    assert not type_matches(0, 'bool')
+    # Define key-value pairs, i.e. our keywords
+    pair = pp.Group(key + EQ + value)
 
-    # lists
-    assert type_matches([1, 2, 3], 'List[int]')
-    assert not type_matches((1, 2, 3), 'List[int]')
-    assert not type_matches([1, 2, 3], 'List[float]')
-    assert type_matches([1.0, 2.0, 3.0], 'List[float]')
-    assert not type_matches([1.0, 2.0, 3], 'List[float]')
+    # Define values and section recursively
+    section = pp.Forward()
+    values = pp.Forward()
+    section << pp.Group(key + LBRACE + values + RBRACE)
+    values << pp.Dict(pp.OneOrMore(pair | data_t | section))
 
-    # unexpected type input
-    with pytest.raises(ValueError):
-        assert type_matches('example', 'weird')
-        assert type_matches('example', 'List[strange]')
+    # Define input
+    input = pp.Dict(pp.OneOrMore(values) | pp.OneOrMore(section))
+
+    # Ignore Python (#), C/C++ (/* */ and //), and Fortran (!) style comments
+    comment = pp.cppStyleComment | pp.pythonStyleComment | fortranStyleComment
+    input.ignore(comment)
+
+    return input
