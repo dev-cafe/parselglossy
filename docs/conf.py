@@ -13,7 +13,7 @@ from parselglossy import __version__ as psversion  # isort:skip
 # -- General configuration ---------------------------------------------
 
 extensions = [
-    'sphinx.ext.autodoc', 'sphinx.ext.viewcode', 'guzzle_sphinx_theme'
+    'sphinx.ext.napoleon', 'sphinx.ext.viewcode', 'guzzle_sphinx_theme'
 ]
 templates_path = ['_templates']
 source_suffix = '.rst'

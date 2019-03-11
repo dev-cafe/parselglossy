@@ -17,7 +17,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# Roberto Di Remigio, and contributors. OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
@@ -26,5 +26,40 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
-"""Main module."""
+import pyparsing as pp
+
+from .atoms import bool_t, data_t, fortranStyleComment, num_t, str_t
+
+
+def grammar():
+    LBRACKET, RBRACKET, EQ, COMMA = map(pp.Suppress, '[]=,')
+    NEWLINE = pp.Literal('\n').suppress()
+    LBRACE, RBRACE = map(pp.Suppress, '{}')
+
+    # Define key
+    key = pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')
+
+    # A scalar value (bool, int, float, complex, str)
+    scalar = bool_t ^ num_t ^ str_t
+    # An array value ([bool], [int], [float], [complex], [str])
+    array = LBRACKET + pp.delimitedList(scalar ^ NEWLINE) + RBRACKET
+
+    value = scalar ^ array
+
+    # Define key-value pairs, i.e. our keywords
+    pair = pp.Group(key + EQ + value)
+
+    # Define values and section recursively
+    section = pp.Forward()
+    values = pp.Forward()
+    section << pp.Group(key + LBRACE + values + RBRACE)
+    values << pp.Dict(pp.OneOrMore(pair | data_t | section))
+
+    # Define input
+    input = pp.Dict(pp.OneOrMore(values) | pp.OneOrMore(section))
+
+    # Ignore Python (#), C/C++ (/* */ and //), and Fortran (!) style comments
+    comment = pp.cppStyleComment | pp.pythonStyleComment | fortranStyleComment
+    input.ignore(comment)
+
+    return input

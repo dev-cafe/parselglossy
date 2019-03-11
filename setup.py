@@ -36,7 +36,7 @@ setup(
     description="Generic input parsing library, speaking in tongues",
     entry_points={
         'console_scripts': [
-            'parselglossy=parselglossy.cli:main',
+            'parselglossy=parselglossy.cli:cli',
         ],
     },
     install_requires=requirements,

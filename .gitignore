@@ -108,3 +108,9 @@ Pipfile.lock
 # Development stuff
 .direnv
 .dir-locals.el
+
+# GNU Global stuff
+GPATH
+GRTAGS
+GTAGS
+

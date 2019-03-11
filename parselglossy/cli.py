@@ -17,7 +17,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# Roberto Di Remigio, and contributors. OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
@@ -28,18 +28,101 @@
 
 # -*- coding: utf-8 -*-
 """Console script for parselglossy."""
-import sys
+
 import click
 
 
-@click.command()
-def main(args=None):
+@click.group()
+def cli(args=None):
     """Console script for parselglossy."""
-    click.echo("Replace this message by putting your code into "
-               "parselglossy.cli.main")
-    click.echo("See click documentation at http://click.pocoo.org/")
     return 0
 
 
-if __name__ == "__main__":
-    sys.exit(main())  # pragma: no cover
+@click.command()
+@click.option(
+    '--dump-ir/--no-dump-ir',
+    default=False,
+    help='serialize IR to JSON file',
+    metavar='<dumpir>')
+@click.argument('infile', metavar='<infile>')
+def lex(dumpir, infile):
+    """Run lexer to obtain JSON intermediate representation.
+
+    \b
+    Parameters
+    ----------
+    dumpir : bool
+             Whether to serialize IR to JSON. Location and name of file are
+             determined based on the input file.
+    infile : str or path
+            The input file to be parsed.
+    """
+    ir = {}
+    return ir
+
+
+@click.command()
+@click.option(
+    '--dump-fr/--no-dump-fr',
+    default=False,
+    help='serialize FR to JSON file',
+    metavar='<dumpfr>')
+def validate(dumpfr, ir):
+    """Validate intermediate representation into final representation.
+
+    \b
+    Parameters
+    ----------
+    dumpir : bool
+             Whether to serialize FR to JSON. Location and name of file are
+             determined based on the input file.
+    ir : dict
+         Intermediate representation of the input file.
+    """
+    fr = {}
+    return fr
+
+
+@click.command()
+@click.option(
+    '--dump/--no-dump',
+    default=False,
+    help='serialize parsed input to JSON file',
+    metavar='<dump>')
+@click.argument('infile', metavar='<infile>')
+def parse(dump, infile):
+    """Parse input file.
+
+    \b
+    Parameters
+    ----------
+    dumpir : bool
+             Whether to serialize parsed input to JSON. Location and name of file are
+             determined based on the input file.
+    infile : str or path
+            The input file to be parsed.
+    """
+    ir = lex(infile, dump)
+    fr = validate(dump, ir)
+    return fr
+
+
+@click.command()
+@click.option('--doc-type', type=click.Choice(['md', 'rst', 'tex']))
+def doc(doctype):
+    """Generate documentation from validation specs.
+
+    \b
+    Parameters
+    ----------
+    doctype : str
+              Format of the generated documentation.
+              Valid choices are `md`, `rst`, and `tex`.
+    """
+    pass
+
+
+cli.add_command(lex)
+cli.add_command(validate)
+cli.add_command(parse)
+cli.add_command(doc)
