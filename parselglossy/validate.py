@@ -49,6 +49,10 @@ def type_matches(value: Any, expected_type: str) -> bool:
         # and check whether it matches T
         list_element_type = re.search(r"^List\[(\w+)\]$", expected_type).group(1)
         for element in value:
+            # consider replacing type(element).__name__
+            # by isinstance but mind that isinstance(element, list_element_type)
+            # will not work since list_element_type is a string
+            # so if you go this route, there needs to be an extra translation layer
             if not type(element).__name__ == list_element_type:
                 return False
 
