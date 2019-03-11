@@ -1,6 +1,33 @@
+#
+# parselglossy -- Generic input parsing library, speaking in tongues
+# Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
+#
+# This file is part of parselglossy.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# For information on the complete list of contributors to the
+# parselglossy library, see: <http://parselglossy.readthedocs.io/>
+#
+
 import re
 from typing import Any, Dict
-
 
 JSONDict = Dict[str, Any]
 
@@ -102,8 +129,9 @@ def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
         template_keywords = []
 
     # stop if we find a keyword without documentation
-    keywords_no_doc = [x['keyword'] for x in template_dict['keywords']
-                       if 'documentation' not in x or x['documentation'].strip() == '']
+    keywords_no_doc = [
+        x['keyword'] for x in template_dict['keywords'] if 'documentation' not in x or x['documentation'].strip() == ''
+    ]
     if len(keywords_no_doc) > 0:
         raise TemplateError('keyword(s) without any documentation: {}'.format(keywords_no_doc))
 
@@ -144,9 +172,7 @@ def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
     return input_dict
 
 
-def check_predicates_node(input_dict: JSONDict,
-                          input_dict_node: JSONDict,
-                          template_dict_node: JSONDict) -> None:
+def check_predicates_node(input_dict: JSONDict, input_dict_node: JSONDict, template_dict_node: JSONDict) -> None:
     """Check keyword predicates in a node.
 
     A node is either the root of the input or it is a section.  The node can
