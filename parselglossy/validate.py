@@ -159,10 +159,6 @@ def check_predicates_node(input_dict: JSONDict,
     template_dict: JSONDict
         Contains the input template which holds the predicates.
 
-    Returns
-    -------
-    None
-
     Raises
     ------
     InputError
