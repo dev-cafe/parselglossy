@@ -13,6 +13,7 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'Click>=6.0',
     'pyparsing>=2.2',
+    'pyyaml>=3.13',
 ]
 
 setup_requirements = []
