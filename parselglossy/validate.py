@@ -16,8 +16,10 @@ class TemplateError(Exception):
 def type_matches(value: Any, expected_type: str) -> bool:
     """Checks whether value has the type expected_type.
 
-    Allowed types T are: 'str', 'int', 'float', 'complex', 'bool',
-                         as well as 'List[T]'.
+    Notes
+    -----
+    Allowed types T are: `str`, `int`, `float`, `complex`, `bool`,
+    as well as `List[T]`.
 
     Returns
     -------
