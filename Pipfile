@@ -22,8 +22,8 @@ twine = "*"
 watchdog = "*"
 wheel = "*"
 yapf = "*"
-pyyaml = "*"
 
 [packages]
 click = "*"
 pyparsing = "*"
+pyyaml = "*"
