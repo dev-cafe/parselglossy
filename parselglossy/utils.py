@@ -27,51 +27,22 @@
 #
 
 # -*- coding: utf-8 -*-
-"""Atoms."""
+"""Common utilities."""
+import json
+from typing import Any, Dict
 
-import functools
-
-import pyparsing as pp
-
-truthy = ['TRUE', 'ON', 'YES', 'Y']
-falsey = ['FALSE', 'OFF', 'NO', 'N']
+JSONDict = Dict[str, Any]
 
 
-def to_bool(x):
-    defined = False
-    if x is None:
-        defined = False
-    elif x.upper() in falsey:
-        defined = False
-    elif x.upper() in truthy:
-        defined = True
-    else:
-        defined = False
-
-    return defined
+class ComplexEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, complex):
+            return {'__complex__': [obj.real, obj.imag]}
+        # Let the base class default method raise the TypeError
+        return json.JSONEncoder.default(self, obj)
 
 
-bool_t = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, truthy + falsey))
-bool_t.setName('bool')
-bool_t.setParseAction(lambda token: to_bool(token[0]))
-
-int_t = pp.pyparsing_common.signed_integer
-
-float_t = pp.pyparsing_common.sci_real
-
-str_t = pp.quotedString.setParseAction(pp.removeQuotes) ^ pp.Word(pp.alphanums)
-str_t.setName('str')
-str_t.setParseAction(pp.tokenMap(str))
-
-I_unit = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, ['*j', '*i'])).suppress()
-complex_t = pp.OneOrMore(pp.pyparsing_common.number) + I_unit
-complex_t.setParseAction(lambda token: complex(token[0], token[1]) if len(token) == 2 else complex(0.0, token[0]))
-
-num_t = complex_t | float_t | int_t
-num_t.setName('numeric')
-
-SDATA = pp.Literal('$').suppress()
-EDATA = pp.CaselessLiteral('$end').suppress()
-data_t = pp.Group(pp.Combine(SDATA + pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')) + pp.SkipTo(EDATA) + EDATA)
-
-fortranStyleComment = pp.Regex(r"!.*").setName("Fortran style comment")
+def as_complex(dct):
+    if '__complex__' in dct:
+        return complex(dct['__complex__'][0], dct['__complex__'][1])
+    return dct

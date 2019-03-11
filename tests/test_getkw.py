@@ -7,8 +7,9 @@ import math
 from io import StringIO
 
 import pytest
+
 from parselglossy import getkw
-from parselglossy.atoms import ComplexEncoder, as_complex
+from parselglossy.utils import ComplexEncoder, as_complex
 
 # yapf: disable
 reference = {
@@ -54,8 +55,7 @@ str_array = [foo, bar, "lorem", "IpSuM"]
 
 @pytest.fixture
 def keywords():
-    stuff = contents().format(
-        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
     keys = """{CONTENTS}
 """
     return keys.format(CONTENTS=stuff)
@@ -79,8 +79,7 @@ def test_keyword(keywords):
 
 
 def section(name):
-    stuff = contents().format(
-        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
     sect = """{NAME} {{
     {CONTENTS}
 }}
@@ -112,8 +111,7 @@ def test_section(name):
 
 @pytest.fixture
 def flat_sections():
-    stuff = contents().format(
-        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
     sects = """topsect {{
     {CONTENTS}
 }}
@@ -145,8 +143,7 @@ def test_flat_sections(flat_sections):
 
 @pytest.fixture
 def nested_sections():
-    stuff = contents().format(
-        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
     sects = """topsect {{
     {CONTENTS}
 
@@ -178,8 +175,7 @@ def test_nested_sections(nested_sections):
 
 
 def keywords_and_section(name):
-    stuff = contents().format(
-        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
     template = """/* This is a comment */
 int = 42
 // This is another comment
@@ -205,13 +201,7 @@ cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = template.format(
-        PI=math.pi,
-        E=math.e,
-        TAU=2.0 * math.pi,
-        LIST=list(range(1, 5)),
-        NAME=name,
-        CONTENTS=stuff)
+    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)), NAME=name, CONTENTS=stuff)
     return inp
 
 
@@ -240,8 +230,7 @@ def test_keywords_and_section(name):
 
 @pytest.fixture
 def keywords_and_flat_sections():
-    stuff = contents().format(
-        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
     template = """/* This is a comment */
 int = 42
 // This is another comment
@@ -271,12 +260,7 @@ cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = template.format(
-        PI=math.pi,
-        E=math.e,
-        TAU=2.0 * math.pi,
-        LIST=list(range(1, 5)),
-        CONTENTS=stuff)
+    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)), CONTENTS=stuff)
     return inp
 
 
@@ -302,8 +286,7 @@ def test_keywords_and_flat_sections(keywords_and_flat_sections):
 
 @pytest.fixture
 def keywords_and_nested_sections():
-    stuff = contents().format(
-        PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
     template = """/* This is a comment */
 int = 42
 // This is another comment
@@ -333,12 +316,7 @@ cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = template.format(
-        PI=math.pi,
-        E=math.e,
-        TAU=2.0 * math.pi,
-        LIST=list(range(1, 5)),
-        CONTENTS=stuff)
+    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)), CONTENTS=stuff)
     return inp
 
 
@@ -375,11 +353,7 @@ $end
 
 
 def test_data_only_section(data_only_section):
-    ref = {
-        'molecule': {
-            'coords': 'H  0.0000  0.0000 -0.7000\nH  0.0000  0.0000  0.7000\n'
-        }
-    }
+    ref = {'molecule': {'coords': 'H  0.0000  0.0000 -0.7000\nH  0.0000  0.0000  0.7000\n'}}
     grammar = getkw.grammar()
     tokens = grammar.parseString(data_only_section).asDict()
 
