@@ -32,7 +32,6 @@
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
-
 from parselglossy.validate import type_matches
 
 
@@ -81,6 +80,7 @@ def test_type_matches_list_str(a):
     assert type_matches(a, 'List[str]')
     assert not type_matches((1, 2, 3), 'List[str]')
     assert not type_matches([1, 2, 3], 'List[str]')
+    assert not type_matches(['foo', 2, 3], 'List[str]')
     assert not type_matches(a, 'List[int]')
     assert not type_matches(a, 'List[float]')
     assert not type_matches(a, 'List[complex]')
@@ -90,6 +90,7 @@ def test_type_matches_list_str(a):
 def test_type_matches_list_int(a):
     assert type_matches(a, 'List[int]')
     assert not type_matches((1, 2, 3), 'List[int]')
+    assert not type_matches([1, 'foo', 2, 3], 'List[int]')
     assert not type_matches(a, 'List[str]')
     assert not type_matches(a, 'List[float]')
     assert not type_matches(a, 'List[complex]')
@@ -100,6 +101,7 @@ def test_type_matches_list_float(a):
     assert type_matches(a, 'List[float]')
     assert not type_matches((1, 2, 3), 'List[float]')
     assert not type_matches([1, 2, 3], 'List[float]')
+    assert not type_matches([1.0, 2, 3], 'List[float]')
     assert not type_matches(a, 'List[str]')
     assert not type_matches(a, 'List[int]')
     assert not type_matches(a, 'List[complex]')
@@ -110,6 +112,7 @@ def test_type_matches_list_complex(a):
     assert type_matches(a, 'List[complex]')
     assert not type_matches((1 + 1j, 2 + 2j, 3 + 3j), 'List[complex]')
     assert not type_matches([1, 2, 3], 'List[complex]')
+    assert not type_matches([1 + 1j, 2.0, 3], 'List[complex]')
     assert not type_matches(a, 'List[str]')
     assert not type_matches(a, 'List[int]')
     assert not type_matches(a, 'List[float]')
