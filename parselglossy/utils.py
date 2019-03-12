@@ -33,6 +33,9 @@ from typing import Any, Dict
 
 JSONDict = Dict[str, Any]
 
+truthy = ['TRUE', 'ON', 'YES', 'Y']
+falsey = ['FALSE', 'OFF', 'NO', 'N']
+
 
 class ComplexEncoder(json.JSONEncoder):
     def default(self, obj):

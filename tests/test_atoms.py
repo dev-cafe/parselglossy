@@ -38,9 +38,10 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from parselglossy.grammars import atoms
+from parselglossy.utils import falsey, truthy
 
 
-@given(a=st.sampled_from(atoms.truthy + atoms.falsey))
+@given(a=st.sampled_from(truthy + falsey))
 def test_atom_bool(a):
     tokens = atoms.bool_t.parseString('{:s}'.format(a)).asList()
     assert tokens[0] == atoms.to_bool(a)

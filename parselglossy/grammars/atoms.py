@@ -33,8 +33,7 @@ import functools
 
 import pyparsing as pp
 
-truthy = ['TRUE', 'ON', 'YES', 'Y']
-falsey = ['FALSE', 'OFF', 'NO', 'N']
+from ..utils import falsey, truthy
 
 
 def to_bool(x):
