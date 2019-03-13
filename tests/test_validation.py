@@ -97,46 +97,26 @@ def test_template_errors():
     assert str(e.value) == "error in predicate '0 < len(value) <= undefined' in keyword 'a_short_string'"
 
 
-def test_input_errors():
-
-    # unexpected keyword
-    with pytest.raises(ValidationError) as e:
-        input_dict = _helper('input_errors', 'input_unexpected_keyword.yml', 'template.yml')
-    assert str(e.value) == "found unexpected keyword(s): {'strange'}"
-
-    # unexpected section
-    with pytest.raises(ValidationError) as e:
-        input_dict = _helper('input_errors', 'input_unexpected_section.yml', 'template.yml')
-    assert str(e.value) == "found unexpected section(s): {'weird'}"
-
-    # keyword which has not default is not set
-    with pytest.raises(ValidationError) as e:
-        input_dict = _helper('input_errors', 'input_missing_keyword.yml', 'template.yml')
-    assert str(e.value) == "the following keyword(s) must be set: {'a_short_string'}"
-
-    # type errors
-    for file_name, error in [
-        ('input_type_error_bool.yml', "incorrect type for keyword: 'some_feature', expected 'bool' type"),
-        ('input_type_error_float.yml', "incorrect type for keyword: 'some_float', expected 'float' type"),
-        ('input_type_error_int.yml', "incorrect type for keyword: 'some_number', expected 'int' type"),
-        ('input_type_error_list.yml', "incorrect type for keyword: 'some_list', expected 'List[float]' type"),
-        ('input_type_error_str.yml', "incorrect type for keyword: 'a_short_string', expected 'str' type"),
-    ]:
-        with pytest.raises(ValidationError) as e:
-            input_dict = _helper('input_errors', file_name, 'template.yml')
-        assert str(e.value) == error
-
-    # intra-keyword predicate validation
-    with pytest.raises(ValidationError) as e:
-        input_dict = _helper('input_errors', 'input_predicate_intra.yml', 'template.yml')
-    assert str(e.value) == 'predicate "value % 2 == 0" failed in keyword "another_number"'
-
-    # predicate validation across keywords
-    with pytest.raises(ValidationError) as e:
-        input_dict = _helper('input_errors', 'input_predicate_cross.yml', 'template.yml')
-    # in python < 3.6 the dict order is not guaranteed so we are not sure
-    # which of the two errors we hit first
-    assert str(e.value) in [
+testdata = [
+    ('input_unexpected_keyword.yml', "found unexpected keyword(s): {'strange'}"),
+    ('input_unexpected_section.yml', "found unexpected section(s): {'weird'}"),
+    ('input_missing_keyword.yml', "the following keyword(s) must be set: {'a_short_string'}"),
+    ('input_type_error_bool.yml', "incorrect type for keyword: 'some_feature', expected 'bool' type"),
+    ('input_type_error_float.yml', "incorrect type for keyword: 'some_float', expected 'float' type"),
+    ('input_type_error_int.yml', "incorrect type for keyword: 'some_number', expected 'int' type"),
+    ('input_type_error_list.yml', "incorrect type for keyword: 'some_list', expected 'List[float]' type"),
+    ('input_type_error_str.yml', "incorrect type for keyword: 'a_short_string', expected 'str' type"),
+    ('input_predicate_intra.yml', 'predicate "value % 2 == 0" failed in keyword "another_number"'),
+    ('input_predicate_cross.yml', [
         'predicate "value < input_dict[\'some_section\'][\'another_number\']" failed in keyword "some_number"',
         'predicate "value > input_dict[\'some_section\'][\'some_number\']" failed in keyword "another_number"'
-    ]
+    ]),
+]
+
+
+@pytest.mark.parametrize('input_file_name,error_message',
+                         [pytest.param(fname, msg, id=fname.rstrip('.yml')) for fname, msg in testdata])
+def test_input_errors(input_file_name, error_message):
+    with pytest.raises(ValidationError) as e:
+        input_dict = _helper('input_errors', input_file_name, 'template.yml')
+    assert str(e.value) in error_message
