@@ -27,7 +27,7 @@
 #
 
 import re
-from typing import List, Tuple, Union
+from typing import Callable, List, Union
 
 from .exceptions import (DocumentationError, PredicateSyntaxError, ValidationError)
 from .utils import JSONDict
@@ -82,35 +82,38 @@ def type_matches(value: AllowedTypes, expected_type: str) -> bool:
         return type(value).__name__ == expected_type
 
 
-def extract_from_template(what: str, template_dict: JSONDict) -> Tuple[List[str], List[str]]:
+def extract_from_template(what: str, how: Callable, template_dict: JSONDict) -> List:
     """Extract from a template dictionary.
 
     Parameters
     ----------
     what: str
         Determines what to extract: either `keyword` or `section`.
+    how: Callable
+        Determines how to extract from `template_dict`.
     template_dict: JSONDict
         Contains the input template.
 
     Returns
     -------
-    stuff: Tuple[List[str], List[str]]
-         Tuple of Lists. The first one contains keyword/section names, the second which ones are undocumented.
+    stuff: List
+         List containing `what` you wanted extracted `how` you wanted.
     """
     if what not in ['keyword', 'section']:
         raise ValueError('Only \'keyword\' or \'section\' are valid values for parameter \'what\'')
 
     whats = '{:s}s'.format(what)
     if whats in template_dict:
-        template_whats = [x[what] for x in template_dict[whats]]
-        undocumented = [
-            x[what] for x in template_dict[whats] if 'documentation' not in x or x['documentation'].strip() == ''
-        ]
+        # Map `Callable` onto collecion, filter out `None` from the resulting list
+        stuff: List = list(filter(None, map(how, template_dict[whats])))
     else:
-        template_whats = []
-        undocumented = []
+        stuff = []
 
-    return template_whats, undocumented
+    return stuff
+
+
+def undocumented(x) -> bool:
+    return (True if 'documentation' not in x or x['documentation'].strip() == '' else False)
 
 
 def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
@@ -138,8 +141,12 @@ def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
     PredicateSyntaxError
         This signals an error in the input template.
     """
-    template_sections, sections_no_doc = extract_from_template('section', template_dict)
-    template_keywords, keywords_no_doc = extract_from_template('keyword', template_dict)
+    template_sections = extract_from_template('section', lambda x: x['section'], template_dict)
+    sections_no_doc = extract_from_template('section', lambda x: x['section'] if undocumented(x) else None,
+                                            template_dict)
+    template_keywords = extract_from_template('keyword', lambda x: x['keyword'], template_dict)
+    keywords_no_doc = extract_from_template('keyword', lambda x: x['keyword'] if undocumented(x) else None,
+                                            template_dict)
 
     # stop if we find a section or keyword without documentation
     if sections_no_doc:
