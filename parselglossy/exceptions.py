@@ -29,7 +29,7 @@
 # -*- coding: utf-8 -*-
 """Exception classes."""
 
-from pyparsing import ParseFatalException, Word, alphas
+from pyparsing import ParseFatalException
 
 
 class ValidationError(Exception):

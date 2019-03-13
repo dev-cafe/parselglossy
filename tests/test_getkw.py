@@ -58,6 +58,24 @@ reference = {
 # yapf: enable
 
 
+@given(a=st.lists(st.integers()))
+def test_list_int(a):
+    grammar = getkw.grammar()
+
+    with pytest.raises(ParseBaseException):
+        tokens = grammar.parseString('{}'.format(a)).asDict()
+        assert tokens == a
+
+
+@given(a=st.lists(floats()))
+def test_list_float(a):
+    grammar = getkw.grammar()
+
+    with pytest.raises(ParseBaseException):
+        tokens = grammar.parseString('{}'.format(a)).asDict()
+        assert tokens == a
+
+
 def contents():
     contents = """/* This is a comment */
 int = 42
