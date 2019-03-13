@@ -29,8 +29,10 @@
 from pathlib import Path
 
 import pytest
+
+from parselglossy.exceptions import (DocumentationError, PredicateSyntaxError, ValidationError)
 from parselglossy.read_yaml import read_yaml_file
-from parselglossy.utils import (DocumentationError, JSONDict, PredicateSyntaxError, ValidationError)
+from parselglossy.utils import JSONDict
 from parselglossy.validate import check_predicates_node, validate_node
 
 

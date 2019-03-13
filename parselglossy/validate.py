@@ -29,7 +29,8 @@
 import re
 from typing import List, Tuple, Union
 
-from .utils import (DocumentationError, JSONDict, PredicateSyntaxError, ValidationError)
+from .exceptions import (DocumentationError, PredicateSyntaxError, ValidationError)
+from .utils import JSONDict
 
 AllowedTypes = Union[bool, str, int, float, complex, List[bool], List[str], List[int], List[float], List[complex]]
 
