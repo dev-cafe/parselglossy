@@ -27,7 +27,7 @@
 #
 
 import re
-from typing import Any
+from typing import List, Union
 
 from .utils import JSONDict
 
@@ -40,8 +40,18 @@ class TemplateError(Exception):
     pass
 
 
-def type_matches(value: Any, expected_type: str) -> bool:
-    """Checks whether value has the type expected_type.
+AllowedTypes = Union[bool, str, int, float, complex,
+                     List[bool], List[str], List[int], List[float], List[complex]]
+
+
+def type_matches(value: AllowedTypes, expected_type: str) -> bool:
+    """Checks whether a value is of the expected type.
+
+    Parameters
+    ----------
+    value: Any
+      Value whose type needs to be checked
+    expected_type: AllowedTypes
 
     Notes
     -----
@@ -63,27 +73,19 @@ def type_matches(value: Any, expected_type: str) -> bool:
 
     # first verify whether expected_type is allowed
     if expected_type not in allowed_types:
-        raise ValueError('could not recognize expected_type: {}'.format(expected_type))
+        raise ValueError(
+            'could not recognize expected_type: {}'.format(expected_type))
 
-    expected_type_is_list = re.match(r"^List\[\w+\]$", expected_type) is not None
+    expected_type_is_list = re.search(r'^List\[(\w+)\]$', expected_type)
 
-    if expected_type_is_list:
+    if expected_type_is_list is not None:
         # make sure that value is actually a list
         if not type(value).__name__ == 'list':
             return False
 
         # iterate over each element of the list
         # and check whether it matches T
-        list_element_type = re.search(r"^List\[(\w+)\]$", expected_type).group(1)
-        for element in value:
-            # consider replacing type(element).__name__
-            # by isinstance but mind that isinstance(element, list_element_type)
-            # will not work since list_element_type is a string
-            # so if you go this route, there needs to be an extra translation layer
-            if not type(element).__name__ == list_element_type:
-                return False
-
-        return True
+        return all((type(x).__name__ == expected_type_is_list.group(1) for x in value))
     else:
         # expected type is a basic type
         # this is the simpler case
