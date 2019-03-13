@@ -27,21 +27,11 @@
 #
 
 import re
-from typing import List, Union
+from typing import List, Tuple, Union
 
-from .utils import JSONDict
+from .utils import (DocumentationError, JSONDict, PredicateSyntaxError, ValidationError)
 
-
-class InputError(Exception):
-    pass
-
-
-class TemplateError(Exception):
-    pass
-
-
-AllowedTypes = Union[bool, str, int, float, complex,
-                     List[bool], List[str], List[int], List[float], List[complex]]
+AllowedTypes = Union[bool, str, int, float, complex, List[bool], List[str], List[int], List[float], List[complex]]
 
 
 def type_matches(value: AllowedTypes, expected_type: str) -> bool:
@@ -73,8 +63,7 @@ def type_matches(value: AllowedTypes, expected_type: str) -> bool:
 
     # first verify whether expected_type is allowed
     if expected_type not in allowed_types:
-        raise ValueError(
-            'could not recognize expected_type: {}'.format(expected_type))
+        raise ValueError('could not recognize expected_type: {}'.format(expected_type))
 
     expected_type_is_list = re.search(r'^List\[(\w+)\]$', expected_type)
 
@@ -90,6 +79,37 @@ def type_matches(value: AllowedTypes, expected_type: str) -> bool:
         # expected type is a basic type
         # this is the simpler case
         return type(value).__name__ == expected_type
+
+
+def extract_from_template(what: str, template_dict: JSONDict) -> Tuple[List[str], List[str]]:
+    """Extract from a template dictionary.
+
+    Parameters
+    ----------
+    what: str
+        Determines what to extract: either `keyword` or `section`.
+    template_dict: JSONDict
+        Contains the input template.
+
+    Returns
+    -------
+    stuff: Tuple[List[str], List[str]]
+         Tuple of Lists. The first one contains keyword/section names, the second which ones are undocumented.
+    """
+    if what not in ['keyword', 'section']:
+        raise ValueError('Only \'keyword\' or \'section\' are valid values for parameter \'what\'')
+
+    whats = '{:s}s'.format(what)
+    if whats in template_dict:
+        template_whats = [x[what] for x in template_dict[whats]]
+        undocumented = [
+            x[what] for x in template_dict[whats] if 'documentation' not in x or x['documentation'].strip() == ''
+        ]
+    else:
+        template_whats = []
+        undocumented = []
+
+    return template_whats, undocumented
 
 
 def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
@@ -112,52 +132,44 @@ def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
 
     Raises
     ------
-    InputError
+    ValidationError
         This signals an error in the input that is to be parsed.
-    TemplateError
+    PredicateSyntaxError
         This signals an error in the input template.
     """
-    input_sections = [x for x in input_dict if type(input_dict[x]).__name__ == 'dict']
+    template_sections, sections_no_doc = extract_from_template('section', template_dict)
+    template_keywords, keywords_no_doc = extract_from_template('keyword', template_dict)
+
+    # stop if we find a section or keyword without documentation
+    if sections_no_doc:
+        raise DocumentationError('section(s) without any documentation: {}'.format(sections_no_doc))
+    if keywords_no_doc:
+        raise DocumentationError('keyword(s) without any documentation: {}'.format(keywords_no_doc))
+
+    input_sections = [x for x in input_dict if isinstance(input_dict[x], dict)]
     input_keywords = list(filter(lambda x: x not in input_sections, input_dict.keys()))
-
-    if 'sections' in template_dict:
-        template_sections = [x['section'] for x in template_dict['sections']]
-    else:
-        template_sections = []
-
-    if 'keywords' in template_dict:
-        template_keywords = [x['keyword'] for x in template_dict['keywords']]
-    else:
-        template_keywords = []
-
-    # stop if we find a keyword without documentation
-    keywords_no_doc = [
-        x['keyword'] for x in template_dict['keywords'] if 'documentation' not in x or x['documentation'].strip() == ''
-    ]
-    if len(keywords_no_doc) > 0:
-        raise TemplateError('keyword(s) without any documentation: {}'.format(keywords_no_doc))
 
     # make sure that we did not receive keywords
     # or sections which we did not expect
     difference = set(input_keywords).difference(set(template_keywords))
     if difference != set():
-        raise InputError('found unexpected keyword(s): {}'.format(difference))
+        raise ValidationError('found unexpected keyword(s): {}'.format(difference))
     difference = set(input_sections).difference(set(template_sections))
     if difference != set():
-        raise InputError('found unexpected section(s): {}'.format(difference))
+        raise ValidationError('found unexpected section(s): {}'.format(difference))
 
     # check that keywords without a default are set in the input
     keywords_no_default = [x['keyword'] for x in template_dict['keywords'] if 'default' not in x]
     difference = set(keywords_no_default).difference(set(input_keywords))
     if difference != set():
-        raise InputError('the following keyword(s) must be set: {}'.format(difference))
+        raise ValidationError('the following keyword(s) must be set: {}'.format(difference))
 
     # for each keyword verify the type of the value
     for keyword in input_keywords:
         template_keyword = list(filter(lambda x: x['keyword'] == keyword, template_dict['keywords']))[0]
         _type = template_keyword['type']
         if not type_matches(input_dict[keyword], _type):
-            raise InputError("incorrect type for keyword: '{0}', expected '{1}' type".format(keyword, _type))
+            raise ValidationError("incorrect type for keyword: '{0}', expected '{1}' type".format(keyword, _type))
 
     # fill missing input keywords with template defaults
     for keyword in set(template_keywords).difference(set(input_keywords)):
@@ -193,9 +205,9 @@ def check_predicates_node(input_dict: JSONDict, input_dict_node: JSONDict, templ
 
     Raises
     ------
-    InputError
+    ValidationError
         This signals an error in the input that is to be parsed.
-    TemplateError
+    PredicateSyntaxError
         This signals an error in the input template.
     """
     input_sections = [x for x in input_dict_node if type(input_dict_node[x]).__name__ == 'dict']
@@ -216,9 +228,9 @@ def check_predicates_node(input_dict: JSONDict, input_dict_node: JSONDict, templ
                 try:
                     r = eval(predicate)
                 except (SyntaxError, NameError):
-                    raise TemplateError("error in predicate '{}' in keyword '{}'".format(predicate, keyword))
+                    raise PredicateSyntaxError("error in predicate '{}' in keyword '{}'".format(predicate, keyword))
                 if not r:
-                    raise InputError('predicate "{}" failed in keyword "{}"'.format(predicate, keyword))
+                    raise ValidationError('predicate "{}" failed in keyword "{}"'.format(predicate, keyword))
 
     # if this node contains sections, we descend into these and verify these in turn
     for section in template_sections:

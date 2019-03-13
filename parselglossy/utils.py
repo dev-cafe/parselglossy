@@ -37,6 +37,22 @@ truthy = ['TRUE', 'ON', 'YES', 'Y']
 falsey = ['FALSE', 'OFF', 'NO', 'N']
 
 
+class ValidationError(Exception):
+    """Exception raised for invalid input files."""
+    pass
+
+
+class DocumentationError(Exception):
+    """Exception raised for missing docstrings in validation template."""
+    pass
+
+
+class PredicateSyntaxError(SyntaxError):
+    """Exception raised for invalid predicate syntax in validation template."""
+
+    pass
+
+
 class ComplexEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, complex):
