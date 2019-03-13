@@ -26,4 +26,4 @@ yapf = "*"
 [packages]
 click = "*"
 pyparsing = "*"
-pyyaml = "*"
+ruamel-yaml = "*"
