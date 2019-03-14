@@ -34,7 +34,7 @@
 import string
 
 import pytest
-from hypothesis import given
+from hypothesis import example, given
 from hypothesis import strategies as st
 
 from custom_strategies import complex_numbers, floats
@@ -63,6 +63,16 @@ def test_atoms_float(a):
 @given(a=st.text(alphabet=(string.digits + string.ascii_letters), min_size=1))
 def test_atoms_str(a):
     tokens = atoms.str_t.parseString('{:s}'.format(a)).asList()
+    assert tokens[0] == a
+
+
+@given(a=st.text(alphabet=(string.digits + string.ascii_letters + ' '), min_size=1))
+@example('Bobson Dugnutt')
+@example('Glenallen    Mixon   ')
+@example('    Todd Bonzalez   ')
+@example('Dwigt Rortugal')
+def test_atoms_quoted_str(a):
+    tokens = atoms.str_t.parseString('"{:s}"'.format(a)).asList()
     assert tokens[0] == a
 
 

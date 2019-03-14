@@ -28,7 +28,7 @@
 
 from pathlib import Path
 
-from ruamel import yaml
+import yaml
 
 from .utils import JSONDict
 
