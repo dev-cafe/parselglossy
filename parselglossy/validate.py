@@ -29,7 +29,7 @@
 import re
 from typing import Callable, List, Union
 
-from .exceptions import (DocumentationError, PredicateSyntaxError, ValidationError)
+from .exceptions import SpecificationError, ValidationError
 from .utils import JSONDict
 
 AllowedTypes = Union[bool, str, int, float, complex, List[bool], List[str], List[int], List[float], List[complex]]
@@ -138,7 +138,7 @@ def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
     ------
     ValidationError
         This signals an error in the input that is to be parsed.
-    PredicateSyntaxError
+    SpecificationError
         This signals an error in the input template.
     """
     template_sections = extract_from_template('section', lambda x: x['section'], template_dict)
@@ -150,9 +150,9 @@ def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
 
     # stop if we find a section or keyword without documentation
     if sections_no_doc:
-        raise DocumentationError('section(s) without any documentation: {}'.format(sections_no_doc))
+        raise SpecificationError('section(s) without any documentation: {}'.format(sections_no_doc))
     if keywords_no_doc:
-        raise DocumentationError('keyword(s) without any documentation: {}'.format(keywords_no_doc))
+        raise SpecificationError('keyword(s) without any documentation: {}'.format(keywords_no_doc))
 
     input_sections = [x for x in input_dict if isinstance(input_dict[x], dict)]
     input_keywords = list(filter(lambda x: x not in input_sections, input_dict.keys()))
@@ -215,7 +215,7 @@ def check_predicates_node(input_dict: JSONDict, input_dict_node: JSONDict, templ
     ------
     ValidationError
         This signals an error in the input that is to be parsed.
-    PredicateSyntaxError
+    SpecificationError
         This signals an error in the input template.
     """
     input_sections = [x for x in input_dict_node if type(input_dict_node[x]).__name__ == 'dict']
@@ -236,7 +236,7 @@ def check_predicates_node(input_dict: JSONDict, input_dict_node: JSONDict, templ
                 try:
                     r = eval(predicate)
                 except (SyntaxError, NameError):
-                    raise PredicateSyntaxError("error in predicate '{}' in keyword '{}'".format(predicate, keyword))
+                    raise SpecificationError("error in predicate '{}' in keyword '{}'".format(predicate, keyword))
                 if not r:
                     raise ValidationError('predicate "{}" failed in keyword "{}"'.format(predicate, keyword))
 

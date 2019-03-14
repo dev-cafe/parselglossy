@@ -30,7 +30,7 @@ from pathlib import Path
 
 import pytest
 
-from parselglossy.exceptions import DocumentationError, PredicateSyntaxError, ValidationError
+from parselglossy.exceptions import SpecificationError, ValidationError
 from parselglossy.read_yaml import read_yaml_file
 from parselglossy.utils import JSONDict
 from parselglossy.validate import check_predicates_node, validate_node
@@ -80,9 +80,9 @@ def test_validation():
 
 
 template_errors_data = [
-    ('template_no_documentation.yml', DocumentationError, "section(s) without any documentation: ['some_section']"),
-    ('template_empty_documentation.yml', DocumentationError, "section(s) without any documentation: ['some_section']"),
-    ('template_invalid_predicate.yml', PredicateSyntaxError,
+    ('template_no_documentation.yml', SpecificationError, "section(s) without any documentation: ['some_section']"),
+    ('template_empty_documentation.yml', SpecificationError, "section(s) without any documentation: ['some_section']"),
+    ('template_invalid_predicate.yml', SpecificationError,
      "error in predicate '0 < len(value) <= undefined' in keyword 'a_short_string'"),
 ]
 

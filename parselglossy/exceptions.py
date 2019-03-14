@@ -27,7 +27,7 @@
 #
 
 # -*- coding: utf-8 -*-
-"""Exception classes."""
+"""Error-handling facilities."""
 
 from pyparsing import ParseFatalException
 
@@ -37,14 +37,8 @@ class ValidationError(Exception):
     pass
 
 
-class DocumentationError(Exception):
-    """Exception raised for missing docstrings in validation template."""
-    pass
-
-
-class PredicateSyntaxError(SyntaxError):
-    """Exception raised for invalid predicate syntax in validation template."""
-
+class SpecificationError(Exception):
+    """Exception raised for malformed validation template."""
     pass
 
 
