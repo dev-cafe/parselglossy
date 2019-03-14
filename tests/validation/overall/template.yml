@@ -6,6 +6,8 @@ keywords:
       Since there is no default, this keyword is required.
 sections:
   - section: scf
+    documentation: |
+      SCF input parameters.
     keywords:
     - keyword: functional
       type: str
@@ -40,6 +42,8 @@ sections:
         Testing input with a complex number.
     sections:
     - section: thresholds
+      documentation: |
+        Numerical thresholds.
       keywords:
       - keyword: some_integral_screening
         type: float

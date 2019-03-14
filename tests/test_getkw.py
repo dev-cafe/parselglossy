@@ -36,7 +36,11 @@ import math
 from io import StringIO
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+from pyparsing import ParseBaseException
 
+from custom_strategies import complex_numbers, floats
 from parselglossy.grammars import getkw
 
 # yapf: disable
@@ -52,6 +56,24 @@ reference = {
    , 'raw': "H 0.0 0.0 0.0\nF 1.0 1.0 1.0\n"
 }
 # yapf: enable
+
+
+@given(a=st.lists(st.integers()))
+def test_list_int(a):
+    grammar = getkw.grammar()
+
+    with pytest.raises(ParseBaseException):
+        tokens = grammar.parseString('{}'.format(a)).asDict()
+        assert tokens == a
+
+
+@given(a=st.lists(floats()))
+def test_list_float(a):
+    grammar = getkw.grammar()
+
+    with pytest.raises(ParseBaseException):
+        tokens = grammar.parseString('{}'.format(a)).asDict()
+        assert tokens == a
 
 
 def contents():

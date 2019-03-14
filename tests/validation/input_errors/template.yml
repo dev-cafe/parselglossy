@@ -10,6 +10,8 @@ keywords:
       Some float.
 sections:
   - section: some_section
+    documentation: |
+      Some section.
     keywords:
     - keyword: a_short_string
       type: str

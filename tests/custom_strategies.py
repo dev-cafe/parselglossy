@@ -27,50 +27,44 @@
 #
 
 # -*- coding: utf-8 -*-
-"""Atoms."""
+"""Tests for `parselglossy` package."""
 
-import functools
-
-import pyparsing as pp
-
-from ..utils import falsey, truthy
+from hypothesis import strategies as st
 
 
-def to_bool(x):
-    defined = False
-    if x is None:
-        defined = False
-    elif x.upper() in falsey:
-        defined = False
-    elif x.upper() in truthy:
-        defined = True
+@st.composite
+def floats(draw):
+    """Generate floating point numbers in various formats.
+
+    A composite testing strategy to generate floats in the formats
+    understood by the `float_t` atom.
+    """
+    number = draw(st.floats(allow_nan=False, allow_infinity=False))
+    fmt = draw(st.sampled_from(['{:.20f}', '{:.20e}', '{:.20E}', '{:+.20f}', '{:+.20e}', '{:+.20E}']))
+    return fmt.format(number), number
+
+
+@st.composite
+def complex_numbers(draw):
+    """Generate complex numbers in various formats.
+
+    A composite testing strategy to generate complex numbers in the formats
+    understood by the `complex_t` atom.
+    """
+    number = draw(st.complex_numbers(allow_nan=False, allow_infinity=False))
+    has_real = draw(st.booleans())
+    w_space = draw(st.booleans())
+    real_fmt = draw(st.sampled_from(['{:.20g}', '{:.20G}']))
+    imag_fmt = draw(st.sampled_from(['{:+.20g}*j', '{:+.20G}*j', '{:+.20g}*J', '{:+.20G}*J']))
+    number_as_string = ''
+    if has_real:
+        if w_space:
+            fmt = real_fmt + ' ' + imag_fmt
+        else:
+            fmt = real_fmt + imag_fmt
+        number_as_string = fmt.format(number.real, number.imag)
     else:
-        defined = False
-
-    return defined
-
-
-bool_t = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, truthy + falsey))
-bool_t.setName('bool')
-bool_t.setParseAction(lambda token: to_bool(token[0]))
-
-int_t = pp.pyparsing_common.signed_integer
-
-float_t = pp.pyparsing_common.sci_real
-
-str_t = pp.quotedString.setParseAction(pp.removeQuotes) ^ pp.Word(pp.alphanums)
-str_t.setName('str')
-str_t.setParseAction(pp.tokenMap(str))
-
-I_unit = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, ['*j', '*i'])).suppress()
-complex_t = pp.OneOrMore(pp.pyparsing_common.number) + I_unit
-complex_t.setParseAction(lambda token: complex(token[0], token[1]) if len(token) == 2 else complex(0.0, token[0]))
-
-num_t = complex_t | float_t | int_t
-num_t.setName('numeric')
-
-SDATA = pp.Literal('$').suppress()
-EDATA = pp.CaselessLiteral('$end').suppress()
-data_t = pp.Group(pp.Combine(SDATA + pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')) + pp.SkipTo(EDATA) + EDATA)
-
-fortranStyleComment = pp.Regex(r"!.*").setName("Fortran style comment")
+        number = complex(0.0, number.imag)
+        fmt = imag_fmt
+        number_as_string = fmt.format(number.imag)
+    return number_as_string, number

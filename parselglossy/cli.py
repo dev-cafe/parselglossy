@@ -39,11 +39,7 @@ def cli(args=None):
 
 
 @click.command()
-@click.option(
-    '--dump-ir/--no-dump-ir',
-    default=False,
-    help='serialize IR to JSON file',
-    metavar='<dumpir>')
+@click.option('--dump-ir/--no-dump-ir', default=False, help='serialize IR to JSON file', metavar='<dumpir>')
 @click.argument('infile', metavar='<infile>')
 def lex(dumpir, infile):
     """Run lexer to obtain JSON intermediate representation.
@@ -62,11 +58,7 @@ def lex(dumpir, infile):
 
 
 @click.command()
-@click.option(
-    '--dump-fr/--no-dump-fr',
-    default=False,
-    help='serialize FR to JSON file',
-    metavar='<dumpfr>')
+@click.option('--dump-fr/--no-dump-fr', default=False, help='serialize FR to JSON file', metavar='<dumpfr>')
 def validate(dumpfr, ir):
     """Validate intermediate representation into final representation.
 
@@ -84,11 +76,7 @@ def validate(dumpfr, ir):
 
 
 @click.command()
-@click.option(
-    '--dump/--no-dump',
-    default=False,
-    help='serialize parsed input to JSON file',
-    metavar='<dump>')
+@click.option('--dump/--no-dump', default=False, help='serialize parsed input to JSON file', metavar='<dump>')
 @click.argument('infile', metavar='<infile>')
 def parse(dump, infile):
     """Parse input file.

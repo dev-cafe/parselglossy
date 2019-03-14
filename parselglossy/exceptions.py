@@ -26,29 +26,68 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-from pathlib import Path
+# -*- coding: utf-8 -*-
+"""Error-handling facilities."""
 
-import yaml
-
-from .utils import JSONDict
+from pyparsing import ParseFatalException
 
 
-def read_yaml_file(file_name: Path) -> JSONDict:
-    """Reads a YAML file and returns it as a dictionary.
+class ValidationError(Exception):
+    """Exception raised for invalid input files."""
+    pass
+
+
+class SpecificationError(Exception):
+    """Exception raised for malformed validation template."""
+    pass
+
+
+class EmptyListError(ParseFatalException):
+    """Exception raised by the parser for empty lists."""
+
+    def __init__(self, s, loc, msg):
+        super().__init__(s, loc, 'Empty lists not allowed \'{}\''.format(msg))
+
+
+def raise_pyparsing_exception(exception, s, loc, toks):
+    """Helper function to raise exceptions as parse actions.
 
     Parameters
     ----------
-    file_name: Path
-        Path object for the YAML file.
+    exception:
+        Exception to be thrown.
+    s: str
+        The original parse string.
+    loc: int
+        Location is `s` where the match started.
+    toks: ParseResults
+        List of matched tokens.
 
-    Returns
-    -------
-    d: JSONDict
-        A dictionary with the contents of the YAML file.
+    Raises
+    ------
+    exception
+
+    Notes
+    -----
+    See: https://stackoverflow.com/a/13409786
     """
-    with file_name.open('r') as f:
-        try:
-            d = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print(e)
-    return d
+    raise exception(s, loc, toks[0])
+
+
+def raise_pyparsing_empty_list(s, loc, toks):
+    """Helper function to raise empty list exception as parse action.
+
+    Parameters
+    ----------
+    s: str
+        The original parse string.
+    loc: int
+        Location is `s` where the match started.
+    toks: ParseResults
+        List of matched tokens.
+
+    Raises
+    ------
+    exception
+    """
+    raise_pyparsing_exception(EmptyListError, s, loc, toks)
