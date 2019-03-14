@@ -1,27 +1,27 @@
 keywords:
-  - keyword: title
+  - name: title
     type: str
     docstring: |
       Title of the calculation.
       Since there is no default, this keyword is required.
 sections:
-  - section: scf
+  - name: scf
     docstring: |
       SCF input parameters.
     keywords:
-    - keyword: functional
+    - name: functional
       type: str
       predicates:
         - 'len(value) <= 80'
       docstring: |
         XC functional.
         We also test that the string contains max 80 characters.
-    - keyword: max_num_iterations
+    - name: max_num_iterations
       type: int
       default: 20
       docstring: |
         Max number of iterations.
-    - keyword: another_number
+    - name: another_number
       type: int
       default: 10
       predicates:
@@ -30,27 +30,27 @@ sections:
         - "input_dict['scf']['some_acceleration'] == True"
       docstring: |
         Testing an even number in some range.
-    - keyword: some_acceleration
+    - name: some_acceleration
       type: bool
       default: False
       docstring: |
         Turn on the new amazing acceleration scheme.
-    - keyword: some_complex_number
+    - name: some_complex_number
       type: complex
       default: 0.0+0.0j
       docstring: |
         Testing input with a complex number.
     sections:
-    - section: thresholds
+    - name: thresholds
       docstring: |
         Numerical thresholds.
       keywords:
-      - keyword: some_integral_screening
+      - name: some_integral_screening
         type: float
         default: 0.0001
         docstring: |
           Some integral based threshold.
-      - keyword: energy
+      - name: energy
         type: float
         default: 0.001
         docstring: |

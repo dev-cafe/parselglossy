@@ -1,30 +1,30 @@
 keywords:
-  - keyword: title
+  - name: title
     type: str
     docstring: |
       Title of the calculation.
-  - keyword: some_float
+  - name: some_float
     type: float
     default: 1.2
     docstring: |
       Some float.
 sections:
-  - section: some_section
+  - name: some_section
     keywords:
-    - keyword: a_short_string
+    - name: a_short_string
       type: str
       predicates:
         - '0 < len(value) <= 5'
 #     docstring: |
 #       Some short string.
-    - keyword: some_number
+    - name: some_number
       type: int
       default: 5
       predicates:
         - "value < input_dict['some_section']['another_number']"
       docstring: |
         Some number.
-    - keyword: another_number
+    - name: another_number
       type: int
       default: 10
       predicates:
@@ -33,12 +33,12 @@ sections:
         - "value > input_dict['some_section']['some_number']"
       docstring: |
         Another number.
-    - keyword: some_feature
+    - name: some_feature
       type: bool
       default: False
       docstring: |
         Some feature.
-    - keyword: some_list
+    - name: some_list
       type: List[float]
       docstring: |
         A list of floats.

@@ -29,6 +29,7 @@ Generic input parsing library, speaking in tongues.
    contributing
    authors
    history
+   modules
 
 Indices and tables
 ==================

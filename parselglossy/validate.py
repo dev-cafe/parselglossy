@@ -110,15 +110,12 @@ def extract_from_template(what: str, how: Callable, template_dict: JSONDict) -> 
     stuff: List
          List containing `what` you wanted extracted `how` you wanted.
     """
-    if what not in ["keyword", "section"]:
-        raise ValueError(
-            "Only 'keyword' or 'section' are valid values for parameter 'what'"
-        )
+    if what not in ['keywords', 'sections']:
+        raise ValueError('Only \'keywords\' or \'sections\' are valid values for parameter \'what\'')
 
-    whats = "{:s}s".format(what)
-    if whats in template_dict:
+    if what in template_dict:
         # Map `Callable` onto collecion, filter out `None` from the resulting list
-        stuff = list(filter(None, map(how, template_dict[whats])))
+        stuff = list(filter(None, map(how, template_dict[what])))
     else:
         stuff = []
 
@@ -154,18 +151,12 @@ def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
     SpecificationError
         This signals an error in the input template.
     """
-    template_sections = extract_from_template(
-        "section", lambda x: x["section"], template_dict
-    )
-    sections_no_doc = extract_from_template(
-        "section", lambda x: x["section"] if undocumented(x) else None, template_dict
-    )
-    template_keywords = extract_from_template(
-        "keyword", lambda x: x["keyword"], template_dict
-    )
-    keywords_no_doc = extract_from_template(
-        "keyword", lambda x: x["keyword"] if undocumented(x) else None, template_dict
-    )
+    template_sections = extract_from_template('sections', lambda x: x['name'], template_dict)
+    sections_no_doc = extract_from_template('sections', lambda x: x['name'] if undocumented(x) else None,
+                                            template_dict)
+    template_keywords = extract_from_template('keywords', lambda x: x['name'], template_dict)
+    keywords_no_doc = extract_from_template('keywords', lambda x: x['name'] if undocumented(x) else None,
+                                            template_dict)
 
     # stop if we find a section or keyword without documentation
     if sections_no_doc:
@@ -190,9 +181,7 @@ def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
         raise ValidationError("found unexpected section(s): {}".format(difference))
 
     # check that keywords without a default are set in the input
-    keywords_no_default = [
-        x["keyword"] for x in template_dict["keywords"] if "default" not in x
-    ]
+    keywords_no_default = [x['name'] for x in template_dict['keywords'] if 'default' not in x]
     difference = set(keywords_no_default).difference(set(input_keywords))
     if difference != set():
         raise ValidationError(
@@ -201,10 +190,8 @@ def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
 
     # for each keyword verify the type of the value
     for keyword in input_keywords:
-        template_keyword = list(
-            filter(lambda x: x["keyword"] == keyword, template_dict["keywords"])
-        )[0]
-        _type = template_keyword["type"]
+        template_keyword = list(filter(lambda x: x['name'] == keyword, template_dict['keywords']))[0]
+        _type = template_keyword['type']
         if not type_matches(input_dict[keyword], _type):
             raise ValidationError(
                 "incorrect type for keyword: '{0}', expected '{1}' type".format(
@@ -214,18 +201,14 @@ def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:
 
     # fill missing input keywords with template defaults
     for keyword in set(template_keywords).difference(set(input_keywords)):
-        template_keyword = list(
-            filter(lambda x: x["keyword"] == keyword, template_dict["keywords"])
-        )[0]
-        _default = template_keyword["default"]
+        template_keyword = list(filter(lambda x: x['name'] == keyword, template_dict['keywords']))[0]
+        _default = template_keyword['default']
         input_dict[keyword] = _default
 
     # if this node contains sections, we descend into these and verify these in turn
     for section in template_sections:
         input_section = input_dict[section]
-        template_section = list(
-            filter(lambda x: x["section"] == section, template_dict["sections"])
-        )[0]
+        template_section = list(filter(lambda x: x['name'] == section, template_dict['sections']))[0]
         input_dict[section] = validate_node(input_section, template_section)
 
     return input_dict
@@ -264,16 +247,14 @@ def check_predicates_node(
         filter(lambda x: x not in input_sections, input_dict_node.keys())
     )
 
-    if "sections" in template_dict_node:
-        template_sections = [x["section"] for x in template_dict_node["sections"]]
+    if 'sections' in template_dict_node:
+        template_sections = [x['name'] for x in template_dict_node['sections']]
     else:
         template_sections = []
 
     # go through the predicates
     for keyword in input_keywords:
-        template_keyword = list(
-            filter(lambda x: x["keyword"] == keyword, template_dict_node["keywords"])
-        )[0]
+        template_keyword = list(filter(lambda x: x['name'] == keyword, template_dict_node['keywords']))[0]
         # this value is used by eval() so we skip E841 warning of flake8
         value = input_dict_node[keyword]  # noqa
         if "predicates" in template_keyword:
@@ -296,7 +277,5 @@ def check_predicates_node(
     # if this node contains sections, we descend into these and verify these in turn
     for section in template_sections:
         input_section = input_dict_node[section]
-        template_section = list(
-            filter(lambda x: x["section"] == section, template_dict_node["sections"])
-        )[0]
+        template_section = list(filter(lambda x: x['name'] == section, template_dict_node['sections']))[0]
         check_predicates_node(input_dict, input_section, template_section)

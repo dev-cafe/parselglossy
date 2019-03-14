@@ -5,7 +5,7 @@ import pathlib
 import sys
 
 import guzzle_sphinx_theme
-from sphinx.apidoc import main
+from sphinx.ext.apidoc import main
 
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
