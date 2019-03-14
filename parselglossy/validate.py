@@ -126,9 +126,7 @@ def extract_from_template(what: str, how: Callable, template_dict: JSONDict) -> 
 
 
 def undocumented(x) -> bool:
-    return (
-        True if "documentation" not in x or x["documentation"].strip() == "" else False
-    )
+    return (True if 'docstring' not in x or x['docstring'].strip() == '' else False)
 
 
 def validate_node(input_dict: JSONDict, template_dict: JSONDict) -> JSONDict:

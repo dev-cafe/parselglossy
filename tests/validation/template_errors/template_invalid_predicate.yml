@@ -1,16 +1,16 @@
 keywords:
   - keyword: title
     type: str
-    documentation: |
+    docstring: |
       Title of the calculation.
   - keyword: some_float
     type: float
     default: 1.2
-    documentation: |
+    docstring: |
       Some float.
 sections:
   - section: some_section
-    documentation: |
+    docstring: |
       Some section.
     keywords:
     - keyword: a_short_string
@@ -18,14 +18,14 @@ sections:
       predicates:
         - '0 < len(value) <= undefined'
 #       - '0 < len(value) <= 5'
-      documentation: |
+      docstring: |
         Some short string.
     - keyword: some_number
       type: int
       default: 5
       predicates:
         - "value < input_dict['some_section']['another_number']"
-      documentation: |
+      docstring: |
         Some number.
     - keyword: another_number
       type: int
@@ -34,14 +34,14 @@ sections:
         - '0 <= value <= 40'
         - 'value % 2 == 0'
         - "value > input_dict['some_section']['some_number']"
-      documentation: |
+      docstring: |
         Another number.
     - keyword: some_feature
       type: bool
       default: False
-      documentation: |
+      docstring: |
         Some feature.
     - keyword: some_list
       type: List[float]
-      documentation: |
+      docstring: |
         A list of floats.

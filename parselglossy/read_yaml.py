@@ -26,6 +26,8 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
+# -*- coding: utf-8 -*-
+
 from pathlib import Path
 
 import yaml
