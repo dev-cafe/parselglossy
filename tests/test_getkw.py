@@ -36,43 +36,21 @@ import math
 from io import StringIO
 
 import pytest
-from custom_strategies import complex_numbers, floats
-from hypothesis import given
-from hypothesis import strategies as st
 from parselglossy.grammars import getkw
-from pyparsing import ParseBaseException
 
 # yapf: disable
 reference = {
-     'int': 42
-   , 'dbl': math.pi
-   , 'bool': True
-   , 'str': 'fooffa'
-   , 'int_array': list(range(1, 5))
-   , 'dbl_array': [math.pi, math.e, 2.0*math.pi]
-   , 'bool_array': [True, True, True, False, True, False]
-   , 'str_array': ["foo", "bar", "lorem", "IpSuM"]
-   , 'raw': "H 0.0 0.0 0.0\nF 1.0 1.0 1.0\n"
+    'int': 42
+  , 'dbl': math.pi
+  , 'bool': True
+  , 'str': 'fooffa'
+  , 'int_array': [42]
+  , 'dbl_array': [math.pi, math.e, 2.0*math.pi]
+  , 'bool_array': [True, True, True, False, True, False]
+  , 'str_array': ["foo", "bar", "lorem", "IpSuM"]
+  , 'raw': "H 0.0 0.0 0.0\nF 1.0 1.0 1.0\n"
 }
 # yapf: enable
-
-
-@given(a=st.lists(st.integers()))
-def test_list_int(a):
-    grammar = getkw.grammar()
-
-    with pytest.raises(ParseBaseException):
-        tokens = grammar.parseString('{}'.format(a)).asDict()
-        assert tokens == a
-
-
-@given(a=st.lists(floats()))
-def test_list_float(a):
-    grammar = getkw.grammar()
-
-    with pytest.raises(ParseBaseException):
-        tokens = grammar.parseString('{}'.format(a)).asDict()
-        assert tokens == a
 
 
 def contents():
@@ -90,7 +68,7 @@ F 1.0 1.0 1.0
 $end
 
 # I love comments!
-int_array = {LIST}
+int_array = [42]
 dbl_array = [{PI}, {E}, {TAU}]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
@@ -100,7 +78,7 @@ str_array = [foo, bar, "lorem", "IpSuM"]
 
 @pytest.fixture
 def keywords():
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     keys = """{CONTENTS}
 """
     return keys.format(CONTENTS=stuff)
@@ -124,7 +102,7 @@ def test_keyword(keywords):
 
 
 def section(name):
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     sect = """{NAME} {{
     {CONTENTS}
 }}
@@ -156,7 +134,7 @@ def test_section(name):
 
 @pytest.fixture
 def flat_sections():
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     sects = """topsect {{
     {CONTENTS}
 }}
@@ -188,7 +166,7 @@ def test_flat_sections(flat_sections):
 
 @pytest.fixture
 def nested_sections():
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     sects = """topsect {{
     {CONTENTS}
 
@@ -220,7 +198,7 @@ def test_nested_sections(nested_sections):
 
 
 def keywords_and_section(name):
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     template = """/* This is a comment */
 int = 42
 // This is another comment
@@ -239,12 +217,12 @@ F 1.0 1.0 1.0
 $end
 
 # I love comments!
-int_array = {LIST}
+int_array = [42]
 dbl_array = [{PI}, {E}, {TAU}]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)), NAME=name, CONTENTS=stuff)
+    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, NAME=name, CONTENTS=stuff)
     return inp
 
 
@@ -273,7 +251,7 @@ def test_keywords_and_section(name):
 
 @pytest.fixture
 def keywords_and_flat_sections():
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     template = """/* This is a comment */
 int = 42
 // This is another comment
@@ -296,12 +274,12 @@ foo<bar> {{
 }}
 
 # I love comments!
-int_array = {LIST}
+int_array = [42]
 dbl_array = [{PI}, {E}, {TAU}]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)), CONTENTS=stuff)
+    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, CONTENTS=stuff)
     return inp
 
 
@@ -327,7 +305,7 @@ def test_keywords_and_flat_sections(keywords_and_flat_sections):
 
 @pytest.fixture
 def keywords_and_nested_sections():
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     template = """/* This is a comment */
 int = 42
 // This is another comment
@@ -350,12 +328,12 @@ topsect {{
 }}
 
 # I love comments!
-int_array = {LIST}
+int_array = [42]
 dbl_array = [{PI}, {E}, {TAU}]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)), CONTENTS=stuff)
+    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, CONTENTS=stuff)
     return inp
 
 

@@ -36,23 +36,22 @@ import math
 from io import StringIO
 
 import pytest
-
-from parselglossy.grammars import standard
+from parselglossy.grammars import getkw
 from parselglossy.utils import ComplexEncoder, as_complex
 
 # yapf: disable
 reference = {
-     'int': 42
-   , 'dbl': math.pi
-   , 'cmplx': complex(-1, -math.e)
-   , 'bool': True
-   , 'str': 'fooffa'
-   , 'int_array': list(range(1, 5))
-   , 'dbl_array': [math.pi, math.e, 2.0*math.pi]
-   , 'cmplx_array': [complex(math.pi, -2.0), complex(math.e, -2.0), complex(2.0*math.pi, 1.5)]
-   , 'bool_array': [True, True, True, False, True, False]
-   , 'str_array': ["foo", "bar", "lorem", "IpSuM"]
-   , 'raw': "H 0.0 0.0 0.0\nF 1.0 1.0 1.0\n"
+    'int': 42
+  , 'dbl': math.pi
+  , 'cmplx': complex(-1, -math.e)
+  , 'bool': True
+  , 'str': 'fooffa'
+  , 'int_array': [42]
+  , 'dbl_array': [math.pi, math.e, 2.0*math.pi]
+  , 'cmplx_array': [complex(math.pi, -2.0), complex(math.e, -2.0), complex(2.0*math.pi, 1.5)]
+  , 'bool_array': [True, True, True, False, True, False]
+  , 'str_array': ["foo", "bar", "lorem", "IpSuM"]
+  , 'raw': "H 0.0 0.0 0.0\nF 1.0 1.0 1.0\n"
 }
 # yapf: enable
 
@@ -73,7 +72,7 @@ F 1.0 1.0 1.0
 $end
 
 # I love comments!
-int_array = {LIST}
+int_array = [42]
 dbl_array = [{PI}, {E}, {TAU}]
 cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
@@ -84,7 +83,7 @@ str_array = [foo, bar, "lorem", "IpSuM"]
 
 @pytest.fixture
 def keywords():
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     keys = """{CONTENTS}
 """
     return keys.format(CONTENTS=stuff)
@@ -92,7 +91,7 @@ def keywords():
 
 def test_keyword(keywords):
     """Test an input made only of keywords."""
-    grammar = standard.grammar()
+    grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(keywords).asDict()
 
     assert tokens == reference
@@ -108,7 +107,7 @@ def test_keyword(keywords):
 
 
 def section(name):
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     sect = """{NAME} {{
     {CONTENTS}
 }}
@@ -123,7 +122,7 @@ def section(name):
 def test_section(name):
     """Test an input made of one section, tagged or untagged."""
     ref_dict = {name: dict(reference)}
-    grammar = standard.grammar()
+    grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(section(name)).asDict()
 
     assert tokens == ref_dict
@@ -140,7 +139,7 @@ def test_section(name):
 
 @pytest.fixture
 def flat_sections():
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     sects = """topsect {{
     {CONTENTS}
 }}
@@ -155,7 +154,7 @@ foo<bar> {{
 def test_flat_sections(flat_sections):
     """Test an input made of two unnested sections, tagged or untagged."""
     ref_dict = {'topsect': dict(reference), 'foo<bar>': dict(reference)}
-    grammar = standard.grammar()
+    grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(flat_sections).asDict()
 
     assert tokens == ref_dict
@@ -172,7 +171,7 @@ def test_flat_sections(flat_sections):
 
 @pytest.fixture
 def nested_sections():
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     sects = """topsect {{
     {CONTENTS}
 
@@ -188,7 +187,7 @@ def test_nested_sections(nested_sections):
     """Test an input made of two nested sections, tagged or untagged."""
     ref_dict = {'topsect': dict(reference)}
     ref_dict['topsect']['foo<bar>'] = dict(reference)
-    grammar = standard.grammar()
+    grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(nested_sections).asDict()
 
     assert tokens == ref_dict
@@ -204,7 +203,7 @@ def test_nested_sections(nested_sections):
 
 
 def keywords_and_section(name):
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     template = """/* This is a comment */
 int = 42
 // This is another comment
@@ -224,13 +223,13 @@ F 1.0 1.0 1.0
 $end
 
 # I love comments!
-int_array = {LIST}
+int_array = [42]
 dbl_array = [{PI}, {E}, {TAU}]
 cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)), NAME=name, CONTENTS=stuff)
+    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, NAME=name, CONTENTS=stuff)
     return inp
 
 
@@ -242,7 +241,7 @@ def test_keywords_and_section(name):
     """Test an input made of keywords, one section, tagged or untagged, and more keywords."""
     ref_dict = dict(reference)
     ref_dict[name] = dict(reference)
-    grammar = standard.grammar()
+    grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(keywords_and_section(name)).asDict()
 
     assert tokens == ref_dict
@@ -259,7 +258,7 @@ def test_keywords_and_section(name):
 
 @pytest.fixture
 def keywords_and_flat_sections():
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     template = """/* This is a comment */
 int = 42
 // This is another comment
@@ -283,13 +282,13 @@ foo<bar> {{
 }}
 
 # I love comments!
-int_array = {LIST}
+int_array = [42]
 dbl_array = [{PI}, {E}, {TAU}]
 cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)), CONTENTS=stuff)
+    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, CONTENTS=stuff)
     return inp
 
 
@@ -298,7 +297,7 @@ def test_keywords_and_flat_sections(keywords_and_flat_sections):
     ref_dict = dict(reference)
     ref_dict['topsect'] = dict(reference)
     ref_dict['foo<bar>'] = dict(reference)
-    grammar = standard.grammar()
+    grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(keywords_and_flat_sections).asDict()
 
     assert tokens == ref_dict
@@ -315,7 +314,7 @@ def test_keywords_and_flat_sections(keywords_and_flat_sections):
 
 @pytest.fixture
 def keywords_and_nested_sections():
-    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)))
+    stuff = contents().format(PI=math.pi, E=math.e, TAU=2.0 * math.pi)
     template = """/* This is a comment */
 int = 42
 // This is another comment
@@ -339,13 +338,13 @@ topsect {{
 }}
 
 # I love comments!
-int_array = {LIST}
+int_array = [42]
 dbl_array = [{PI}, {E}, {TAU}]
 cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, LIST=list(range(1, 5)), CONTENTS=stuff)
+    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, CONTENTS=stuff)
     return inp
 
 
@@ -354,7 +353,7 @@ def test_keywords_and_nested_sections(keywords_and_nested_sections):
     ref_dict = dict(reference)
     ref_dict['topsect'] = dict(reference)
     ref_dict['topsect']['foo<bar>'] = dict(reference)
-    grammar = standard.grammar()
+    grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(keywords_and_nested_sections).asDict()
 
     assert tokens == ref_dict
@@ -383,7 +382,7 @@ $end
 
 def test_data_only_section(data_only_section):
     ref = {'molecule': {'coords': 'H  0.0000  0.0000 -0.7000\nH  0.0000  0.0000  0.7000\n'}}
-    grammar = standard.grammar()
+    grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(data_only_section).asDict()
 
     assert tokens == ref

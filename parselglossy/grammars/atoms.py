@@ -30,9 +30,11 @@
 """Atoms."""
 
 import functools
+from typing import Any, List, Union
 
 import pyparsing as pp
 
+from ..exceptions import raise_pyparsing_empty_list
 from ..utils import falsey, printable, truthy
 
 
@@ -58,9 +60,8 @@ int_t = pp.pyparsing_common.signed_integer
 
 float_t = pp.pyparsing_common.sci_real
 
-str_t = pp.quotedString.setParseAction(pp.removeQuotes) ^ pp.Word(printable)
-str_t.setName('str')
-str_t.setParseAction(pp.tokenMap(str))
+quoted_str_t = pp.quotedString.setParseAction(pp.removeQuotes)
+unquoted_str_t = pp.Word(printable)
 
 I_unit = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, ['*j', '*i'])).suppress()
 complex_t = pp.OneOrMore(pp.pyparsing_common.number) + I_unit
@@ -74,3 +75,54 @@ EDATA = pp.CaselessLiteral('$end').suppress()
 data_t = pp.Group(pp.Combine(SDATA + pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')) + pp.SkipTo(EDATA) + EDATA)
 
 fortranStyleComment = pp.Regex(r"!.*").setName("Fortran style comment")
+
+
+def make_list_t(scalars: Union[Any, List[Any]],
+                *,
+                start: str = '[',
+                end: str = ']',
+                delimiter: str = ',',
+                multiline: bool = True) -> Any:
+    """Atom for lists.
+
+    Parameter
+    ---------
+    scalars: Union[Any, List[Any]]
+        Scalar parser elements, already combined or as a list. The list will be
+        combined using the `^` operator.
+    start: str
+        Left delimiter for the list. Defaults to '['.
+    end: str
+        Right delimiter for the list. Defaults to ']'.
+    delimiter: str
+        List delimiter. Defaults to ','.
+    multiline: bool
+        Whether the list can span multiple lines. Defaults to `True`.
+
+    Notes
+    -----
+    The order of the scalar tokens in the `scalars` list **is important**.
+
+    Returns
+    -------
+    list: Any
+    """
+    START, END = map(pp.Suppress, start + end)
+
+    if isinstance(scalars, list):
+        atoms = functools.reduce(lambda x, y: x ^ y, scalars)
+    else:
+        atoms = scalars
+
+    if multiline:
+        NEWLINE = pp.Literal('\n').suppress()
+        list_t = START + pp.delimitedList(atoms ^ NEWLINE, delim=delimiter) + END
+        empty = START + NEWLINE + END
+    else:
+        list_t = START + pp.delimitedList(atoms, delim=delimiter) + END
+        empty = START + END
+
+    return (list_t | empty.setParseAction(raise_pyparsing_empty_list))
+
+
+list_t = make_list_t(quoted_str_t ^ float_t ^ int_t ^ bool_t ^ unquoted_str_t)
