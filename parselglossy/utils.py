@@ -46,6 +46,18 @@ The printable character set is the standard set in `string.printable` minus
 "\'(),=[\\]`{} and all whitespace characters.
 """
 
+coerce_callbacks = {
+    'bool': bool,
+    # We remove spaces so the string-to-complex cast works without surprises
+    'complex': lambda x: complex(x.replace(' ', '')),
+    'float': float,
+    'int': int,
+    'str': str,
+}
+tmp = {'List[{:s}]'.format(k): lambda x: list(map(v, x)) for k, v in coerce_callbacks.items()}
+coerce_callbacks.update(tmp)
+"""dict: Dictionary of type coercion function for supported types."""
+
 
 class ComplexEncoder(json.JSONEncoder):
     """JSON encoder for complex numbers."""

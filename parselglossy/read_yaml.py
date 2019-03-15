@@ -28,6 +28,7 @@
 
 # -*- coding: utf-8 -*-
 
+from collections import OrderedDict
 from pathlib import Path
 
 import yaml
@@ -50,7 +51,7 @@ def read_yaml_file(file_name: Path) -> JSONDict:
     """
     with file_name.open("r") as f:
         try:
-            d = yaml.safe_load(f)
+            d = OrderedDict(yaml.safe_load(f))
         except yaml.YAMLError as e:
             print(e)
     return d

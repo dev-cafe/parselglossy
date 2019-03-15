@@ -12,6 +12,18 @@ JSONDict = Dict[str, Any]
 
 pp = pprint.PrettyPrinter(indent=4)
 
+# Callbacks to coerce types
+coerce_callbacks = {
+    'bool': bool,
+    # We remove spaces so the string-to-complex cast works without surprises
+    'complex': lambda x: complex(x.replace(' ', '')),
+    'float': float,
+    'int': int,
+    'str': str,
+}
+tmp = {'List[{:s}]'.format(k): lambda x: list(map(v, x)) for k, v in coerce_callbacks.items()}
+coerce_callbacks.update(tmp)
+
 
 def read_yaml_file(file_name: Path) -> Dict[str, Any]:
     """Reads a YAML file and returns it as a dictionary.
@@ -64,36 +76,6 @@ def extract_from_template(what: str, how: Callable, template_dict: JSONDict) -> 
     return stuff
 
 
-def old_decimate(d: JSONDict) -> JSONDict:
-    # TODO Make sure that keywords have type and documentation
-    # TODO Make sure that sections have documentation
-
-    # Put None where there is nothing. Should come in handy for checking reasonable defaults
-    # TODO there needs to be another pass at defaulting, as it might actually be a callable
-    defaults = {v['name']: v['default'] if 'default' in v else None for v in d['keywords']}
-
-    # We defer type checking and coercion till after we have merge the defaults with the user input
-    # Type coercion means using the specified type for a type cast, however, given that we allow callables
-    # as defaults, we might want to finesse that as type(callable(input_dict))
-
-    types = {v['name']: v['type'] if 'type' in d['keywords'] else exceptions.SpecificationError for v in d['keywords']}
-
-    docstrings = {
-        v['name']: v['docstring']
-        if 'docstring' in d['keywords'] and v['docstring'].strip() != '' else exceptions.SpecificationError
-        for v in d['keywords']
-    }
-
-    predicates = {v['name']: v['predicates'] if 'predicates' in d['keywords'] else None for v in d['keywords']}
-
-    # Commence the recursive descent, if we have sections, that is!
-    if 'sections' in d:
-        for section in d['sections']:
-            defaults[section['name']] = old_decimate(section)
-
-    return defaults  # {'defaults': defaults, 'types': types, 'docstrings': docstrings, 'predicates': predicates}
-
-
 def view_by(what: str,
             d: Dict[str, Any],
             *,
@@ -124,13 +106,15 @@ def view_by(what: str,
     keep track of what went wrong and raise only when validation is done.
     """
 
-    view = {v['name']: transformer(v[what]) if all([what in v, predicate(v, what)])
-            else missing for v in d['keywords']}
+    view = {
+        v['name']: transformer(v[what]) if all([what in v, predicate(v, what)]) else missing
+        for v in d['keywords']
+    }
 
     if 'sections' in d:
         for section in d['sections']:
-            view[section['name']] = view_by(what, section, predicate=predicate,
-                                            missing=missing, transformer=transformer)
+            view[section['name']] = view_by(
+                what, section, predicate=predicate, missing=missing, transformer=transformer)
 
     return view
 
@@ -150,20 +134,16 @@ def apply_mask(incoming: JSONDict, mask: Dict[str, Callable[[Any], Any]]) -> JSO
     There are no checks on consistency of the structure of the two dictionaries.
     """
 
-    return {k: mask[k](v) if not isinstance(v, dict) else apply_mask(v, mask[k]) for k, v in incoming.items()}
+    outgoing = {}
+    for k, v in incoming.items():
+        if isinstance(v, dict):
+            outgoing[k] = apply_mask(v, mask[k])
+        elif v is None:
+            outgoing[k] = None
+        else:
+            outgoing[k] = mask[k](v)
 
-
-# Callbacks to coerce types
-coerce_callbacks = {
-    'bool': bool,
-    # We remove spaces so the string-to-complex cast works without surprises
-    'complex': lambda x: complex(x.replace(' ', '')),
-    'float': float,
-    'int': int,
-    'str': str,
-}
-tmp = {'List[{:s}]'.format(k): lambda x: list(map(v, x)) for k, v in coerce_callbacks.items()}
-coerce_callbacks.update(tmp)
+    return outgoing
 
 
 def predicate_checker(incoming: Dict[str, Optional[List[str]]]) -> JSONDict:
@@ -177,38 +157,40 @@ def predicate_checker(incoming: Dict[str, Optional[List[str]]]) -> JSONDict:
     """
     outgoing = {}
     for k, ps in incoming.items():
-        if ps is None:
-            outgoing[k] = None
-        elif isinstance(ps, dict):
+        if isinstance(ps, dict):
             outgoing[k] = predicate_checker(ps)
+        elif ps is None:
+            outgoing[k] = None
         else:
             outgoing[k] = []
             for p in ps:
                 try:
                     outgoing[k].append(compile(p, '<unknown>', 'eval'))
                 except SyntaxError:
-                    outgoing[k].append(exceptions.SpecificationError(
-                        'Python syntax error in predicate "{:s}"'.format(v)))
+                    outgoing[k].append(
+                        exceptions.SpecificationError('Python syntax error in predicate "{:s}"'.format(v)))
 
     return outgoing
 
 
 if __name__ == "__main__":
     d = read_yaml_file(Path('tests/validation/overall/template.yml'))
-    ds = old_decimate(d)
-    pp.pprint(ds)
 
     types = view_by('type', d, missing=exceptions.SpecificationError, transformer=lambda x: coerce_callbacks[x])
     print('types')
     pp.pprint(types)
 
     # Get defaults and coerce their types
-    defaults = apply_mask(view_by('default', d), types)
+    defaults = apply_mask(view_by('default', d), mask=types)
     print('defaults')
     pp.pprint(defaults)
 
     docstrings = view_by(
-        'docstring', d, predicate=(lambda x, y: x[y].strip() != ''), missing=exceptions.SpecificationError)
+        'docstring',
+        d,
+        predicate=(lambda x, y: x[y].strip() != ''),
+        missing=exceptions.SpecificationError,
+        transformer=lambda x: x.rstrip())
     print('docstrings')
     pp.pprint(docstrings)
 
