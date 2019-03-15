@@ -29,7 +29,7 @@
 # -*- coding: utf-8 -*-
 """Common utilities."""
 import json
-from string import printable, whitespace
+from string import ascii_letters, digits
 from typing import Any, Dict
 
 JSONDict = Dict[str, Any]
@@ -39,14 +39,11 @@ truthy = ['TRUE', 'ON', 'YES', 'Y']
 falsey = ['FALSE', 'OFF', 'NO', 'N']
 """List[str]: List of false-like values."""
 
-printable = printable.replace('\'', '').replace('"', '').replace('\\', '').strip(whitespace)
-"""str: Printable character set.
+printable = ascii_letters + digits + r'!#$%&*+-./:;<>?@^_|~'
+"""str: Custom printable character set.
 
-The printable character set is the standard set in `string` minus:
-- single quotation marks.
-- double quotation marks.
-- whitespace characters.
-- backslash.
+The printable character set is the standard set in `string.printable` minus
+"\'(),=[\\]`{} and all whitespace characters.
 """
 
 

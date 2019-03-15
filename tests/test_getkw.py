@@ -36,12 +36,11 @@ import math
 from io import StringIO
 
 import pytest
+from custom_strategies import complex_numbers, floats
 from hypothesis import given
 from hypothesis import strategies as st
-from pyparsing import ParseBaseException
-
-from custom_strategies import complex_numbers, floats
 from parselglossy.grammars import getkw
+from pyparsing import ParseBaseException
 
 # yapf: disable
 reference = {
