@@ -46,7 +46,7 @@ setup(
     include_package_data=True,
     keywords='parselglossy',
     name='parselglossy',
-    packages=find_packages(include=['parselglossy']),
+    packages=find_packages(exclude=['tests', 'docs']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
