@@ -29,15 +29,30 @@
 # -*- coding: utf-8 -*-
 """Common utilities."""
 import json
+from string import printable, whitespace
 from typing import Any, Dict
 
 JSONDict = Dict[str, Any]
 
 truthy = ['TRUE', 'ON', 'YES', 'Y']
+"""List[str]: List of true-like values."""
 falsey = ['FALSE', 'OFF', 'NO', 'N']
+"""List[str]: List of false-like values."""
+
+printable = printable.replace('\'', '').replace('"', '').replace('\\', '').strip(whitespace)
+"""str: Printable character set.
+
+The printable character set is the standard set in `string` minus:
+- single quotation marks.
+- double quotation marks.
+- whitespace characters.
+- backslash.
+"""
 
 
 class ComplexEncoder(json.JSONEncoder):
+    """JSON encoder for complex numbers."""
+
     def default(self, obj):
         if isinstance(obj, complex):
             return {'__complex__': [obj.real, obj.imag]}
@@ -46,6 +61,7 @@ class ComplexEncoder(json.JSONEncoder):
 
 
 def as_complex(dct):
+    """JSON decoder for complex numbers."""
     if '__complex__' in dct:
         return complex(dct['__complex__'][0], dct['__complex__'][1])
     return dct

@@ -34,12 +34,11 @@
 import string
 
 import pytest
+from custom_strategies import complex_numbers, floats
 from hypothesis import example, given
 from hypothesis import strategies as st
-
-from custom_strategies import complex_numbers, floats
 from parselglossy.grammars import atoms
-from parselglossy.utils import falsey, truthy
+from parselglossy.utils import falsey, printable, truthy
 
 
 @given(a=st.sampled_from(truthy + falsey))
@@ -60,19 +59,22 @@ def test_atoms_float(a):
     assert tokens[0] == pytest.approx(a[1])
 
 
-@given(a=st.text(alphabet=(string.digits + string.ascii_letters), min_size=1))
+@given(a=st.text(alphabet=(printable), min_size=1))
+@example(a='foo_BAR')
 def test_atoms_str(a):
     tokens = atoms.str_t.parseString('{:s}'.format(a)).asList()
     assert tokens[0] == a
 
 
-@given(a=st.text(alphabet=(string.digits + string.ascii_letters + ' '), min_size=1))
-@example('Bobson Dugnutt')
-@example('Glenallen    Mixon   ')
-@example('    Todd Bonzalez   ')
-@example('Dwigt Rortugal')
-def test_atoms_quoted_str(a):
-    tokens = atoms.str_t.parseString('"{:s}"'.format(a)).asList()
+@pytest.mark.parametrize('quoting', ['\'{:s}\'', '"{:s}"'], ids=['single_quotes', 'double_quotes'])
+@given(a=st.text(alphabet=(printable + ' '), min_size=1))
+@example(a='Bobson Dugnutt')
+@example(a='Glenallen    Mixon   ')
+@example(a='    Todd Bonzalez   ')
+@example(a='Dwigt Rortugal')
+@example(a='Raul_Chamgerlain    ')
+def test_atoms_quoted_str(a, quoting):
+    tokens = atoms.str_t.parseString(quoting.format(a)).asList()
     assert tokens[0] == a
 
 

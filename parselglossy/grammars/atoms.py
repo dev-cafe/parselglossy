@@ -33,7 +33,7 @@ import functools
 
 import pyparsing as pp
 
-from ..utils import falsey, truthy
+from ..utils import falsey, printable, truthy
 
 
 def to_bool(x):
@@ -58,7 +58,7 @@ int_t = pp.pyparsing_common.signed_integer
 
 float_t = pp.pyparsing_common.sci_real
 
-str_t = pp.quotedString.setParseAction(pp.removeQuotes) ^ pp.Word(pp.alphanums)
+str_t = pp.quotedString.setParseAction(pp.removeQuotes) ^ pp.Word(printable)
 str_t.setName('str')
 str_t.setParseAction(pp.tokenMap(str))
 
