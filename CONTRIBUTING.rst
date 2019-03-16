@@ -117,11 +117,25 @@ Deploying
 ---------
 
 A reminder for the maintainers on how to deploy.
-Make sure all your changes are committed (including an entry in HISTORY.rst).
+Make sure all your changes are committed (including an entry in ``HISTORY.rst``).
 Then run::
 
-$ bumpversion patch # possible: major / minor / patch
-$ git push
-$ git push --tags
+1. Bump the version using the ``bumpversion`` executable::
 
-Travis will then deploy to PyPI if tests pass.
+   $ bumpversion patch --no-tag --no-commit # possible: major / minor / patch
+
+2. Make sure that the files touched by ``bumpversion`` all look correct. Then add them and commit::
+
+   $ git add setup.py  setup.cfg parselglossy/__init__.py
+   $ git commit -sm "Bump version: x.y.z -> X.Y.Z"
+
+3. Tag the release::
+
+   $ git tag -a vX.Y.Z -m "Version X.Y.Z release" -s # -s is to GPG-sign the tag
+
+4. Push latest commits and the tag. Remember to disengage branch protection for the ``master`` branch::
+
+   $ git push
+   $ git push --tags
+
+Travis will then deploy to PyPI if tests pass for the Python 3.6 lane.
