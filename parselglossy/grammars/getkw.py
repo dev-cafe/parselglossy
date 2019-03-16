@@ -27,42 +27,58 @@
 #
 
 # -*- coding: utf-8 -*-
-"""The original Getkw grammar."""
+"""Getkw grammar generation."""
+
+from typing import Any
 
 import pyparsing as pp
 
-from .atoms import bool_t, data_t, float_t, fortranStyleComment, int_t, str_t
+from .atoms import (bool_t, complex_t, data_t, float_t, fortranStyleComment, int_t, make_list_t, quoted_str_t,
+                    unquoted_str_t)
 
 
-def grammar():
-    LBRACKET, RBRACKET, EQ, COMMA = map(pp.Suppress, '[]=,')
-    NEWLINE = pp.Literal('\n').suppress()
+def grammar(*, has_complex: bool = False) -> Any:
+    """The Getkw recursive grammar.
+
+    Parameters
+    ----------
+    has_complex: bool
+        Whether to include complex numbers. Defaults to `False`.
+
+    Returns
+    -------
+    A parsing grammar.
+    """
+
+    EQ, COMMA = map(pp.Suppress, '=,')
     LBRACE, RBRACE = map(pp.Suppress, '{}')
 
     # Define key
     key = pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')
 
     # A scalar value (bool, int, float, str)
-    scalar = bool_t ^ (float_t | int_t) ^ str_t
-    # An array value ([bool], [int], [float], [str])
-    array = LBRACKET + pp.delimitedList(scalar ^ NEWLINE) + RBRACKET
-
-    value = scalar ^ array
+    if has_complex:
+        scalar = quoted_str_t ^ complex_t ^ float_t ^ int_t ^ bool_t ^ unquoted_str_t
+    else:
+        scalar = quoted_str_t ^ float_t ^ int_t ^ bool_t ^ unquoted_str_t
+    # Coerce lists to be lists
+    list_t = make_list_t(scalar)
+    list_t.setParseAction(lambda t: [t])
 
     # Define key-value pairs, i.e. our keywords
-    pair = pp.Group(key + EQ + value)
+    pair = pp.Group(key + EQ + list_t) | pp.Group(key + EQ + scalar)
 
     # Define values and section recursively
     section = pp.Forward()
     values = pp.Forward()
     section << pp.Group(key + LBRACE + values + RBRACE)
-    values << pp.Dict(pp.OneOrMore(pair | data_t | section))
+    values << pp.Dict(pp.OneOrMore(section | data_t | pair))
 
     # Define input
-    input = pp.Dict(pp.OneOrMore(values) | pp.OneOrMore(section))
+    retval = pp.Dict(pp.OneOrMore(section) | pp.OneOrMore(values))
 
     # Ignore Python (#), C/C++ (/* */ and //), and Fortran (!) style comments
     comment = pp.cppStyleComment | pp.pythonStyleComment | fortranStyleComment
-    input.ignore(comment)
+    retval.ignore(comment)
 
-    return input
+    return retval

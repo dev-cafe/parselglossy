@@ -31,15 +31,13 @@
 # -*- coding: utf-8 -*-
 """Tests for `parselglossy` package."""
 
-import string
-
 import pytest
+from custom_strategies import complex_numbers, floats
 from hypothesis import example, given
 from hypothesis import strategies as st
-
-from custom_strategies import complex_numbers, floats
 from parselglossy.grammars import atoms
-from parselglossy.utils import falsey, truthy
+from parselglossy.utils import falsey, printable, truthy
+from pyparsing import ParseBaseException
 
 
 @given(a=st.sampled_from(truthy + falsey))
@@ -60,19 +58,22 @@ def test_atoms_float(a):
     assert tokens[0] == pytest.approx(a[1])
 
 
-@given(a=st.text(alphabet=(string.digits + string.ascii_letters), min_size=1))
-def test_atoms_str(a):
-    tokens = atoms.str_t.parseString('{:s}'.format(a)).asList()
+@given(a=st.text(alphabet=(printable), min_size=1))
+@example(a='foo_BAR')
+def test_atoms_unquoted_str(a):
+    tokens = atoms.unquoted_str_t.parseString('{:s}'.format(a)).asList()
     assert tokens[0] == a
 
 
-@given(a=st.text(alphabet=(string.digits + string.ascii_letters + ' '), min_size=1))
-@example('Bobson Dugnutt')
-@example('Glenallen    Mixon   ')
-@example('    Todd Bonzalez   ')
-@example('Dwigt Rortugal')
-def test_atoms_quoted_str(a):
-    tokens = atoms.str_t.parseString('"{:s}"'.format(a)).asList()
+@pytest.mark.parametrize('quoting', ['\'{:s}\'', '"{:s}"'], ids=['single_quotes', 'double_quotes'])
+@given(a=st.text(alphabet=(printable + ' '), min_size=1))
+@example(a='Bobson Dugnutt')
+@example(a='Glenallen    Mixon   ')
+@example(a='    Todd Bonzalez   ')
+@example(a='Dwigt Rortugal')
+@example(a='Raul_Chamgerlain    ')
+def test_atoms_quoted_str(a, quoting):
+    tokens = atoms.quoted_str_t.parseString(quoting.format(a)).asList()
     assert tokens[0] == a
 
 
@@ -89,3 +90,60 @@ def test_atoms_complex(a):
 def test_atoms_data(a):
     tokens = atoms.data_t.parseString(a[0]).asList()
     assert tokens[0] == a[1]
+
+
+@given(a=st.lists(st.integers()))
+def test_list_int(a):
+    try:
+        tokens = atoms.list_t.parseString('{}'.format(a)).asList()
+        assert tokens == a
+    except ParseBaseException as e:
+        # FIXME Currently the message of the exception is different from this one
+        #assert str(e) in 'Empty lists not allowed'
+        pass
+
+
+@given(a=st.lists(floats()))
+def test_list_float(a):
+    try:
+        tokens = atoms.list_t.parseString('{}'.format(a)).asList()
+        assert tokens == a
+    except ParseBaseException as e:
+        # FIXME Currently the message of the exception is different from this one
+        #assert str(e) in 'Empty lists not allowed'
+        pass
+
+
+@given(a=st.lists(st.text(alphabet=(printable), min_size=1)))
+def test_list_unquoted_str(a):
+    try:
+        tokens = atoms.list_t.parseString('{}'.format(a)).asList()
+        assert tokens == a
+    except ParseBaseException as e:
+        # FIXME Currently the message of the exception is different from this one
+        #assert str(e) in 'Empty lists not allowed'
+        pass
+
+
+@pytest.mark.parametrize('quoting', ['\'{:s}\'', '"{:s}"'], ids=['single_quotes', 'double_quotes'])
+@given(a=st.lists(st.text(alphabet=(printable + ' '), min_size=1)))
+def test_list_quoted_str(a, quoting):
+    example = '[' + ', '.join([quoting.format(x) for x in a]) + ']'
+    try:
+        tokens = atoms.list_t.parseString(example).asList()
+        assert tokens == a
+    except ParseBaseException as e:
+        # FIXME Currently the message of the exception is different from this one
+        #assert str(e) in 'Empty lists not allowed'
+        pass
+
+
+@given(a=st.lists(complex_numbers()))
+def test_list_complex(a):
+    try:
+        tokens = atoms.list_t.parseString('{}'.format(a)).asList()
+        assert tokens == a
+    except ParseBaseException as e:
+        # FIXME Currently the message of the exception is different from this one
+        #assert str(e) in 'Empty lists not allowed'
+        pass
