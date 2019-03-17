@@ -32,12 +32,13 @@
 """Tests for `parselglossy` package."""
 
 import pytest
-from custom_strategies import complex_numbers, floats
 from hypothesis import example, given
 from hypothesis import strategies as st
+from pyparsing import ParseBaseException
+
+from custom_strategies import complex_numbers, floats, list_of_complex_numbers, list_of_floats
 from parselglossy.grammars import atoms
 from parselglossy.utils import falsey, printable, truthy
-from pyparsing import ParseBaseException
 
 
 @given(a=st.sampled_from(truthy + falsey))
@@ -54,8 +55,8 @@ def test_atoms_int(a):
 
 @given(a=floats())
 def test_atoms_float(a):
-    tokens = atoms.float_t.parseString(a[0]).asList()
-    assert tokens[0] == pytest.approx(a[1])
+    tokens = atoms.float_t.parseString(a.string).asList()
+    assert tokens[0] == pytest.approx(a.value)
 
 
 @given(a=st.text(alphabet=(printable), min_size=1))
@@ -79,8 +80,8 @@ def test_atoms_quoted_str(a, quoting):
 
 @given(a=complex_numbers())
 def test_atoms_complex(a):
-    tokens = atoms.complex_t.parseString(a[0]).asList()
-    assert tokens[0] == pytest.approx(a[1])
+    tokens = atoms.complex_t.parseString(a.string).asList()
+    assert tokens[0] == pytest.approx(a.value)
 
 
 @given(
@@ -92,58 +93,41 @@ def test_atoms_data(a):
     assert tokens[0] == a[1]
 
 
-@given(a=st.lists(st.integers()))
+@pytest.mark.parametrize("a", ['[]', '[       ]', '[\n]'])
+def test_list_empty(a):
+    with pytest.raises(ParseBaseException, match=r'^Empty lists not allowed'):
+        tokens = atoms.list_t.parseString('{}'.format(a)).asList()
+
+
+@given(a=st.lists(st.integers(), min_size=1))
 def test_list_int(a):
-    try:
-        tokens = atoms.list_t.parseString('{}'.format(a)).asList()
-        assert tokens == a
-    except ParseBaseException as e:
-        # FIXME Currently the message of the exception is different from this one
-        #assert str(e) in 'Empty lists not allowed'
-        pass
+    tokens = atoms.list_t.parseString('{}'.format(a)).asList()
+    assert tokens == a
 
 
-@given(a=st.lists(floats()))
+@given(a=list_of_floats())
 def test_list_float(a):
-    try:
-        tokens = atoms.list_t.parseString('{}'.format(a)).asList()
-        assert tokens == a
-    except ParseBaseException as e:
-        # FIXME Currently the message of the exception is different from this one
-        #assert str(e) in 'Empty lists not allowed'
-        pass
+    tokens = atoms.list_t.parseString(a.string).asList()
+    assert tokens == pytest.approx(a.value)
 
 
-@given(a=st.lists(st.text(alphabet=(printable), min_size=1)))
+@given(a=st.lists(st.text(alphabet=(printable)), min_size=1))
 def test_list_unquoted_str(a):
-    try:
-        tokens = atoms.list_t.parseString('{}'.format(a)).asList()
-        assert tokens == a
-    except ParseBaseException as e:
-        # FIXME Currently the message of the exception is different from this one
-        #assert str(e) in 'Empty lists not allowed'
-        pass
+    tokens = atoms.list_t.parseString('{}'.format(a)).asList()
+    assert tokens == a
 
 
 @pytest.mark.parametrize('quoting', ['\'{:s}\'', '"{:s}"'], ids=['single_quotes', 'double_quotes'])
-@given(a=st.lists(st.text(alphabet=(printable + ' '), min_size=1)))
+@given(a=st.lists(st.text(alphabet=(printable)), min_size=1))
 def test_list_quoted_str(a, quoting):
     example = '[' + ', '.join([quoting.format(x) for x in a]) + ']'
-    try:
-        tokens = atoms.list_t.parseString(example).asList()
-        assert tokens == a
-    except ParseBaseException as e:
-        # FIXME Currently the message of the exception is different from this one
-        #assert str(e) in 'Empty lists not allowed'
-        pass
+    tokens = atoms.list_t.parseString(example).asList()
+    assert tokens == a
 
 
-@given(a=st.lists(complex_numbers()))
+@given(a=list_of_complex_numbers())
 def test_list_complex(a):
-    try:
-        tokens = atoms.list_t.parseString('{}'.format(a)).asList()
-        assert tokens == a
-    except ParseBaseException as e:
-        # FIXME Currently the message of the exception is different from this one
-        #assert str(e) in 'Empty lists not allowed'
-        pass
+    scalar = atoms.quoted_str_t ^ atoms.complex_t ^ atoms.float_t ^ atoms.int_t ^ atoms.bool_t ^ atoms.unquoted_str_t
+    list_t = atoms.make_list_t(scalar)
+    tokens = list_t.parseString(a.string).asList()
+    assert tokens == pytest.approx(a.value)
