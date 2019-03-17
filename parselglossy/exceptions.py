@@ -29,8 +29,6 @@
 # -*- coding: utf-8 -*-
 """Error-handling facilities."""
 
-from pyparsing import ParseFatalException
-
 
 class ValidationError(Exception):
     """Exception raised for invalid input files."""
