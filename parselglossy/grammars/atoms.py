@@ -34,7 +34,6 @@ from typing import Any, List, Union
 
 import pyparsing as pp
 
-from ..exceptions import raise_pyparsing_empty_list
 from ..utils import falsey, printable, truthy
 
 
@@ -82,6 +81,7 @@ def make_list_t(scalars: Union[Any, List[Any]],
                 start: str = '[',
                 end: str = ']',
                 delimiter: str = ',',
+                throw_if_empty: bool = True,
                 multiline: bool = True) -> Any:
     """Atom for lists.
 
@@ -116,13 +116,11 @@ def make_list_t(scalars: Union[Any, List[Any]],
 
     if multiline:
         NEWLINE = pp.Literal('\n').suppress()
-        list_t = START + pp.delimitedList(atoms ^ NEWLINE, delim=delimiter) + END
-        empty = START + NEWLINE + END
+        list_t = START + pp.Optional(pp.delimitedList(atoms ^ NEWLINE, delim=delimiter)) + END
     else:
-        list_t = START + pp.delimitedList(atoms, delim=delimiter) + END
-        empty = START + END
+        list_t = START + pp.Optional(pp.delimitedList(atoms, delim=delimiter)) + END
 
-    return (list_t | empty.setParseAction(raise_pyparsing_empty_list))
+    return list_t.addCondition(bool, message="Empty lists not allowed", fatal=throw_if_empty)
 
 
 list_t = make_list_t(quoted_str_t ^ float_t ^ int_t ^ bool_t ^ unquoted_str_t)
