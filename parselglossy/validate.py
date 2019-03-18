@@ -46,6 +46,39 @@ AllowedTypes = Union[
 ]
 
 
+def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> JSONDict:
+    """Recursively merge two `dict`-s with "ours" strategy.
+
+    Parameters
+    ----------
+    theirs: JSONDict
+    ours: JSONDict
+
+    Returns
+    -------
+    outgoing: JSONDict
+
+    Notes
+    -----
+    The `theirs` dictionary is supposed to be the view by defaults of the
+    validation specification, whereas `ours` is the dictionary from user input.
+    The recursive merge action will generate a complete, but not validated,
+    input dictionary by using default values where these are not overridden by
+    user input, hence the naming "ours" for the merge strategy.
+    """
+    outgoing = {}
+
+    for k, v in theirs.items():
+        if isinstance(v, dict):
+            outgoing[k] = merge_ours(theirs=v, ours=ours[k])
+        elif k not in ours.keys():
+            outgoing[k] = theirs[k]
+        else:
+            outgoing[k] = ours[k]
+
+    return outgoing
+
+
 def type_matches(value: AllowedTypes, expected_type: str) -> bool:
     """Checks whether a value is of the expected type.
 
