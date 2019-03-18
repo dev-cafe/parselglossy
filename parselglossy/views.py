@@ -37,7 +37,7 @@ from .utils import JSONDict
 
 def view_by(
     what: str,
-    d: Dict[str, Any],
+    d: JSONDict,
     *,
     predicate: Callable[[Any, str], bool] = lambda x, y: True,
     missing: Union[None, Exception] = None,
@@ -50,9 +50,14 @@ def view_by(
     what: str
     d: JSONDict
     predicate: Callable
-       A predicate accepting one argument.
+       A predicate accepting two arguments.
     missing: Union[None, Exception]
     transformer: Callable
+
+    Returns
+    -------
+    outgoing: JSONDict
+       A dictionary with the desired view.
 
     Notes
     -----
@@ -66,6 +71,14 @@ def view_by(
     to produce errors that are as informative as possible, hence we decide to
     keep track of what went wrong and raise only when validation is done.
     """
+
+    possible_views = ["type", "default", "docstring", "predicates"]
+    if what not in possible_views:
+        raise ValueError(
+            "Requested view {:s} not among possible views ({})".format(
+                what, possible_views
+            )
+        )
 
     view = {
         v["name"]: transformer(v[what])
@@ -85,6 +98,81 @@ def view_by(
             )
 
     return view
+
+
+def view_by_type(d: JSONDict) -> JSONDict:
+    """Partial application of `view_by` for types.
+
+    Parameters
+    ----------
+    d: JSONDict
+
+    Returns
+    -------
+    outgoing: JSONDict
+       A dictionary with a view by types.
+    """
+    return view_by("type", d, missing=SpecificationError)
+
+
+def view_by_default(d: JSONDict) -> JSONDict:
+    """Partial application of `view_by` for defaults.
+
+    Parameters
+    ----------
+    d: JSONDict
+
+    Returns
+    -------
+    outgoing: JSONDict
+       A dictionary with a view by defaults.
+    """
+    return view_by("default", d)
+
+
+def view_by_docstring(d: JSONDict) -> JSONDict:
+    """Partial application of `view_by` for docstrings.
+
+    Parameters
+    ----------
+    d: JSONDict
+
+    Returns
+    -------
+    outgoing: JSONDict
+       A dictionary with a view by docstrings.
+    """
+
+    def docstring_not_empty(x: Any, y: str) -> bool:
+        """Check that a docstring is not empty."""
+        return x[y].strip() != ""
+
+    def docstring_rstrip(x: str) -> str:
+        """Apply rstrip to a docstring"""
+        return x.rstrip()
+
+    return view_by(
+        "docstring",
+        d,
+        predicate=docstring_not_empty,
+        missing=SpecificationError,
+        transformer=docstring_rstrip,
+    )
+
+
+def view_by_predicates(d: JSONDict) -> JSONDict:
+    """Partial application of `view_by` for predicates.
+
+    Parameters
+    ----------
+    d: JSONDict
+
+    Returns
+    -------
+    outgoing: JSONDict
+       A dictionary with a view by predicates.
+    """
+    return view_by("predicates", d)
 
 
 def apply_mask(incoming: JSONDict, mask: Dict[str, Callable[[Any], Any]]) -> JSONDict:

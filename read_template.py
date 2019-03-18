@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import yaml
+
 from parselglossy import exceptions
 
 JSONDict = Dict[str, Any]
@@ -14,14 +15,17 @@ pp = pprint.PrettyPrinter(indent=4)
 
 # Callbacks to coerce types
 coerce_callbacks = {
-    'bool': bool,
+    "bool": bool,
     # We remove spaces so the string-to-complex cast works without surprises
-    'complex': lambda x: complex(x.replace(' ', '')),
-    'float': float,
-    'int': int,
-    'str': str,
+    "complex": lambda x: complex(x.replace(" ", "")),
+    "float": float,
+    "int": int,
+    "str": str,
 }
-tmp = {'List[{:s}]'.format(k): lambda x: list(map(v, x)) for k, v in coerce_callbacks.items()}
+tmp = {
+    "List[{:s}]".format(k): lambda x: list(map(v, x))
+    for k, v in coerce_callbacks.items()
+}
 coerce_callbacks.update(tmp)
 
 
@@ -38,7 +42,7 @@ def read_yaml_file(file_name: Path) -> Dict[str, Any]:
     d: JSONDict
         A dictionary with the contents of the YAML file.
     """
-    with file_name.open('r') as f:
+    with file_name.open("r") as f:
         try:
             d = yaml.safe_load(f)
         except yaml.YAMLError as e:
@@ -63,10 +67,12 @@ def extract_from_template(what: str, how: Callable, template_dict: JSONDict) -> 
     stuff: List
          List containing `what` you wanted extracted `how` you wanted.
     """
-    if what not in ['keyword', 'section']:
-        raise ValueError('Only \'keyword\' or \'section\' are valid values for parameter \'what\'')
+    if what not in ["keyword", "section"]:
+        raise ValueError(
+            "Only 'keyword' or 'section' are valid values for parameter 'what'"
+        )
 
-    whats = '{:s}s'.format(what)
+    whats = "{:s}s".format(what)
     if whats in template_dict:
         # Map `Callable` onto collecion, filter out `None` from the resulting list
         stuff = list(filter(None, map(how, template_dict[whats])))
@@ -76,12 +82,14 @@ def extract_from_template(what: str, how: Callable, template_dict: JSONDict) -> 
     return stuff
 
 
-def view_by(what: str,
-            d: Dict[str, Any],
-            *,
-            predicate: Callable[[Any, str], bool] = lambda x, y: True,
-            missing: Union[None, Exception] = None,
-            transformer: Callable[[Any], Any] = lambda x: x) -> JSONDict:
+def view_by(
+    what: str,
+    d: Dict[str, Any],
+    *,
+    predicate: Callable[[Any, str], bool] = lambda x, y: True,
+    missing: Union[None, Exception] = None,
+    transformer: Callable[[Any], Any] = lambda x: x
+) -> JSONDict:
     """Recursive decimation of a template into an input.
 
     Parameters
@@ -107,14 +115,21 @@ def view_by(what: str,
     """
 
     view = {
-        v['name']: transformer(v[what]) if all([what in v, predicate(v, what)]) else missing
-        for v in d['keywords']
+        v["name"]: transformer(v[what])
+        if all([what in v, predicate(v, what)])
+        else missing
+        for v in d["keywords"]
     }
 
-    if 'sections' in d:
-        for section in d['sections']:
-            view[section['name']] = view_by(
-                what, section, predicate=predicate, missing=missing, transformer=transformer)
+    if "sections" in d:
+        for section in d["sections"]:
+            view[section["name"]] = view_by(
+                what,
+                section,
+                predicate=predicate,
+                missing=missing,
+                transformer=transformer,
+            )
 
     return view
 
@@ -165,37 +180,46 @@ def predicate_checker(incoming: Dict[str, Optional[List[str]]]) -> JSONDict:
             outgoing[k] = []
             for p in ps:
                 try:
-                    outgoing[k].append(compile(p, '<unknown>', 'eval'))
+                    outgoing[k].append(compile(p, "<unknown>", "eval"))
                 except SyntaxError:
                     outgoing[k].append(
-                        exceptions.SpecificationError('Python syntax error in predicate "{:s}"'.format(v)))
+                        exceptions.SpecificationError(
+                            'Python syntax error in predicate "{:s}"'.format(v)
+                        )
+                    )
 
     return outgoing
 
 
 if __name__ == "__main__":
-    d = read_yaml_file(Path('tests/validation/overall/template.yml'))
+    d = read_yaml_file(Path("tests/validation/overall/template.yml"))
 
-    types = view_by('type', d, missing=exceptions.SpecificationError, transformer=lambda x: coerce_callbacks[x])
-    print('types')
+    types = view_by(
+        "type",
+        d,
+        missing=exceptions.SpecificationError,
+        transformer=lambda x: coerce_callbacks[x],
+    )
+    print("types")
     pp.pprint(types)
 
     # Get defaults and coerce their types
-    defaults = apply_mask(view_by('default', d), mask=types)
-    print('defaults')
+    defaults = apply_mask(view_by("default", d), mask=types)
+    print("defaults")
     pp.pprint(defaults)
 
     docstrings = view_by(
-        'docstring',
+        "docstring",
         d,
-        predicate=(lambda x, y: x[y].strip() != ''),
+        predicate=(lambda x, y: x[y].strip() != ""),
         missing=exceptions.SpecificationError,
-        transformer=lambda x: x.rstrip())
-    print('docstrings')
+        transformer=lambda x: x.rstrip(),
+    )
+    print("docstrings")
     pp.pprint(docstrings)
 
-    predicates = view_by('predicates', d)
-    print('predicates')
+    predicates = view_by("predicates", d)
+    print("predicates")
     pp.pprint(predicates)
     predicates = predicate_checker(predicates)
     pp.pprint(predicates)
