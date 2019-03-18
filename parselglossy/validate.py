@@ -26,71 +26,11 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-import re
-from typing import Callable, List, Union
+from typing import Callable, List
 
 from .exceptions import SpecificationError, ValidationError
+from .types import type_matches
 from .utils import JSONDict
-
-AllowedTypes = Union[
-    bool,
-    str,
-    int,
-    float,
-    complex,
-    List[bool],
-    List[str],
-    List[int],
-    List[float],
-    List[complex],
-]
-
-
-def type_matches(value: AllowedTypes, expected_type: str) -> bool:
-    """Checks whether a value is of the expected type.
-
-    Parameters
-    ----------
-    value: Any
-      Value whose type needs to be checked
-    expected_type: AllowedTypes
-
-    Notes
-    -----
-    Allowed types T are: `str`, `int`, `float`, `complex`, `bool`,
-    as well as `List[T]`.
-
-    Returns
-    -------
-    True if value has the type expected_type, otherwise False.
-
-    Raises
-    ------
-    ValueError
-        If expected_type is not among the allowed types.
-    """
-    allowed_basic_types = ["str", "int", "float", "complex", "bool"]
-    allowed_list_types = ["List[{}]".format(t) for t in allowed_basic_types]
-    allowed_types = allowed_basic_types + allowed_list_types
-
-    # first verify whether expected_type is allowed
-    if expected_type not in allowed_types:
-        raise ValueError("could not recognize expected_type: {}".format(expected_type))
-
-    expected_type_is_list = re.search(r"^List\[(\w+)\]$", expected_type)
-
-    if expected_type_is_list is not None:
-        # make sure that value is actually a list
-        if not type(value).__name__ == "list":
-            return False
-
-        # iterate over each element of the list
-        # and check whether it matches T
-        return all((type(x).__name__ == expected_type_is_list.group(1) for x in value))
-    else:
-        # expected type is a basic type
-        # this is the simpler case
-        return type(value).__name__ == expected_type
 
 
 def extract_from_template(what: str, how: Callable, template_dict: JSONDict) -> List:
