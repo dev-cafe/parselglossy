@@ -64,13 +64,10 @@ Ready to contribute? Here's how to set up `parselglossy` for local development.
 
     $ git clone git@github.com:your_name_here/parselglossy.git
 
-3. Install your local copy into a virtual environment. Assuming you have
-   virtualenvwrapper installed, this is how you set up your fork for local
-   development::
+3. Install your local copy into a virtual environment. We recommend using `Pipenv <https://pipenv.readthedocs.io/en/latest/>`_.
+   This is how you set up your fork for local development::
 
-    $ mkvirtualenv parselglossy
-    $ cd parselglossy/
-    $ python setup.py develop
+    $ pipenv install --dev -e .
 
 4. Create a branch for local development::
 
@@ -124,12 +121,33 @@ Before you submit a pull request, check that it meets these guidelines:
    https://travis-ci.org/dev-cafe/parselglossy/pull_requests
    and make sure that the tests pass for all supported Python versions.
 
+Additional Development Packages
+---------------------------------
+
+There are many ways you can set up your development environment to work on ``parselglossy``.
+The minimal, working specification is given in the ``Pipfile`` and will allow you to run test as done on the continuous integration services.
+In addition to the essential development packages, you might want to additionally install:
+
+* `Python language server <https://github.com/palantir/python-language-server>`_
+  for modern integration with your editor. Note that this will need some
+  configuration work on your part to set up the integration.
+* `mypy <http://mypy-lang.org/>`_ for optional type checking and the
+  ``pyls-mypy`` integration plugin with the language server. As the library
+  evolves and stabilises, we might introduce type checking as an additional test
+  to the test suite.
+* `isort <https://isort.readthedocs.io/en/latest/>`_ for automatic sorting of
+  ``import`` statements and the ``pyls-isort`` integration plugin with language
+  server.
+* The ``pyls-black`` integration plugin for the Black code formatter and the language server.
+* If you use Emacs, `importmagic <https://github.com/alecthomas/importmagic>`_
+  can be integrated to provide symbol resolution.
+
 Deploying
 ---------
 
 A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed (including an entry in ``HISTORY.rst``).
-Then run::
+Then run:
 
 1. Bump the version using the ``bumpversion`` executable::
 
