@@ -106,15 +106,18 @@ def template():
     return read_yaml_file(template_file)
 
 
+testdata = [
+    (views.view_by_type, types, does_not_raise()),
+    (views.view_by_default, defaults, does_not_raise()),
+    (views.view_by_docstring, docstrings, does_not_raise()),
+    (views.view_by_predicates, predicates, does_not_raise()),
+    (lambda x: views.view_by("foobar", x), {}, pytest.raises(ValueError)),
+]
+
+
 @pytest.mark.parametrize(
     "viewer,reference,raises",
-    [
-        (views.view_by_type, types, does_not_raise()),
-        (views.view_by_default, defaults, does_not_raise()),
-        (views.view_by_docstring, docstrings, does_not_raise()),
-        (views.view_by_predicates, predicates, does_not_raise()),
-        (lambda x: views.view_by("foobar", x), {}, pytest.raises(ValueError)),
-    ],
+    testdata,
     ids=["types", "defaults", "docstrings", "predicates", "invalid"],
 )
 def test_view_by(template, viewer, reference, raises):

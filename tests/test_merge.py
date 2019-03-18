@@ -37,7 +37,7 @@ from pathlib import Path
 import pytest
 
 from parselglossy.read_yaml import read_yaml_file
-from parselglossy.validate import merge_ours
+from parselglossy.validation import merge_ours
 
 reference = {
     "title": "this is an example",

@@ -96,8 +96,12 @@ template_errors_data = [
 
 
 @pytest.mark.parametrize(
-    'template_file_name,exception,error_message',
-    [pytest.param(fname, exc, msg, id=fname.rsplit('.', 1)[0]) for fname, exc, msg in template_errors_data])
+    "template_file_name,exception,error_message",
+    [
+        pytest.param(fname, exc, msg, id=fname.rsplit(".", 1)[0])
+        for fname, exc, msg in template_errors_data
+    ],
+)
 def test_template_errors(template_file_name, exception, error_message):
     with pytest.raises(exception) as e:
         input_dict = _helper("template_errors", "input.yml", template_file_name)
@@ -147,8 +151,13 @@ input_errors_data = [
 ]
 
 
-@pytest.mark.parametrize('input_file_name,error_message',
-                         [pytest.param(fname, msg, id=fname.rsplit('.', 1)[0]) for fname, msg in input_errors_data])
+@pytest.mark.parametrize(
+    "input_file_name,error_message",
+    [
+        pytest.param(fname, msg, id=fname.rsplit(".", 1)[0])
+        for fname, msg in input_errors_data
+    ],
+)
 def test_input_errors(input_file_name, error_message):
     with pytest.raises(ValidationError) as e:
         input_dict = _helper("input_errors", input_file_name, "template.yml")

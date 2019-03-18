@@ -29,6 +29,10 @@
 # -*- coding: utf-8 -*-
 """Error-handling facilities."""
 
+from collections import namedtuple
+from functools import reduce
+from typing import List
+
 
 class ValidationError(Exception):
     """Exception raised for invalid input files."""
@@ -40,3 +44,39 @@ class SpecificationError(Exception):
     """Exception raised for malformed validation template."""
 
     pass
+
+
+Error = namedtuple("Error", ["address", "message"])
+
+
+def collate_errors(errors: List[Error]) -> str:
+    """Collate a list of error into an informative message.
+
+    Parameters
+    ----------
+    errors: List[Error]
+        List of errors.
+
+    Returns
+    -------
+    msg: str
+        An error message with details about where in the dictionary the error
+        arose and what the error is. For example::
+
+            Error(s) occurred when fixing defaults:
+            - At 'user['scf']['another_number']'
+                KeyError 'min_num_iterations' in defaulting closure
+                'user['scf']['min_num_iterations'] / 2'
+    """
+    msgs = ["\nError(s) occurred when fixing defaults:"]
+    msgs.extend(
+        [
+            "- At {:s}:\n    {:s}".format(
+                reduce(lambda x, y: x + "['{}']".format(y), e.address, "user"),
+                e.message,
+            )
+            for e in errors
+        ]
+    )
+
+    return "\n".join(msgs)

@@ -62,10 +62,14 @@ def view_by(
     Notes
     -----
     Why don't we just throw an exception as soon as something goes wrong?
-    For example, consider this pattern:
+    For example, consider this pattern::
 
-    .. code-block:: python
-       view = {v['name']: transformer(v[what]) if all([what in v, predicate(v, what)]) else missing for v in d['keywords']}
+       view = {
+           v["name"]: transformer(v[what])
+           if all([what in v, predicate(v, what)])
+           else missing
+           for v in d["keywords"]
+       }
 
     we could just embed in a ``try``-``except`` and catch it. However, we want
     to produce errors that are as informative as possible, hence we decide to
