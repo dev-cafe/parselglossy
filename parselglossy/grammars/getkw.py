@@ -33,8 +33,17 @@ from typing import Any
 
 import pyparsing as pp
 
-from .atoms import (bool_t, complex_t, data_t, float_t, fortranStyleComment, int_t, make_list_t, quoted_str_t,
-                    unquoted_str_t)
+from .atoms import (
+    bool_t,
+    complex_t,
+    data_t,
+    float_t,
+    fortranStyleComment,
+    int_t,
+    make_list_t,
+    quoted_str_t,
+    unquoted_str_t,
+)
 
 
 def grammar(*, has_complex: bool = False) -> Any:
@@ -50,11 +59,11 @@ def grammar(*, has_complex: bool = False) -> Any:
     A parsing grammar.
     """
 
-    EQ, COMMA = map(pp.Suppress, '=,')
-    LBRACE, RBRACE = map(pp.Suppress, '{}')
+    EQ, COMMA = map(pp.Suppress, "=,")
+    LBRACE, RBRACE = map(pp.Suppress, "{}")
 
     # Define key
-    key = pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')
+    key = pp.Word(pp.alphas + "_<>", pp.alphanums + "_<>")
 
     # A scalar value (bool, int, float, str)
     if has_complex:

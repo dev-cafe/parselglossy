@@ -39,8 +39,8 @@ from parselglossy.validate import check_predicates_node, validate_node
 def _helper(category: str, input_file_name: str, template_file_name: str) -> JSONDict:
     this_path = Path(__file__).parent
 
-    input_file = this_path / 'validation' / category / input_file_name
-    template_file = this_path / 'validation' / category / template_file_name
+    input_file = this_path / "validation" / category / input_file_name
+    template_file = this_path / "validation" / category / template_file_name
 
     input_dict = read_yaml_file(input_file)
     template_dict = read_yaml_file(template_file)
@@ -55,69 +55,110 @@ def _helper(category: str, input_file_name: str, template_file_name: str) -> JSO
 
 
 def test_validation():
-    input_dict = _helper('overall', 'input.yml', 'template.yml')
+    input_dict = _helper("overall", "input.yml", "template.yml")
 
     reference = {
-        'title': 'this is an example',
-        'scf': {
-            'functional': 'B3LYP',
-            'max_num_iterations': 20,
-            'some_acceleration': True,
-            'thresholds': {
-                'some_integral_screening': 0.0002,
-                'energy': 1e-05
-            },
-            'another_number': 10,
+        "title": "this is an example",
+        "scf": {
+            "functional": "B3LYP",
+            "max_num_iterations": 20,
+            "some_acceleration": True,
+            "thresholds": {"some_integral_screening": 0.0002, "energy": 1e-05},
+            "another_number": 10,
             # the complex number is a string here because this is how
             # pyyaml interprets it
             # for follow-up please see
             # https://github.com/dev-cafe/parselglossy/issues/26
-            'some_complex_number': '0.0+0.0j'
-        }
+            "some_complex_number": "0.0+0.0j",
+        },
     }
 
     assert input_dict == reference
 
 
 template_errors_data = [
-    ('template_no_documentation.yml', SpecificationError, "section(s) without any documentation: ['some_section']"),
-    ('template_empty_documentation.yml', SpecificationError, "section(s) without any documentation: ['some_section']"),
-    ('template_invalid_predicate.yml', SpecificationError,
-     "error in predicate '0 < len(value) <= undefined' in keyword 'a_short_string'"),
+    (
+        "template_no_documentation.yml",
+        SpecificationError,
+        "section(s) without any documentation: ['some_section']",
+    ),
+    (
+        "template_empty_documentation.yml",
+        SpecificationError,
+        "section(s) without any documentation: ['some_section']",
+    ),
+    (
+        "template_invalid_predicate.yml",
+        SpecificationError,
+        "error in predicate '0 < len(value) <= undefined' in keyword 'a_short_string'",
+    ),
 ]
 
 
 @pytest.mark.parametrize(
-    'template_file_name,exception,error_message',
-    [pytest.param(fname, exc, msg, id=fname.rstrip('.yml')) for fname, exc, msg in template_errors_data])
+    "template_file_name,exception,error_message",
+    [
+        pytest.param(fname, exc, msg, id=fname.rstrip(".yml"))
+        for fname, exc, msg in template_errors_data
+    ],
+)
 def test_template_errors(template_file_name, exception, error_message):
     with pytest.raises(exception) as e:
-        input_dict = _helper('template_errors', 'input.yml', template_file_name)
+        input_dict = _helper("template_errors", "input.yml", template_file_name)
     assert str(e.value) == error_message
 
 
 input_errors_data = [
-    ('input_unexpected_keyword.yml', "found unexpected keyword(s): {'strange'}"),
-    ('input_unexpected_section.yml', "found unexpected section(s): {'weird'}"),
-    ('input_missing_keyword.yml', "the following keyword(s) must be set: {'a_short_string'}"),
-    ('input_type_error_bool.yml', "incorrect type for keyword: 'some_feature', expected 'bool' type"),
-    ('input_type_error_float.yml', "incorrect type for keyword: 'some_float', expected 'float' type"),
-    ('input_type_error_int.yml', "incorrect type for keyword: 'some_number', expected 'int' type"),
-    ('input_type_error_list.yml', "incorrect type for keyword: 'some_list', expected 'List[float]' type"),
-    ('input_type_error_str.yml', "incorrect type for keyword: 'a_short_string', expected 'str' type"),
-    ('input_predicate_intra.yml', 'predicate "value % 2 == 0" failed in keyword "another_number"'),
+    ("input_unexpected_keyword.yml", "found unexpected keyword(s): {'strange'}"),
+    ("input_unexpected_section.yml", "found unexpected section(s): {'weird'}"),
+    (
+        "input_missing_keyword.yml",
+        "the following keyword(s) must be set: {'a_short_string'}",
+    ),
+    (
+        "input_type_error_bool.yml",
+        "incorrect type for keyword: 'some_feature', expected 'bool' type",
+    ),
+    (
+        "input_type_error_float.yml",
+        "incorrect type for keyword: 'some_float', expected 'float' type",
+    ),
+    (
+        "input_type_error_int.yml",
+        "incorrect type for keyword: 'some_number', expected 'int' type",
+    ),
+    (
+        "input_type_error_list.yml",
+        "incorrect type for keyword: 'some_list', expected 'List[float]' type",
+    ),
+    (
+        "input_type_error_str.yml",
+        "incorrect type for keyword: 'a_short_string', expected 'str' type",
+    ),
+    (
+        "input_predicate_intra.yml",
+        'predicate "value % 2 == 0" failed in keyword "another_number"',
+    ),
     # in python < 3.6 the dict order is not guaranteed so we are not sure
     # which of the two errors we hit first
-    ('input_predicate_cross.yml', [
-        'predicate "value < input_dict[\'some_section\'][\'another_number\']" failed in keyword "some_number"',
-        'predicate "value > input_dict[\'some_section\'][\'some_number\']" failed in keyword "another_number"'
-    ]),
+    (
+        "input_predicate_cross.yml",
+        [
+            "predicate \"value < input_dict['some_section']['another_number']\" failed in keyword \"some_number\"",
+            "predicate \"value > input_dict['some_section']['some_number']\" failed in keyword \"another_number\"",
+        ],
+    ),
 ]
 
 
-@pytest.mark.parametrize('input_file_name,error_message',
-                         [pytest.param(fname, msg, id=fname.rstrip('.yml')) for fname, msg in input_errors_data])
+@pytest.mark.parametrize(
+    "input_file_name,error_message",
+    [
+        pytest.param(fname, msg, id=fname.rstrip(".yml"))
+        for fname, msg in input_errors_data
+    ],
+)
 def test_input_errors(input_file_name, error_message):
     with pytest.raises(ValidationError) as e:
-        input_dict = _helper('input_errors', input_file_name, 'template.yml')
+        input_dict = _helper("input_errors", input_file_name, "template.yml")
     assert str(e.value) in error_message
