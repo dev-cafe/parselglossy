@@ -34,12 +34,12 @@ from typing import Any, Dict
 
 JSONDict = Dict[str, Any]
 
-truthy = ['TRUE', 'ON', 'YES', 'Y']
+truthy = ["TRUE", "ON", "YES", "Y"]
 """List[str]: List of true-like values."""
-falsey = ['FALSE', 'OFF', 'NO', 'N']
+falsey = ["FALSE", "OFF", "NO", "N"]
 """List[str]: List of false-like values."""
 
-printable = ascii_letters + digits + r'!#$%&*+-./:;<>?@^_|~'
+printable = ascii_letters + digits + r"!#$%&*+-./:;<>?@^_|~"
 """str: Custom printable character set.
 
 The printable character set is the standard set in `string.printable` minus
@@ -52,13 +52,13 @@ class ComplexEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, complex):
-            return {'__complex__': [obj.real, obj.imag]}
+            return {"__complex__": [obj.real, obj.imag]}
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
 
 def as_complex(dct):
     """JSON decoder for complex numbers."""
-    if '__complex__' in dct:
-        return complex(dct['__complex__'][0], dct['__complex__'][1])
+    if "__complex__" in dct:
+        return complex(dct["__complex__"][0], dct["__complex__"][1])
     return dct

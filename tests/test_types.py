@@ -38,88 +38,90 @@ from parselglossy.validate import type_matches
 
 @given(a=st.booleans())
 def test_type_matches_bool(a):
-    assert type_matches(a, 'bool')
-    assert not type_matches(0, 'bool')
+    assert type_matches(a, "bool")
+    assert not type_matches(0, "bool")
 
 
 @given(a=st.text())
 def test_type_matches_str(a):
-    assert type_matches(a, 'str')
-    assert not type_matches(a, 'int')
-    assert not type_matches(a, 'float')
-    assert not type_matches(a, 'complex')
-    assert not type_matches(1.0, 'str')
+    assert type_matches(a, "str")
+    assert not type_matches(a, "int")
+    assert not type_matches(a, "float")
+    assert not type_matches(a, "complex")
+    assert not type_matches(1.0, "str")
 
 
 @given(a=st.integers())
 def test_type_matches_int(a):
-    assert type_matches(a, 'int')
-    assert not type_matches(a, 'str')
-    assert not type_matches(a, 'float')
-    assert not type_matches(a, 'complex')
+    assert type_matches(a, "int")
+    assert not type_matches(a, "str")
+    assert not type_matches(a, "float")
+    assert not type_matches(a, "complex")
 
 
 @given(a=st.floats(allow_nan=False, allow_infinity=False))
 def test_type_matches_float(a):
-    assert type_matches(a, 'float')
-    assert not type_matches(a, 'str')
-    assert not type_matches(a, 'int')
-    assert not type_matches(a, 'complex')
-    assert not type_matches(1, 'float')
+    assert type_matches(a, "float")
+    assert not type_matches(a, "str")
+    assert not type_matches(a, "int")
+    assert not type_matches(a, "complex")
+    assert not type_matches(1, "float")
 
 
 @given(a=st.complex_numbers(allow_nan=False, allow_infinity=False))
 def test_type_matches_complex(a):
-    assert type_matches(a, 'complex')
-    assert not type_matches(a, 'str')
-    assert not type_matches(a, 'int')
-    assert not type_matches(a, 'float')
+    assert type_matches(a, "complex")
+    assert not type_matches(a, "str")
+    assert not type_matches(a, "int")
+    assert not type_matches(a, "float")
 
 
 @given(a=st.lists(st.text(), min_size=1))
 def test_type_matches_list_str(a):
-    assert type_matches(a, 'List[str]')
-    assert not type_matches((1, 2, 3), 'List[str]')
-    assert not type_matches([1, 2, 3], 'List[str]')
-    assert not type_matches(['foo', 2, 3], 'List[str]')
-    assert not type_matches(a, 'List[int]')
-    assert not type_matches(a, 'List[float]')
-    assert not type_matches(a, 'List[complex]')
+    assert type_matches(a, "List[str]")
+    assert not type_matches((1, 2, 3), "List[str]")
+    assert not type_matches([1, 2, 3], "List[str]")
+    assert not type_matches(["foo", 2, 3], "List[str]")
+    assert not type_matches(a, "List[int]")
+    assert not type_matches(a, "List[float]")
+    assert not type_matches(a, "List[complex]")
 
 
 @given(a=st.lists(st.integers(), min_size=1))
 def test_type_matches_list_int(a):
-    assert type_matches(a, 'List[int]')
-    assert not type_matches((1, 2, 3), 'List[int]')
-    assert not type_matches([1, 'foo', 2, 3], 'List[int]')
-    assert not type_matches(a, 'List[str]')
-    assert not type_matches(a, 'List[float]')
-    assert not type_matches(a, 'List[complex]')
+    assert type_matches(a, "List[int]")
+    assert not type_matches((1, 2, 3), "List[int]")
+    assert not type_matches([1, "foo", 2, 3], "List[int]")
+    assert not type_matches(a, "List[str]")
+    assert not type_matches(a, "List[float]")
+    assert not type_matches(a, "List[complex]")
 
 
 @given(a=st.lists(st.floats(allow_nan=False, allow_infinity=False), min_size=1))
 def test_type_matches_list_float(a):
-    assert type_matches(a, 'List[float]')
-    assert not type_matches((1, 2, 3), 'List[float]')
-    assert not type_matches([1, 2, 3], 'List[float]')
-    assert not type_matches([1.0, 2, 3], 'List[float]')
-    assert not type_matches(a, 'List[str]')
-    assert not type_matches(a, 'List[int]')
-    assert not type_matches(a, 'List[complex]')
+    assert type_matches(a, "List[float]")
+    assert not type_matches((1, 2, 3), "List[float]")
+    assert not type_matches([1, 2, 3], "List[float]")
+    assert not type_matches([1.0, 2, 3], "List[float]")
+    assert not type_matches(a, "List[str]")
+    assert not type_matches(a, "List[int]")
+    assert not type_matches(a, "List[complex]")
 
 
-@given(a=st.lists(st.complex_numbers(allow_nan=False, allow_infinity=False), min_size=1))
+@given(
+    a=st.lists(st.complex_numbers(allow_nan=False, allow_infinity=False), min_size=1)
+)
 def test_type_matches_list_complex(a):
-    assert type_matches(a, 'List[complex]')
-    assert not type_matches((1 + 1j, 2 + 2j, 3 + 3j), 'List[complex]')
-    assert not type_matches([1, 2, 3], 'List[complex]')
-    assert not type_matches([1 + 1j, 2.0, 3], 'List[complex]')
-    assert not type_matches(a, 'List[str]')
-    assert not type_matches(a, 'List[int]')
-    assert not type_matches(a, 'List[float]')
+    assert type_matches(a, "List[complex]")
+    assert not type_matches((1 + 1j, 2 + 2j, 3 + 3j), "List[complex]")
+    assert not type_matches([1, 2, 3], "List[complex]")
+    assert not type_matches([1 + 1j, 2.0, 3], "List[complex]")
+    assert not type_matches(a, "List[str]")
+    assert not type_matches(a, "List[int]")
+    assert not type_matches(a, "List[float]")
 
 
 def test_type_matches_unexpected():
     with pytest.raises(ValueError):
-        assert type_matches('example', 'weird')
-        assert type_matches('example', 'List[strange]')
+        assert type_matches("example", "weird")
+        assert type_matches("example", "List[strange]")

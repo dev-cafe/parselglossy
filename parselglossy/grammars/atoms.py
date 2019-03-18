@@ -52,7 +52,7 @@ def to_bool(x):
 
 
 bool_t = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, truthy + falsey))
-bool_t.setName('bool')
+bool_t.setName("bool")
 bool_t.setParseAction(lambda token: to_bool(token[0]))
 
 int_t = pp.pyparsing_common.signed_integer
@@ -62,27 +62,39 @@ float_t = pp.pyparsing_common.sci_real
 quoted_str_t = pp.quotedString.setParseAction(pp.removeQuotes)
 unquoted_str_t = pp.Word(printable)
 
-I_unit = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, ['*j', '*i'])).suppress()
+I_unit = functools.reduce(
+    lambda x, y: x ^ y, map(pp.CaselessLiteral, ["*j", "*i"])
+).suppress()
 complex_t = pp.OneOrMore(pp.pyparsing_common.number) + I_unit
-complex_t.setParseAction(lambda token: complex(token[0], token[1]) if len(token) == 2 else complex(0.0, token[0]))
+complex_t.setParseAction(
+    lambda token: complex(token[0], token[1])
+    if len(token) == 2
+    else complex(0.0, token[0])
+)
 
 num_t = complex_t | float_t | int_t
-num_t.setName('numeric')
+num_t.setName("numeric")
 
-SDATA = pp.Literal('$').suppress()
-EDATA = pp.CaselessLiteral('$end').suppress()
-data_t = pp.Group(pp.Combine(SDATA + pp.Word(pp.alphas + '_<>', pp.alphanums + '_<>')) + pp.SkipTo(EDATA) + EDATA)
+SDATA = pp.Literal("$").suppress()
+EDATA = pp.CaselessLiteral("$end").suppress()
+data_t = pp.Group(
+    pp.Combine(SDATA + pp.Word(pp.alphas + "_<>", pp.alphanums + "_<>"))
+    + pp.SkipTo(EDATA)
+    + EDATA
+)
 
 fortranStyleComment = pp.Regex(r"!.*").setName("Fortran style comment")
 
 
-def make_list_t(scalars: Union[Any, List[Any]],
-                *,
-                start: str = '[',
-                end: str = ']',
-                delimiter: str = ',',
-                throw_if_empty: bool = True,
-                multiline: bool = True) -> Any:
+def make_list_t(
+    scalars: Union[Any, List[Any]],
+    *,
+    start: str = "[",
+    end: str = "]",
+    delimiter: str = ",",
+    throw_if_empty: bool = True,
+    multiline: bool = True
+) -> Any:
     """Atom for lists.
 
     Parameter
@@ -115,12 +127,18 @@ def make_list_t(scalars: Union[Any, List[Any]],
         atoms = scalars
 
     if multiline:
-        NEWLINE = pp.Literal('\n').suppress()
-        list_t = START + pp.Optional(pp.delimitedList(atoms ^ NEWLINE, delim=delimiter)) + END
+        NEWLINE = pp.Literal("\n").suppress()
+        list_t = (
+            START
+            + pp.Optional(pp.delimitedList(atoms ^ NEWLINE, delim=delimiter))
+            + END
+        )
     else:
         list_t = START + pp.Optional(pp.delimitedList(atoms, delim=delimiter)) + END
 
-    return list_t.addCondition(bool, message="Empty lists not allowed", fatal=throw_if_empty)
+    return list_t.addCondition(
+        bool, message="Empty lists not allowed", fatal=throw_if_empty
+    )
 
 
 list_t = make_list_t(quoted_str_t ^ float_t ^ int_t ^ bool_t ^ unquoted_str_t)

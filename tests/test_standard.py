@@ -115,10 +115,7 @@ def section(name):
     return sect.format(NAME=name, CONTENTS=stuff)
 
 
-@pytest.mark.parametrize('name', [
-    'topsect',
-    'foo<bar>',
-])
+@pytest.mark.parametrize("name", ["topsect", "foo<bar>"])
 def test_section(name):
     """Test an input made of one section, tagged or untagged."""
     ref_dict = {name: dict(reference)}
@@ -153,7 +150,7 @@ foo<bar> {{
 
 def test_flat_sections(flat_sections):
     """Test an input made of two unnested sections, tagged or untagged."""
-    ref_dict = {'topsect': dict(reference), 'foo<bar>': dict(reference)}
+    ref_dict = {"topsect": dict(reference), "foo<bar>": dict(reference)}
     grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(flat_sections).asDict()
 
@@ -185,8 +182,8 @@ def nested_sections():
 
 def test_nested_sections(nested_sections):
     """Test an input made of two nested sections, tagged or untagged."""
-    ref_dict = {'topsect': dict(reference)}
-    ref_dict['topsect']['foo<bar>'] = dict(reference)
+    ref_dict = {"topsect": dict(reference)}
+    ref_dict["topsect"]["foo<bar>"] = dict(reference)
     grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(nested_sections).asDict()
 
@@ -229,14 +226,13 @@ cmplx_array = [{PI} -2*j, {E}-2.0*J, {TAU}+1.5*i]
 bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 """
-    inp = template.format(PI=math.pi, E=math.e, TAU=2.0 * math.pi, NAME=name, CONTENTS=stuff)
+    inp = template.format(
+        PI=math.pi, E=math.e, TAU=2.0 * math.pi, NAME=name, CONTENTS=stuff
+    )
     return inp
 
 
-@pytest.mark.parametrize('name', [
-    'topsect',
-    'foo<bar>',
-])
+@pytest.mark.parametrize("name", ["topsect", "foo<bar>"])
 def test_keywords_and_section(name):
     """Test an input made of keywords, one section, tagged or untagged, and more keywords."""
     ref_dict = dict(reference)
@@ -295,8 +291,8 @@ str_array = [foo, bar, "lorem", "IpSuM"]
 def test_keywords_and_flat_sections(keywords_and_flat_sections):
     """Test an input made of keywords and two unnested sections, interspersed."""
     ref_dict = dict(reference)
-    ref_dict['topsect'] = dict(reference)
-    ref_dict['foo<bar>'] = dict(reference)
+    ref_dict["topsect"] = dict(reference)
+    ref_dict["foo<bar>"] = dict(reference)
     grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(keywords_and_flat_sections).asDict()
 
@@ -351,8 +347,8 @@ str_array = [foo, bar, "lorem", "IpSuM"]
 def test_keywords_and_nested_sections(keywords_and_nested_sections):
     """Test an input made of keywords and two nested sections, interspersed."""
     ref_dict = dict(reference)
-    ref_dict['topsect'] = dict(reference)
-    ref_dict['topsect']['foo<bar>'] = dict(reference)
+    ref_dict["topsect"] = dict(reference)
+    ref_dict["topsect"]["foo<bar>"] = dict(reference)
     grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(keywords_and_nested_sections).asDict()
 
@@ -381,7 +377,9 @@ $end
 
 
 def test_data_only_section(data_only_section):
-    ref = {'molecule': {'coords': 'H  0.0000  0.0000 -0.7000\nH  0.0000  0.0000  0.7000\n'}}
+    ref = {
+        "molecule": {"coords": "H  0.0000  0.0000 -0.7000\nH  0.0000  0.0000  0.7000\n"}
+    }
     grammar = getkw.grammar(has_complex=True)
     tokens = grammar.parseString(data_only_section).asDict()
 

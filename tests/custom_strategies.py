@@ -33,7 +33,7 @@ from collections import namedtuple
 
 from hypothesis import strategies as st
 
-Strategy = namedtuple('Strategy', ['string', 'value'])
+Strategy = namedtuple("Strategy", ["string", "value"])
 
 
 @st.composite
@@ -44,7 +44,11 @@ def floats(draw):
     understood by the `float_t` atom.
     """
     number = draw(st.floats(allow_nan=False, allow_infinity=False))
-    fmt = draw(st.sampled_from(['{:.20f}', '{:.20e}', '{:.20E}', '{:+.20f}', '{:+.20e}', '{:+.20E}']))
+    fmt = draw(
+        st.sampled_from(
+            ["{:.20f}", "{:.20e}", "{:.20E}", "{:+.20f}", "{:+.20e}", "{:+.20E}"]
+        )
+    )
     return Strategy(fmt.format(number), number)
 
 
@@ -58,12 +62,14 @@ def complex_numbers(draw):
     number = draw(st.complex_numbers(allow_nan=False, allow_infinity=False))
     has_real = draw(st.booleans())
     w_space = draw(st.booleans())
-    real_fmt = draw(st.sampled_from(['{:.20g}', '{:.20G}']))
-    imag_fmt = draw(st.sampled_from(['{:+.20g}*j', '{:+.20G}*j', '{:+.20g}*J', '{:+.20G}*J']))
-    number_as_string = ''
+    real_fmt = draw(st.sampled_from(["{:.20g}", "{:.20G}"]))
+    imag_fmt = draw(
+        st.sampled_from(["{:+.20g}*j", "{:+.20G}*j", "{:+.20g}*J", "{:+.20G}*J"])
+    )
+    number_as_string = ""
     if has_real:
         if w_space:
-            fmt = real_fmt + ' ' + imag_fmt
+            fmt = real_fmt + " " + imag_fmt
         else:
             fmt = real_fmt + imag_fmt
         number_as_string = fmt.format(number.real, number.imag)
@@ -75,7 +81,7 @@ def complex_numbers(draw):
 
 
 @st.composite
-def list_of_floats(draw, *, start: str = '[', end: str = ']', delimiter: str = ','):
+def list_of_floats(draw, *, start: str = "[", end: str = "]", delimiter: str = ","):
     """Generate list of floating point numbers in various formats.
 
     A composite testing strategy to generate lists of floats in the formats
@@ -84,14 +90,16 @@ def list_of_floats(draw, *, start: str = '[', end: str = ']', delimiter: str = '
     """
     lst = draw(st.lists(floats(), min_size=1))
 
-    list_as_string = start + ','.join((x.string for x in lst)) + end
+    list_as_string = start + ",".join((x.string for x in lst)) + end
     numbers = [x.value for x in lst]
 
     return Strategy(list_as_string, numbers)
 
 
 @st.composite
-def list_of_complex_numbers(draw, *, start: str = '[', end: str = ']', delimiter: str = ','):
+def list_of_complex_numbers(
+    draw, *, start: str = "[", end: str = "]", delimiter: str = ","
+):
     """Generate list of complex numbers in various formats.
 
     A composite testing strategy to generate lists of complex numbers in the formats
@@ -100,7 +108,7 @@ def list_of_complex_numbers(draw, *, start: str = '[', end: str = ']', delimiter
     """
     lst = draw(st.lists(complex_numbers(), min_size=1))
 
-    list_as_string = start + ','.join((x.string for x in lst)) + end
+    list_as_string = start + ",".join((x.string for x in lst)) + end
     numbers = [x.value for x in lst]
 
     return Strategy(list_as_string, numbers)
