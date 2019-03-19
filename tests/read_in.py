@@ -26,31 +26,39 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
+
 # -*- coding: utf-8 -*-
+"""Facilities for reading in files for testing."""
 
 from pathlib import Path
+from typing import Tuple
 
-import yaml
+from parselglossy.read_yaml import read_yaml_file
+from parselglossy.utils import JSONDict
 
-from .utils import JSONDict
 
-
-def read_yaml_file(file_name: Path) -> JSONDict:
-    """Reads a YAML file and returns it as a dictionary.
+def read_in(
+    category: str, input_file_name: str, template_file_name: str
+) -> Tuple[JSONDict, JSONDict]:
+    """Helper function to read in input and validation template
 
     Parameters
     ----------
-    file_name: Path
-        Path object for the YAML file.
+    category: str
+    input_file_name: str
+    template_file_name: str
 
     Returns
     -------
-    d: JSONDict
-        A dictionary with the contents of the YAML file.
+    input_dict, template_dict: Tuple[JSONDict, JSONDict]
+         A tuple with the two dictionaries.
     """
-    with file_name.open("r") as f:
-        try:
-            d = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print(e)
-    return d
+    this_path = Path(__file__).parent
+
+    input_file = this_path / "validation" / category / input_file_name
+    template_file = this_path / "validation" / category / template_file_name
+
+    input_dict = read_yaml_file(input_file)
+    template_dict = read_yaml_file(template_file)
+
+    return input_dict, template_dict

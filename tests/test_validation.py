@@ -26,24 +26,16 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-from pathlib import Path
-
 import pytest
 
 from parselglossy.exceptions import SpecificationError, ValidationError
-from parselglossy.read_yaml import read_yaml_file
 from parselglossy.utils import JSONDict
 from parselglossy.validate import check_predicates_node, validate_node
+from read_in import read_in
 
 
 def _helper(category: str, input_file_name: str, template_file_name: str) -> JSONDict:
-    this_path = Path(__file__).parent
-
-    input_file = this_path / "validation" / category / input_file_name
-    template_file = this_path / "validation" / category / template_file_name
-
-    input_dict = read_yaml_file(input_file)
-    template_dict = read_yaml_file(template_file)
+    input_dict, template_dict = read_in(category, input_file_name, template_file_name)
 
     # checks everything except predicates
     input_dict = validate_node(input_dict, template_dict)

@@ -49,11 +49,13 @@ class SpecificationError(Exception):
 Error = namedtuple("Error", ["address", "message"])
 
 
-def collate_errors(errors: List[Error]) -> str:
+def collate_errors(preamble: str, errors: List[Error]) -> str:
     """Collate a list of error into an informative message.
 
     Parameters
     ----------
+    preamble: str
+        Prefix to the error reporting message.
     errors: List[Error]
         List of errors.
 
@@ -68,7 +70,7 @@ def collate_errors(errors: List[Error]) -> str:
                 KeyError 'min_num_iterations' in defaulting closure
                 'user['scf']['min_num_iterations'] / 2'
     """
-    msgs = ["\nError(s) occurred when fixing defaults:"]
+    msgs = ["\n{:s}:".format(preamble)]
     msgs.extend(
         [
             "- At {:s}:\n    {:s}".format(

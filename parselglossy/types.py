@@ -27,7 +27,10 @@
 #
 
 import re
-from typing import List, Union
+from typing import List, Tuple, Union
+
+from .exceptions import Error, ValidationError, collate_errors
+from .utils import JSONDict
 
 ScalarTypes = Union[bool, str, int, float, complex]
 
@@ -91,3 +94,104 @@ def type_matches(value: AllowedTypes, expected_type: str) -> bool:
         return _type_check_list(value, expected_type_is_list.group(1))
     else:
         return _type_check_scalar(value, expected_type)
+
+
+type_fixers = {"bool": bool, "complex": complex, "float": float, "int": int, "str": str}
+tmp = {
+    "List[{:s}]".format(k): lambda x: list(map(v, x)) for k, v in type_fixers.items()
+}
+type_fixers.update(tmp)
+"""Dict[str, Callable[[Any], Any]: dictionary holding functions for type fixation."""
+
+
+def typenade(incoming: JSONDict, types: JSONDict) -> JSONDict:
+    """Checks types of input values for a merge input ``dict``.
+
+    Parameters
+    ----------
+    incoming: JSONDict
+        The input `dict`. This is supposed to be the one obtained by merging
+        user and template `dict`-s.
+    types: JSONDict
+        Types of all keywords in the input. Generated from :func:`view_by_types`.
+
+    Returns
+    -------
+    outgoing: JSONDict
+        A dictionary with all values type checked.
+
+    Raises
+    ------
+    :exc:`ValidationError`
+
+    Notes
+    -----
+    This is porcelain over :func:`_typenade`.
+    """
+    outgoing, errors = _typenade(incoming, types)
+
+    if errors:
+        msg = collate_errors("Error(s) occurred when checking types", errors)
+        raise ValidationError(msg)
+
+    return outgoing
+
+
+def _typenade(
+    incoming: JSONDict,
+    types: JSONDict,
+    *,
+    fixate: bool = True,
+    address: Tuple[str] = ()
+) -> Tuple[JSONDict, List[Error]]:
+    """Perform type checking and optionally type fixing.
+
+    Parameters
+    ----------
+    incoming: JSONDict
+        The input `dict`. This is supposed to be the one obtained by merging
+        user and template `dict`-s.
+    types: JSONDict
+        Types of all keywords in the input. Generated from :func:`view_by_types`.
+    fixate: bool
+        Whether to call the type constructor on the value, to fixate its type.
+    address: Tuple[str]
+        A tuple of keys need to index the current value in the recursion. See
+        Notes.
+
+    Returns
+    -------
+    outgoing: JSONDict
+        A dictionary with all default values fixed.
+    errors_at: List[Tuple[str]]
+        A list of keys to access elements in the `dict` that raised an error.
+        See Notes.
+    """
+
+    outgoing = {}
+    errors = []
+
+    for k, v in incoming.items():
+        if isinstance(v, dict):
+            outgoing[k], errs = _typenade(
+                incoming=v, types=types[k], fixate=fixate, address=(address + (k,))
+            )
+            errors.extend(errs)
+        else:
+            declared = types[k]
+            if type_matches(incoming[k], declared):
+                outgoing[k] = (
+                    type_fixers[declared](incoming[k]) if fixate else incoming[k]
+                )
+            else:
+                errors.append(
+                    Error(
+                        address + (k,),
+                        "Actual ({0}) and declared ({1}) types do not match".format(
+                            type(incoming[k]).__name__, declared
+                        ),
+                    )
+                )
+                outgoing[k] = None
+
+    return outgoing, errors

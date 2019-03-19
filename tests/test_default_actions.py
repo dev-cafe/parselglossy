@@ -32,6 +32,8 @@
 Tests defaulting with a callable.
 """
 
+import itertools
+import re
 from contextlib import ExitStack as does_not_raise
 
 import pytest
@@ -120,6 +122,14 @@ invalid_ref = {
     "title": None,
 }
 
+
+error_start = r"Error\(s\) occurred when fixing defaults:\n"
+errors = [
+    r"- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in defaulting closure 'user\['scf'\]\['min_num_iterations'\] / 2'\n",
+    r"- At user\['scf'\]\['functional'\]:\s+TypeError unsupported operand type\(s\) for /: 'str' and 'int' in defaulting closure ''B3LYP' / 2'",
+]
+invalid_messages = [error_start + "".join(x) for x in itertools.permutations(errors)]
+
 testdata = [
     (noactions_raw(), noactions_ref, does_not_raise()),
     (actions_raw(), actions_ref, does_not_raise()),
@@ -127,7 +137,7 @@ testdata = [
         invalid_raw(),
         invalid_ref,
         pytest.raises(
-            SpecificationError, match=r"Error\(s\) occurred when fixing defaults"
+            SpecificationError, match=re.compile("({0}|{1})".format(*invalid_messages))
         ),
     ),
 ]

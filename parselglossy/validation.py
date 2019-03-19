@@ -94,7 +94,7 @@ def fix_defaults(incoming: JSONDict) -> JSONDict:
     outgoing, errors = _fix_defaults(incoming)
 
     if errors:
-        msg = collate_errors(errors)
+        msg = collate_errors("Error(s) occurred when fixing defaults", errors)
         raise SpecificationError(msg)
 
     return outgoing
@@ -102,7 +102,7 @@ def fix_defaults(incoming: JSONDict) -> JSONDict:
 
 def _fix_defaults(
     incoming: JSONDict, *, start_dict: JSONDict = None, address: Tuple[str] = ()
-) -> Tuple[JSONDict, List[Tuple[str]]]:
+) -> Tuple[JSONDict, List[Error]]:
     """Fixes default values from a merge input ``dict``.
 
     Parameters
@@ -120,7 +120,7 @@ def _fix_defaults(
     -------
     outgoing: JSONDict
         A dictionary with all default values fixed.
-    errors_at: List[Tuple[str]]
+    errors_at: List[Error]
         A list of keys to access elements in the `dict` that raised an error.
         See Notes.
 
@@ -162,10 +162,9 @@ def _fix_defaults(
         start_dict = incoming
 
     for k, v in incoming.items():
-        address += (k,)
         if isinstance(v, dict):
             outgoing[k], errs = _fix_defaults(
-                incoming=v, start_dict=start_dict, address=address
+                incoming=v, start_dict=start_dict, address=(address + (k,))
             )
             errors.extend(errs)
         elif v is None:
@@ -180,14 +179,15 @@ def _fix_defaults(
             except KeyError as e:
                 errors.append(
                     Error(
-                        address, "KeyError {} in defaulting closure '{:s}'".format(e, v)
+                        (address + (k,)),
+                        "KeyError {} in defaulting closure '{:s}'".format(e, v),
                     )
                 )
                 outgoing[k] = None
             except SyntaxError as e:
                 errors.append(
                     Error(
-                        address,
+                        (address + (k,)),
                         "SyntaxError {} in defaulting closure '{:s}'".format(e, v),
                     )
                 )
@@ -195,61 +195,10 @@ def _fix_defaults(
             except TypeError as e:
                 errors.append(
                     Error(
-                        address,
+                        (address + (k,)),
                         "TypeError {} in defaulting closure '{:s}'".format(e, v),
                     )
                 )
                 outgoing[k] = None
 
     return outgoing, errors
-
-
-type_fix_callbacks = {
-    "bool": bool,
-    # We remove spaces so the string-to-complex cast works without surprises
-    "complex": lambda x: complex(x.replace(" ", "")),
-    "float": float,
-    "int": int,
-    "str": str,
-}
-tmp = {
-    "List[{:s}]".format(k): lambda x: list(map(v, x))
-    for k, v in type_fix_callbacks.items()
-}
-type_fix_callbacks.update(tmp)
-"""Dict[str, Callable[[Any], Any]: dictionary holding function for type fixation.
-
-The `complex` type constructor from `str` only works when there are no spaces
-between real and imaginary parts.
-"""
-
-
-# FIXME This function does not yet do what it purports to
-def typenade(incoming: JSONDict, *, fixate: bool = False) -> JSONDict:
-    """Perform type checking  and optionally type fixing.
-
-    Parameters
-    ----------
-    incoming: JSONDict
-    fixate: bool
-        Whether to fix types.
-
-    Returns
-    -------
-    outgoing: JSONDict
-
-    Notes
-    -----
-    If type checking fails, we store a :py:exc:`ValidationError` as value in the
-    `outgoing` dictionary. This allows reporting errors globally later on.
-    """
-
-    outgoing = {}
-
-    for k, v in incoming.items():
-        if isinstance(v, dict):
-            outgoing[k] = typenade(incoming=v, fixate=fixate)
-        else:
-            outgoing[k] = incoming[k]
-
-    return outgoing
