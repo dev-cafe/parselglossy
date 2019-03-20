@@ -29,83 +29,14 @@
 # -*- coding: utf-8 -*-
 """Tools to extract views of dictionaries."""
 
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from .exceptions import SpecificationError
+from .exceptions import ParselglossyError
 from .utils import JSONDict
 
 
-def view_by(
-    what: str,
-    d: JSONDict,
-    *,
-    predicate: Callable[[Any, str], bool] = lambda x, y: True,
-    missing: Union[None, Exception] = None,
-    transformer: Callable[[Any], Any] = lambda x: x
-) -> JSONDict:
-    """Recursive decimation of a template into an input.
-
-    Parameters
-    ----------
-    what: str
-    d: JSONDict
-    predicate: Callable
-       A predicate accepting two arguments.
-    missing: Union[None, Exception]
-    transformer: Callable
-
-    Returns
-    -------
-    outgoing: JSONDict
-       A dictionary with the desired view.
-
-    Notes
-    -----
-    Why don't we just throw an exception as soon as something goes wrong?
-    For example, consider this pattern::
-
-       view = {
-           v["name"]: transformer(v[what])
-           if all([what in v, predicate(v, what)])
-           else missing
-           for v in d["keywords"]
-       }
-
-    we could just embed in a ``try``-``except`` and catch it. However, we want
-    to produce errors that are as informative as possible, hence we decide to
-    keep track of what went wrong and raise only when validation is done.
-    """
-
-    possible_views = ["type", "default", "docstring", "predicates"]
-    if what not in possible_views:
-        raise ValueError(
-            "Requested view {:s} not among possible views ({})".format(
-                what, possible_views
-            )
-        )
-
-    view = {
-        v["name"]: transformer(v[what])
-        if all([what in v, predicate(v, what)])
-        else missing
-        for v in d["keywords"]
-    }
-
-    if "sections" in d:
-        for section in d["sections"]:
-            view[section["name"]] = view_by(
-                what,
-                section,
-                predicate=predicate,
-                missing=missing,
-                transformer=transformer,
-            )
-
-    return view
-
-
 def view_by_type(d: JSONDict) -> JSONDict:
-    """Partial application of `view_by` for types.
+    """Partial application of :func:`view_by` for types.
 
     Parameters
     ----------
@@ -116,11 +47,11 @@ def view_by_type(d: JSONDict) -> JSONDict:
     outgoing: JSONDict
        A dictionary with a view by types.
     """
-    return view_by("type", d, missing=SpecificationError)
+    return view_by("type", d, missing=ParselglossyError)
 
 
 def view_by_default(d: JSONDict) -> JSONDict:
-    """Partial application of `view_by` for defaults.
+    """Partial application of :func:`view_by` for defaults.
 
     Parameters
     ----------
@@ -135,7 +66,7 @@ def view_by_default(d: JSONDict) -> JSONDict:
 
 
 def view_by_docstring(d: JSONDict) -> JSONDict:
-    """Partial application of `view_by` for docstrings.
+    """Partial application of :func:`view_by` for docstrings.
 
     Parameters
     ----------
@@ -159,13 +90,13 @@ def view_by_docstring(d: JSONDict) -> JSONDict:
         "docstring",
         d,
         predicate=docstring_not_empty,
-        missing=SpecificationError,
+        missing=ParselglossyError,
         transformer=docstring_rstrip,
     )
 
 
 def view_by_predicates(d: JSONDict) -> JSONDict:
-    """Partial application of `view_by` for predicates.
+    """Partial application of :func:`view_by` for predicates.
 
     Parameters
     ----------
@@ -177,6 +108,63 @@ def view_by_predicates(d: JSONDict) -> JSONDict:
        A dictionary with a view by predicates.
     """
     return view_by("predicates", d)
+
+
+def view_by(
+    what: str,
+    d: JSONDict,
+    *,
+    predicate: Callable[[Any, str], bool] = lambda x, y: True,
+    missing: Optional[Type[Exception]] = None,
+    transformer: Callable[[Any], Any] = lambda x: x
+) -> JSONDict:
+    """Recursive decimation of a template into an input.
+
+    Parameters
+    ----------
+    what : str
+        What view to extract from the dictionary. Any of ``type``, ``default``,
+        ``docstring`` or ``predicates`` is allowed.
+    d: JSONDict
+    predicate: Callable
+       A predicate accepting two arguments.
+    missing: Optional[Exception]
+    transformer: Callable
+
+    Returns
+    -------
+    outgoing: JSONDict
+       A dictionary with the desired view.
+
+    Raises
+    ------
+    exc:`ValueError` if `what` is not among the allowed views.
+    """
+
+    allowed = ["type", "default", "docstring", "predicates"]
+    if what not in allowed:
+        raise ValueError(
+            "Requested view {:s} not among possible views ({})".format(what, allowed)
+        )
+
+    view = {
+        v["name"]: transformer(v[what])
+        if all([what in v, predicate(v, what)])
+        else missing
+        for v in d["keywords"]
+    }
+
+    if "sections" in d:
+        for section in d["sections"]:
+            view[section["name"]] = view_by(
+                what,
+                section,
+                predicate=predicate,
+                missing=missing,
+                transformer=transformer,
+            )
+
+    return view
 
 
 def apply_mask(incoming: JSONDict, mask: Dict[str, Callable[[Any], Any]]) -> JSONDict:
@@ -199,7 +187,7 @@ def apply_mask(incoming: JSONDict, mask: Dict[str, Callable[[Any], Any]]) -> JSO
         if isinstance(v, dict):
             outgoing[k] = apply_mask(v, mask[k])
         elif v is None:
-            outgoing[k] = None
+            outgoing[k] = None  # type: ignore
         else:
             outgoing[k] = mask[k](v)
 
@@ -215,7 +203,7 @@ def predicate_checker(incoming: Dict[str, Optional[List[str]]]) -> JSONDict:
     Returns
     -------
     """
-    outgoing = {}
+    outgoing = {}  # type: JSONDict
     for k, ps in incoming.items():
         if isinstance(ps, dict):
             outgoing[k] = predicate_checker(ps)
@@ -228,7 +216,7 @@ def predicate_checker(incoming: Dict[str, Optional[List[str]]]) -> JSONDict:
                     outgoing[k].append(compile(p, "<unknown>", "eval"))
                 except SyntaxError:
                     outgoing[k].append(
-                        SpecificationError(
+                        ParselglossyError(
                             'Python syntax error in predicate "{:s}"'.format(p)
                         )
                     )

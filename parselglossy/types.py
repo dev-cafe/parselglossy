@@ -27,9 +27,9 @@
 #
 
 import re
-from typing import List, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from .exceptions import Error, ValidationError, collate_errors
+from .exceptions import Error, ParselglossyError, collate_errors
 from .utils import JSONDict
 
 ScalarTypes = Union[bool, str, int, float, complex]
@@ -57,14 +57,14 @@ def _type_check_list(value: ListTypes, expected_type: str) -> bool:
 AllowedTypes = Union[ScalarTypes, ListTypes]
 
 
-def type_matches(value: AllowedTypes, expected_type: str) -> bool:
+def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
     """Checks whether a value is of the expected type.
 
     Parameters
     ----------
-    value: Any
+    value : AllowedTypes
       Value whose type needs to be checked
-    expected_type: AllowedTypes
+    expected_type : str
 
     Notes
     -----
@@ -91,20 +91,26 @@ def type_matches(value: AllowedTypes, expected_type: str) -> bool:
     expected_type_is_list = re.search(r"^List\[(\w+)\]$", expected_type)
 
     if expected_type_is_list is not None:
-        return _type_check_list(value, expected_type_is_list.group(1))
+        return _type_check_list(value, expected_type_is_list.group(1))  # type: ignore
     else:
-        return _type_check_scalar(value, expected_type)
+        return _type_check_scalar(value, expected_type)  # type: ignore
 
 
-type_fixers = {"bool": bool, "complex": complex, "float": float, "int": int, "str": str}
+type_fixers = {
+    "bool": bool,
+    "complex": complex,
+    "float": float,
+    "int": int,
+    "str": str,
+}  # type: Dict[str, Callable[[Any], Any]]
 tmp = {
     "List[{:s}]".format(k): lambda x: list(map(v, x)) for k, v in type_fixers.items()
-}
+}  # type: Dict[str, Callable[[Any], Any]]
 type_fixers.update(tmp)
-"""Dict[str, Callable[[Any], Any]: dictionary holding functions for type fixation."""
+"""Dict[str, Callable[[Any], Any]]: dictionary holding functions for type fixation."""
 
 
-def typenade(incoming: JSONDict, types: JSONDict) -> JSONDict:
+def typenade(incoming: JSONDict, types: JSONDict) -> Optional[JSONDict]:
     """Checks types of input values for a merge input ``dict``.
 
     Parameters
@@ -126,23 +132,19 @@ def typenade(incoming: JSONDict, types: JSONDict) -> JSONDict:
 
     Notes
     -----
-    This is porcelain over :func:`_typenade`.
+    This is porcelain over the recursive function :func:`rec_typenade`.
     """
-    outgoing, errors = _typenade(incoming, types)
+    outgoing, errors = rec_typenade(incoming, types)
 
     if errors:
-        msg = collate_errors("Error(s) occurred when checking types", errors)
-        raise ValidationError(msg)
+        msg = collate_errors(when="checking types", errors=errors)
+        raise ParselglossyError(msg)
 
     return outgoing
 
 
-def _typenade(
-    incoming: JSONDict,
-    types: JSONDict,
-    *,
-    fixate: bool = True,
-    address: Tuple[str] = ()
+def rec_typenade(
+    incoming: JSONDict, types: JSONDict, *, fixate: bool = True, address: Tuple = ()
 ) -> Tuple[JSONDict, List[Error]]:
     """Perform type checking and optionally type fixing.
 
@@ -173,13 +175,21 @@ def _typenade(
 
     for k, v in incoming.items():
         if isinstance(v, dict):
-            outgoing[k], errs = _typenade(
+            outgoing[k], errs = rec_typenade(
                 incoming=v, types=types[k], fixate=fixate, address=(address + (k,))
             )
             errors.extend(errs)
         else:
             declared = types[k]
-            if type_matches(incoming[k], declared):
+            if incoming[k] is None:
+                errors.append(
+                    Error(
+                        address + (k,),
+                        "Keyword '{0}' is required but has no value".format(k),
+                    )
+                )
+                outgoing[k] = None  # type: ignore
+            elif type_matches(incoming[k], declared):
                 outgoing[k] = (
                     type_fixers[declared](incoming[k]) if fixate else incoming[k]
                 )
@@ -192,6 +202,6 @@ def _typenade(
                         ),
                     )
                 )
-                outgoing[k] = None
+                outgoing[k] = None  # type: ignore
 
     return outgoing, errors

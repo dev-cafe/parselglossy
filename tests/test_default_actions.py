@@ -38,7 +38,7 @@ from contextlib import ExitStack as does_not_raise
 
 import pytest
 
-from parselglossy.exceptions import SpecificationError
+from parselglossy.exceptions import ParselglossyError
 from parselglossy.validation import fix_defaults
 
 
@@ -96,7 +96,21 @@ actions_ref = {
 }
 
 
-def invalid_raw():
+def one_invalid_raw():
+    return {
+        "scf": {
+            "another_number": "user['scf']['min_num_iterations'] / 2",
+            "functional": "'B3LYP'",
+            "max_num_iterations": 20,
+            "some_acceleration": False,
+            "some_complex_number": "0.0 + 0.0j",
+            "thresholds": {"energy": 0.001, "some_integral_screening": 0.0001},
+        },
+        "title": None,
+    }
+
+
+def two_invalid_raw():
     return {
         "scf": {
             "another_number": "user['scf']['min_num_iterations'] / 2",
@@ -123,7 +137,7 @@ invalid_ref = {
 }
 
 
-error_start = r"Error\(s\) occurred when fixing defaults:\n"
+error_start = r"Error(?:\(s\))? occurred when fixing defaults:\n"
 errors = [
     r"- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in defaulting closure 'user\['scf'\]\['min_num_iterations'\] / 2'\n",
     r"- At user\['scf'\]\['functional'\]:\s+TypeError unsupported operand type\(s\) for /: 'str' and 'int' in defaulting closure ''B3LYP' / 2'",
@@ -134,17 +148,27 @@ testdata = [
     (noactions_raw(), noactions_ref, does_not_raise()),
     (actions_raw(), actions_ref, does_not_raise()),
     (
-        invalid_raw(),
+        one_invalid_raw(),
         invalid_ref,
         pytest.raises(
-            SpecificationError, match=re.compile("({0}|{1})".format(*invalid_messages))
+            ParselglossyError,
+            match=r"""Error(?:\(s\))? occurred when fixing defaults:\n- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in defaulting closure 'user\['scf'\]\['min_num_iterations'\] / 2'""",
+        ),
+    ),
+    (
+        two_invalid_raw(),
+        invalid_ref,
+        pytest.raises(
+            ParselglossyError, match=re.compile("({0}|{1})".format(*invalid_messages))
         ),
     ),
 ]
 
 
 @pytest.mark.parametrize(
-    "readin,ref,raises", testdata, ids=["noactions", "actions", "invalid"]
+    "readin,ref,raises",
+    testdata,
+    ids=["noactions", "actions", "one_invalid", "two_invalid_raw"],
 )
 def test_fix_defaults(readin, ref, raises):
     with raises as e:

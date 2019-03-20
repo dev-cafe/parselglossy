@@ -46,16 +46,41 @@ class SpecificationError(Exception):
     pass
 
 
-Error = namedtuple("Error", ["address", "message"])
+class ParselglossyError(Exception):
+    """Exception raised when parsing fails."""
+
+    pass
 
 
-def collate_errors(preamble: str, errors: List[Error]) -> str:
+class Error(namedtuple("Error", ["address", "message"], defaults=[(), ""])):
+    """Detailed error reporting for dictionaries.
+
+    Attributes
+    ----------
+    address : Tuple
+         The keys needed to access the offending element in the `dict`.
+    message : str
+         The error message.
+    """
+
+    __slots__ = ()
+
+    def __repr__(self):
+        msg = "{:s}".format(self.message)
+        if self.address != ():
+            msg = "At {:s}:\n  {:s}".format(
+                reduce(lambda x, y: x + "['{}']".format(y), self.address, "user"), msg
+            )
+        return "- " + msg
+
+
+def collate_errors(*, when: str, errors: List[Error]) -> str:
     """Collate a list of error into an informative message.
 
     Parameters
     ----------
-    preamble: str
-        Prefix to the error reporting message.
+    when: str
+        When the error occurred.
     errors: List[Error]
         List of errors.
 
@@ -70,15 +95,9 @@ def collate_errors(preamble: str, errors: List[Error]) -> str:
                 KeyError 'min_num_iterations' in defaulting closure
                 'user['scf']['min_num_iterations'] / 2'
     """
-    msgs = ["\n{:s}:".format(preamble)]
-    msgs.extend(
-        [
-            "- At {:s}:\n    {:s}".format(
-                reduce(lambda x, y: x + "['{}']".format(y), e.address, "user"),
-                e.message,
-            )
-            for e in errors
-        ]
+    preamble = "\nError{more:s} occurred when {when:s}:".format(
+        more="(s)" if len(errors) > 1 else "", when=when
     )
+    msgs = [preamble] + ["{}".format(e) for e in errors]
 
     return "\n".join(msgs)

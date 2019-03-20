@@ -101,8 +101,8 @@ def test_template_errors(template_file_name, exception, error_message):
 
 
 input_errors_data = [
-    ("input_unexpected_keyword.yml", "found unexpected keyword(s): {'strange'}"),
-    ("input_unexpected_section.yml", "found unexpected section(s): {'weird'}"),
+    ("unexpected_keyword.yml", "found unexpected keyword(s): {'strange'}"),
+    ("unexpected_section.yml", "found unexpected section(s): {'weird'}"),
     (
         "input_missing_keyword.yml",
         "the following keyword(s) must be set: {'a_short_string'}",

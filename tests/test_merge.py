@@ -33,46 +33,92 @@ Tests merging of template and user input `dict`-s into an unvalidated input `dic
 """
 
 from pathlib import Path
+from typing import Optional
 
 import pytest
 
-from parselglossy.read_yaml import read_yaml_file
+from parselglossy.exceptions import ParselglossyError
 from parselglossy.validation import merge_ours
+from parselglossy.views import view_by_default
+from read_in import read_in
 
-reference = {
-    "title": "this is an example",
-    "scf": {
-        "functional": "B3LYP",
-        "max_num_iterations": 20,
-        "some_acceleration": True,
-        "thresholds": {"some_integral_screening": 0.0002, "energy": 1e-05},
-        "another_number": 10,
-        "some_complex_number": "0.0+0.0j",
-    },
-}
-
-
-@pytest.fixture
-def template():
-    defaults = {
-        "scf": {
-            "another_number": 10,
-            "functional": None,
-            "max_num_iterations": 20,
-            "some_acceleration": False,
-            "some_complex_number": "0.0+0.0j",
-            "thresholds": {"energy": 0.001, "some_integral_screening": 0.0001},
+expected_data = [
+    (
+        "overall",
+        "input.yml",
+        "template.yml",
+        {
+            "scf": {
+                "another_number": 10,
+                "functional": "B3LYP",
+                "max_num_iterations": 20,
+                "some_acceleration": True,
+                "some_complex_number": "0.0+0.0j",
+                "thresholds": {"energy": 1.0e-5, "some_integral_screening": 0.0002},
+            },
+            "title": "this is an example",
         },
-        "title": None,
-    }
-    return defaults
+    ),
+    (
+        "defaulting",
+        "input_with_default_section.yml",
+        "default_section.yml",
+        {"foobar": False, "foo": {"bar": True}},
+    ),
+    ("defaulting", None, "all_default.yml", {"foobar": True, "foo": {"bar": False}}),
+]
 
 
-def test_merge(template):
-    this_path = Path(__file__).parent
-    input_file = this_path / "validation" / "overall" / "input.yml"
-    user = read_yaml_file(input_file)
+def expected_ids(name: Optional[str]) -> str:
+    if name is None:
+        id = "all_default"
+    else:
+        id = name.rsplit(".", 1)[0]
+    return id
 
-    outgoing = merge_ours(theirs=template, ours=user)
 
-    assert outgoing == reference
+@pytest.mark.parametrize(
+    "folder,user,template,ref",
+    [pytest.param(*args, id=expected_ids(args[1])) for args in expected_data],
+)
+def test_merge_expected(folder, user, template, ref):
+    user, template = read_in(folder, user, template)
+    outgoing = merge_ours(theirs=view_by_default(template), ours=user)
+
+    assert outgoing == ref
+
+
+unexpected_data = [
+    (
+        "unexpected_keyword.yml",
+        r"Error(?:\(s\))? occurred when merging:\n- Found unexpected keyword: 'strange'",
+    ),
+    (
+        "unexpected_section.yml",
+        r"Error(?:\(s\))? occurred when merging:\n- Found unexpected section: 'weird'",
+    ),
+    (
+        "unexpected_keyword_in_section.yml",
+        r"Error(?:\(s\))? occurred when merging:\n- Found unexpected keyword: 'strange'",
+    ),
+    (
+        "unexpected_section_nested.yml",
+        r"Error(?:\(s\))? occurred when merging:\n- Found unexpected section: 'weird'",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "input_file_name,error_message",
+    [
+        pytest.param(fname, msg, id=fname.rsplit(".", 1)[0])
+        for fname, msg in unexpected_data
+    ],
+)
+def test_merge_unexpected(input_file_name, error_message):
+    user, template = read_in("input_errors", input_file_name, "template.yml")
+
+    with pytest.raises(ParselglossyError, match=error_message):
+        outgoing = merge_ours(
+            theirs=view_by_default(template), ours=user
+        )  # type: Optional[JSONDict]

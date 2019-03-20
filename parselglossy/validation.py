@@ -29,23 +29,52 @@
 # -*- coding: utf-8 -*-
 """Validation facilities."""
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
-from .exceptions import Error, SpecificationError, collate_errors
+from .exceptions import Error, ParselglossyError, collate_errors
 from .utils import JSONDict
 
 
-def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> JSONDict:
+def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> Optional[JSONDict]:
     """Recursively merge two `dict`-s with "ours" strategy.
 
     Parameters
     ----------
-    theirs: JSONDict
-    ours: JSONDict
+    theirs : JSONDict
+    ours : JSONDict
 
     Returns
     -------
-    outgoing: JSONDict
+    outgoing : JSONDict
+
+    Raises
+    ------
+    :exc:`ParselglossyError`
+
+    Notes
+    -----
+    This is porcelain over the recursive function :func:`rec_merge_ours`.
+    """
+    outgoing, errors = rec_merge_ours(theirs=theirs, ours=ours)
+
+    if errors:
+        msg = collate_errors(when="merging", errors=errors)
+        raise ParselglossyError(msg)
+
+    return outgoing
+
+
+def rec_merge_ours(*, theirs: JSONDict, ours: JSONDict) -> Tuple[JSONDict, List[Error]]:
+    """Recursively merge two `dict`-s with "ours" strategy.
+
+    Parameters
+    ----------
+    theirs : JSONDict
+    ours : JSONDict
+
+    Returns
+    -------
+    outgoing : JSONDict
 
     Notes
     -----
@@ -56,19 +85,28 @@ def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> JSONDict:
     user input, hence the naming "ours" for the merge strategy.
     """
     outgoing = {}
+    errors = []
+
+    # Check whether ours has keywords/sections that are unknown
+    difference = set(ours.keys()).difference(set(theirs.keys()))
+    if difference != set():
+        for k in difference:
+            what = "section" if isinstance(ours[k], dict) else "keyword"
+            errors.append(Error(message="Found unexpected {}: '{}'".format(what, k)))
 
     for k, v in theirs.items():
-        if isinstance(v, dict):
-            outgoing[k] = merge_ours(theirs=v, ours=ours[k])
-        elif k not in ours.keys():
+        if k not in ours.keys():
             outgoing[k] = theirs[k]
+        elif isinstance(v, dict):
+            outgoing[k], errs = rec_merge_ours(theirs=v, ours=ours[k])
+            errors.extend(errs)
         else:
             outgoing[k] = ours[k]
 
-    return outgoing
+    return outgoing, errors
 
 
-def fix_defaults(incoming: JSONDict) -> JSONDict:
+def fix_defaults(incoming: JSONDict) -> Optional[JSONDict]:
     """Fixes defaults from a merge input ``dict``.
 
     Parameters
@@ -88,20 +126,20 @@ def fix_defaults(incoming: JSONDict) -> JSONDict:
 
     Notes
     -----
-    This is porcelain over :func:`_fix_defaults`.
+    This is porcelain over recursive function :func:`rec_fix_defaults`.
     """
 
-    outgoing, errors = _fix_defaults(incoming)
+    outgoing, errors = rec_fix_defaults(incoming)
 
     if errors:
-        msg = collate_errors("Error(s) occurred when fixing defaults", errors)
-        raise SpecificationError(msg)
+        msg = collate_errors(when="fixing defaults", errors=errors)
+        raise ParselglossyError(msg)
 
     return outgoing
 
 
-def _fix_defaults(
-    incoming: JSONDict, *, start_dict: JSONDict = None, address: Tuple[str] = ()
+def rec_fix_defaults(
+    incoming: JSONDict, *, start_dict: JSONDict = None, address: Tuple = ()
 ) -> Tuple[JSONDict, List[Error]]:
     """Fixes default values from a merge input ``dict``.
 
@@ -163,12 +201,12 @@ def _fix_defaults(
 
     for k, v in incoming.items():
         if isinstance(v, dict):
-            outgoing[k], errs = _fix_defaults(
+            outgoing[k], errs = rec_fix_defaults(
                 incoming=v, start_dict=start_dict, address=(address + (k,))
             )
             errors.extend(errs)
         elif v is None:
-            outgoing[k] = None
+            outgoing[k] = None  # type: ignore
         else:
             # Transform field into lambda function and evaluate it
             # This might throw SyntaxError, TypeError or KeyError
@@ -183,7 +221,7 @@ def _fix_defaults(
                         "KeyError {} in defaulting closure '{:s}'".format(e, v),
                     )
                 )
-                outgoing[k] = None
+                outgoing[k] = None  # type: ignore
             except SyntaxError as e:
                 errors.append(
                     Error(
@@ -191,7 +229,7 @@ def _fix_defaults(
                         "SyntaxError {} in defaulting closure '{:s}'".format(e, v),
                     )
                 )
-                outgoing[k] = None
+                outgoing[k] = None  # type: ignore
             except TypeError as e:
                 errors.append(
                     Error(
@@ -199,6 +237,6 @@ def _fix_defaults(
                         "TypeError {} in defaulting closure '{:s}'".format(e, v),
                     )
                 )
-                outgoing[k] = None
+                outgoing[k] = None  # type: ignore
 
     return outgoing, errors

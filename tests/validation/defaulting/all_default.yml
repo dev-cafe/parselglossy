@@ -1,0 +1,14 @@
+keywords:
+  - name: foobar
+    type: bool
+    default: true
+    docstring: |
+      foobar
+sections:
+  - name: foo
+    keywords:
+      - name: bar
+        type: bool
+        default: false
+        docstring: |
+          foo.bar

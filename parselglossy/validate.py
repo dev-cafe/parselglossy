@@ -57,7 +57,7 @@ def extract_from_template(what: str, how: Callable, template_dict: JSONDict) -> 
 
     if what in template_dict:
         # Map `Callable` onto collecion, filter out `None` from the resulting list
-        stuff = list(filter(None, map(how, template_dict[what])))
+        stuff = list(filter(None, map(how, template_dict[what])))  # type: List
     else:
         stuff = []
 

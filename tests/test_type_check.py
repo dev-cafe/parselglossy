@@ -35,46 +35,53 @@ Tests type checking and type fixation.
 import pytest
 
 from parselglossy import views
-from parselglossy.exceptions import ValidationError
+from parselglossy.exceptions import ParselglossyError
 from parselglossy.types import typenade
 from parselglossy.validation import merge_ours
 from read_in import read_in
 
 type_checking_data = [
     (
+        "input_missing_keyword.yml",
+        r"""
+Error occurred when checking types:
+- At user\['some_section'\]\['a_short_string'\]:
+  Keyword 'a_short_string' is required but has no value""",
+    ),
+    (
         "input_type_error_bool.yml",
         r"""
-Error\(s\) occurred when checking types:
+Error occurred when checking types:
 - At user\['some_section'\]\['some_feature'\]:
-    Actual \(int\) and declared \(bool\) types do not match""",
+  Actual \(int\) and declared \(bool\) types do not match""",
     ),
     (
         "input_type_error_float.yml",
         r"""
-Error\(s\) occurred when checking types:
+Error occurred when checking types:
 - At user\['some_float'\]:
-    Actual \(int\) and declared \(float\) types do not match""",
+  Actual \(int\) and declared \(float\) types do not match""",
     ),
     (
         "input_type_error_int.yml",
         r"""
-Error\(s\) occurred when checking types:
+Error occurred when checking types:
 - At user\['some_section'\]\['some_number'\]:
-    Actual \(float\) and declared \(int\) types do not match""",
+  Actual \(float\) and declared \(int\) types do not match""",
     ),
     (
         "input_type_error_list.yml",
         r"""
-Error\(s\) occurred when checking types:
+Error occurred when checking types:
 - At user\['some_section'\]\['some_list'\]:
-    Actual \(list\) and declared \(List\[float\]\) types do not match""",
+  Actual \(list\) and declared \(List\[float\]\) types do not match""",
     ),
     (
         "input_type_error_str.yml",
         r"""
-Error\(s\) occurred when checking types:
+Error(?:\(s\))? occurred when checking types:
 - At user\['some_section'\]\['a_short_string'\]:
-    Actual \(int\) and declared \(str\) types do not match""",
+  Actual \(int\) and declared \(str\) types do not match""",
     ),
 ]
 
@@ -91,5 +98,5 @@ def test_input_errors(input_file_name, error_message):
     outgoing = merge_ours(theirs=views.view_by_default(template), ours=user)
     types = views.view_by_type(template)
 
-    with pytest.raises(ValidationError, match=error_message):
+    with pytest.raises(ParselglossyError, match=error_message):
         outgoing = typenade(outgoing, types)

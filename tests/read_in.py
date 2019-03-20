@@ -31,21 +31,21 @@
 """Facilities for reading in files for testing."""
 
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 from parselglossy.read_yaml import read_yaml_file
 from parselglossy.utils import JSONDict
 
 
 def read_in(
-    category: str, input_file_name: str, template_file_name: str
+    category: str, input_file_name: Optional[str], template_file_name: str
 ) -> Tuple[JSONDict, JSONDict]:
     """Helper function to read in input and validation template
 
     Parameters
     ----------
     category: str
-    input_file_name: str
+    input_file_name: Optional[str]
     template_file_name: str
 
     Returns
@@ -55,10 +55,13 @@ def read_in(
     """
     this_path = Path(__file__).parent
 
-    input_file = this_path / "validation" / category / input_file_name
-    template_file = this_path / "validation" / category / template_file_name
+    if input_file_name is None:
+        input_dict = {}  # type: JSONDict
+    else:
+        input_file = this_path / "validation" / category / input_file_name
+        input_dict = read_yaml_file(input_file)
 
-    input_dict = read_yaml_file(input_file)
+    template_file = this_path / "validation" / category / template_file_name
     template_dict = read_yaml_file(template_file)
 
     return input_dict, template_dict
