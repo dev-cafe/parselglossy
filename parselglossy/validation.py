@@ -32,7 +32,170 @@
 from typing import List, Optional, Tuple
 
 from .exceptions import Error, ParselglossyError, collate_errors
-from .utils import JSONDict
+from .types import allowed_types
+from .utils import JSONDict, check_callable
+
+
+def check_template(template: JSONDict) -> Optional[JSONDict]:
+    """Checks a template `dict` is well-formed.
+
+    Parameters
+    ----------
+    template : JSONDict
+
+    Returns
+    -------
+    outgoing : Optional[JSONDict]
+
+    Raises
+    ------
+    :exc:`ParselglossyError`
+
+    Notes
+    -----
+    This is porcelain over the recursive :func:`rec_check_template`.
+    """
+
+    outgoing, errors = rec_check_template(template)
+
+    if errors:
+        msg = collate_errors(when="checking the template", errors=errors)
+        raise ParselglossyError(msg)
+
+    return outgoing
+
+
+def undocumented(x: JSONDict) -> bool:
+    return (
+        True if "docstring" not in x.keys() or x["docstring"].strip() == "" else False
+    )
+
+
+def untyped(x: JSONDict) -> bool:
+    return True if "type" not in x.keys() or x["type"] not in allowed_types else False
+
+
+def check_keyword(
+    keyword: JSONDict, *, address: Tuple = ()
+) -> Tuple[JSONDict, List[Error]]:
+    """Checks that a template keyword is well-formed.
+
+    In this function, a template keyword is well-formed if it has:
+
+    * An allowed type.
+    * A non-empty docstring.
+
+    The two additional criteria:
+
+    * A default callable that is valid Python, if present.
+    * Predicates that are valid Python, if present.
+
+    can only be checked meaningfully later, as they might depend on
+    keyword(s)/section(s) of the input that are only known after merging.
+
+    Parameters
+    ----------
+    template : JSONDict
+    address : Tuple
+
+    Returns
+    -------
+    outgoing : JSONDict
+    errors : List[Error]
+    """
+
+    outgoing = {}
+    errors = []
+
+    k = keyword["name"]
+    if "sections" in keyword.keys():
+        errors.append(
+            Error((address + (k,)), "Sections cannot be nested under keywords.")
+        )
+    else:
+        outgoing = keyword
+
+    if untyped(keyword):
+        errors.append(Error((address + (k,)), "Keywords must have a valid type."))
+    else:
+        outgoing = keyword
+
+    if undocumented(keyword):
+        errors.append(
+            Error((address + (k,)), "Keywords must have a non-empty docstring.")
+        )
+    else:
+        outgoing = keyword
+
+    # if "predicates" in keyword.keys():
+    #    for p in keyword["predicates"]:
+    #        # Replace convenience placeholder value with its full "address"
+    #        where = location_in_dict(address=(address + (k,)))
+    #        p = sub("value", where, p)
+    #        invalid, msg = is_callable_valid(p, start_dict)
+    #        if invalid:
+    #            errors.append(Error((address + (k,)), msg))
+    # else:
+    #    outgoing = keyword
+
+    return outgoing, errors
+
+
+def rec_check_template(
+    template: JSONDict, *, address: Tuple = ()
+) -> Tuple[JSONDict, List[Error]]:
+    """Checks a template `dict` is well-formed.
+
+    A template `dict` is well-formed if:
+
+    * All keywords have:
+
+      - An allowed type.
+      - A non-empty docstring.
+      - A default callable that is valid Python, if present.
+      - Predicates that are valid Python, if present.
+
+      Note that the latter two criteria can only be checked later on.
+
+    * No sections are nested under keywords.
+
+    * All sections have a non-empty docstring.
+
+    Parameters
+    ----------
+    template : JSONDict
+    address : Tuple[str]
+
+    Returns
+    -------
+    outgoing : JSONDict
+    errors : List[Error]
+    """
+
+    outgoing = {}
+    errors = []
+
+    keywords = template["keywords"] if "keywords" in template.keys() else []
+    for k in keywords:
+        out, errs = check_keyword(k, address=address)
+        outgoing["keywords"] = [out]
+        errors.extend(errs)
+
+    sections = template["sections"] if "sections" in template.keys() else []
+    for s in sections:
+        if undocumented(s):
+            errors.append(
+                Error(
+                    (address + (s["name"],)),
+                    "Sections must have a non-empty docstring.",
+                )
+            )
+            outgoing["sections"] = [None]
+        out, errs = rec_check_template(s, address=(address + (s["name"],)))
+        outgoing["sections"] = [out]
+        errors.extend(errs)
+
+    return outgoing, errors
 
 
 def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> Optional[JSONDict]:
@@ -208,35 +371,8 @@ def rec_fix_defaults(
         elif v is None:
             outgoing[k] = None  # type: ignore
         else:
-            # Transform field into lambda function and evaluate it
-            # This might throw SyntaxError, TypeError or KeyError
-            try:
-                # FIXME How robust is this string manipulation? Might we
-                # fudge it up with truncation?
-                outgoing[k] = eval("lambda user: ({})".format(v))(start_dict)
-            except KeyError as e:
-                errors.append(
-                    Error(
-                        (address + (k,)),
-                        "KeyError {} in defaulting closure '{:s}'".format(e, v),
-                    )
-                )
-                outgoing[k] = None  # type: ignore
-            except SyntaxError as e:
-                errors.append(
-                    Error(
-                        (address + (k,)),
-                        "SyntaxError {} in defaulting closure '{:s}'".format(e, v),
-                    )
-                )
-                outgoing[k] = None  # type: ignore
-            except TypeError as e:
-                errors.append(
-                    Error(
-                        (address + (k,)),
-                        "TypeError {} in defaulting closure '{:s}'".format(e, v),
-                    )
-                )
-                outgoing[k] = None  # type: ignore
+            msg, outgoing[k] = check_callable(v, start_dict)
+            if msg != "":
+                errors.append(Error((address + (k,)), msg))
 
     return outgoing, errors

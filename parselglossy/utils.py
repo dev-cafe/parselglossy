@@ -30,8 +30,9 @@
 """Common utilities."""
 
 import json
+from functools import reduce
 from string import ascii_letters, digits
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Tuple
 
 JSONDict = Dict[str, Any]
 
@@ -63,3 +64,61 @@ def as_complex(dct):
     if "__complex__" in dct:
         return complex(dct["__complex__"][0], dct["__complex__"][1])
     return dct
+
+
+def check_callable(f: str, d: JSONDict) -> Tuple[str, Optional[Any]]:
+    """Check whether a callable is valid Python code.
+
+    A callable is any function of the input tree.
+
+    Parameters
+    ----------
+    f : str
+        Callable to checked as a string
+    d : JSONDict
+        The input `dict`.
+
+    Returns
+    -------
+    retval : Tuple[str, Optional[Any]]
+        The error message, if any, and the result of the callable, if any.
+
+    Notes
+    -----
+    The input tree is called ``user``.
+    """
+    postfix = "in defaulting closure '{}'.".format(f)
+    try:
+        result = eval("lambda user: ({})".format(f))(d)
+        msg = ""
+    except KeyError as e:
+        result = None
+        msg = "KeyError {} {:s}".format(e, postfix)
+    except SyntaxError as e:
+        result = None
+        msg = "SyntaxError {} {:s}".format(e, postfix)
+    except TypeError as e:
+        result = None
+        msg = "TypeError {} {:s}".format(e, postfix)
+    except NameError as e:
+        result = None
+        msg = "NameError {} {:s}".format(e, postfix)
+
+    return msg, result
+
+
+def location_in_dict(*, address: Tuple[str], dict_name: str = "user") -> str:
+    """Convert tuple of keys of a ``JSONDict`` to its representation in code.
+
+    For example, given ``("a", "b", "c")`` returns the string ``user['a']['b']['c']``.
+
+    Parameters
+    ----------
+    address : Tuple[str]
+    dict_name : str
+
+    Returns
+    -------
+    where : str
+    """
+    return reduce(lambda x, y: x + "['{}']".format(y), address, "user")

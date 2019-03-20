@@ -137,12 +137,11 @@ invalid_ref = {
 }
 
 
-error_start = r"Error(?:\(s\))? occurred when fixing defaults:\n"
-errors = [
-    r"- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in defaulting closure 'user\['scf'\]\['min_num_iterations'\] / 2'\n",
-    r"- At user\['scf'\]\['functional'\]:\s+TypeError unsupported operand type\(s\) for /: 'str' and 'int' in defaulting closure ''B3LYP' / 2'",
+invalid_messages = [
+    r"""Error(?:\(s\))? occurred when fixing defaults:\n- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in defaulting closure 'user\['scf'\]\['min_num_iterations'\] / 2'\.\n- At user\['scf'\]\['functional'\]:\s+TypeError unsupported operand type\(s\) for /: 'str' and 'int' in defaulting closure ''B3LYP' / 2'\.""",
+    r"""Error(?:\(s\))? occurred when fixing defaults:\n- At user\['scf'\]\['functional'\]:\s+TypeError unsupported operand type\(s\) for /: 'str' and 'int' in defaulting closure ''B3LYP' / 2'\.\n- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in defaulting closure 'user\['scf'\]\['min_num_iterations'\] / 2'\.
+    """,
 ]
-invalid_messages = [error_start + "".join(x) for x in itertools.permutations(errors)]
 
 testdata = [
     (noactions_raw(), noactions_ref, does_not_raise()),
@@ -171,6 +170,6 @@ testdata = [
     ids=["noactions", "actions", "one_invalid", "two_invalid_raw"],
 )
 def test_fix_defaults(readin, ref, raises):
-    with raises as e:
+    with raises:
         outgoing = fix_defaults(readin)
         assert outgoing == ref

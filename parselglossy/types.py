@@ -27,12 +27,14 @@
 #
 
 import re
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from .exceptions import Error, ParselglossyError, collate_errors
 from .utils import JSONDict
 
 ScalarTypes = Union[bool, str, int, float, complex]
+
+allowed_scalar_types = ["str", "int", "float", "complex", "bool"]
 
 
 def _type_check_scalar(value: ScalarTypes, expected_type: str) -> bool:
@@ -40,6 +42,8 @@ def _type_check_scalar(value: ScalarTypes, expected_type: str) -> bool:
 
 
 ListTypes = Union[List[bool], List[str], List[int], List[float], List[complex]]
+
+allowed_list_types = ["List[{}]".format(t) for t in allowed_scalar_types]
 
 
 def _type_check_list(value: ListTypes, expected_type: str) -> bool:
@@ -55,6 +59,8 @@ def _type_check_list(value: ListTypes, expected_type: str) -> bool:
 
 
 AllowedTypes = Union[ScalarTypes, ListTypes]
+
+allowed_types = allowed_scalar_types + allowed_list_types
 
 
 def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
@@ -80,9 +86,6 @@ def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
     ValueError
         If expected_type is not among the allowed types.
     """
-    allowed_basic_types = ["str", "int", "float", "complex", "bool"]
-    allowed_list_types = ["List[{}]".format(t) for t in allowed_basic_types]
-    allowed_types = allowed_basic_types + allowed_list_types
 
     # first verify whether expected_type is allowed
     if expected_type not in allowed_types:

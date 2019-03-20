@@ -30,8 +30,9 @@
 """Error-handling facilities."""
 
 from collections import namedtuple
-from functools import reduce
 from typing import List
+
+from .utils import location_in_dict
 
 
 class ValidationError(Exception):
@@ -52,7 +53,7 @@ class ParselglossyError(Exception):
     pass
 
 
-class Error(namedtuple("Error", ["address", "message"], defaults=[(), ""])):
+class Error(namedtuple("Error", ["address", "message"])):
     """Detailed error reporting for dictionaries.
 
     Attributes
@@ -61,16 +62,24 @@ class Error(namedtuple("Error", ["address", "message"], defaults=[(), ""])):
          The keys needed to access the offending element in the `dict`.
     message : str
          The error message.
+
+    Notes
+    -----
+    As we need to support Python < 3.6, we cannot use the defaults field of namedtuple.
     """
 
     __slots__ = ()
 
+    def __new__(cls, address=(), message=""):
+        return super(Error, cls).__new__(cls, address, message)
+
+    def __eq__(self, other):
+        return self.address == other.address and self.message == other.message
+
     def __repr__(self):
         msg = "{:s}".format(self.message)
         if self.address != ():
-            msg = "At {:s}:\n  {:s}".format(
-                reduce(lambda x, y: x + "['{}']".format(y), self.address, "user"), msg
-            )
+            msg = "At {:s}:\n  {:s}".format(location_in_dict(address=self.address), msg)
         return "- " + msg
 
 

@@ -29,7 +29,7 @@
 # -*- coding: utf-8 -*-
 """Tools to extract views of dictionaries."""
 
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from .exceptions import ParselglossyError
 from .utils import JSONDict
@@ -147,14 +147,20 @@ def view_by(
             "Requested view {:s} not among possible views ({})".format(what, allowed)
         )
 
-    view = {
-        v["name"]: transformer(v[what])
-        if all([what in v, predicate(v, what)])
-        else missing
-        for v in d["keywords"]
-    }
+    # Determine whether we have only sections and only keywords
+    has_keywords = True if "keywords" in d else False
+    has_sections = True if "sections" in d else False
 
-    if "sections" in d:
+    view = {}
+    if has_keywords:
+        view = {
+            v["name"]: transformer(v[what])
+            if all([what in v, predicate(v, what)])
+            else missing
+            for v in d["keywords"]
+        }
+
+    if has_sections:
         for section in d["sections"]:
             view[section["name"]] = view_by(
                 what,

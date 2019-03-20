@@ -32,7 +32,6 @@
 Tests merging of template and user input `dict`-s into an unvalidated input `dict`.
 """
 
-from pathlib import Path
 from typing import Optional
 
 import pytest
@@ -110,10 +109,7 @@ unexpected_data = [
 
 @pytest.mark.parametrize(
     "input_file_name,error_message",
-    [
-        pytest.param(fname, msg, id=fname.rsplit(".", 1)[0])
-        for fname, msg in unexpected_data
-    ],
+    [pytest.param(*args, id=expected_ids(args[0])) for args in unexpected_data],
 )
 def test_merge_unexpected(input_file_name, error_message):
     user, template = read_in("input_errors", input_file_name, "template.yml")
