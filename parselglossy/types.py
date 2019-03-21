@@ -26,91 +26,10 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-import re
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 from .exceptions import Error, ParselglossyError, collate_errors
-from .utils import JSONDict
-
-ScalarTypes = Union[bool, str, int, float, complex]
-
-allowed_scalar_types = ["str", "int", "float", "complex", "bool"]
-
-
-def _type_check_scalar(value: ScalarTypes, expected_type: str) -> bool:
-    return type(value).__name__ == expected_type
-
-
-ListTypes = Union[List[bool], List[str], List[int], List[float], List[complex]]
-
-allowed_list_types = ["List[{}]".format(t) for t in allowed_scalar_types]
-
-
-def _type_check_list(value: ListTypes, expected_type: str) -> bool:
-    # make sure that value is actually a list
-    if type(value).__name__ == "list":
-        # iterate over each element of the list
-        # and check whether it matches T
-        type_checks = all((_type_check_scalar(x, expected_type) for x in value))
-    else:
-        type_checks = False
-
-    return type_checks
-
-
-AllowedTypes = Union[ScalarTypes, ListTypes]
-
-allowed_types = allowed_scalar_types + allowed_list_types
-
-
-def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
-    """Checks whether a value is of the expected type.
-
-    Parameters
-    ----------
-    value : AllowedTypes
-      Value whose type needs to be checked
-    expected_type : str
-
-    Notes
-    -----
-    Allowed types T are: `str`, `int`, `float`, `complex`, `bool`,
-    as well as `List[T]`.
-
-    Returns
-    -------
-    True if value has the type expected_type, otherwise False.
-
-    Raises
-    ------
-    ValueError
-        If expected_type is not among the allowed types.
-    """
-
-    # first verify whether expected_type is allowed
-    if expected_type not in allowed_types:
-        raise ValueError("could not recognize expected_type: {}".format(expected_type))
-
-    expected_type_is_list = re.search(r"^List\[(\w+)\]$", expected_type)
-
-    if expected_type_is_list is not None:
-        return _type_check_list(value, expected_type_is_list.group(1))  # type: ignore
-    else:
-        return _type_check_scalar(value, expected_type)  # type: ignore
-
-
-type_fixers = {
-    "bool": bool,
-    "complex": complex,
-    "float": float,
-    "int": int,
-    "str": str,
-}  # type: Dict[str, Callable[[Any], Any]]
-tmp = {
-    "List[{:s}]".format(k): lambda x: list(map(v, x)) for k, v in type_fixers.items()
-}  # type: Dict[str, Callable[[Any], Any]]
-type_fixers.update(tmp)
-"""Dict[str, Callable[[Any], Any]]: dictionary holding functions for type fixation."""
+from .utils import JSONDict, type_fixers, type_matches
 
 
 def typenade(incoming: JSONDict, types: JSONDict) -> Optional[JSONDict]:
@@ -147,9 +66,9 @@ def typenade(incoming: JSONDict, types: JSONDict) -> Optional[JSONDict]:
 
 
 def rec_typenade(
-    incoming: JSONDict, types: JSONDict, *, fixate: bool = True, address: Tuple = ()
+    incoming: JSONDict, types: JSONDict, *, address: Tuple = ()
 ) -> Tuple[JSONDict, List[Error]]:
-    """Perform type checking and optionally type fixing.
+    """Perform type checking and type fixing.
 
     Parameters
     ----------
@@ -158,8 +77,6 @@ def rec_typenade(
         user and template `dict`-s.
     types: JSONDict
         Types of all keywords in the input. Generated from :func:`view_by_types`.
-    fixate: bool
-        Whether to call the type constructor on the value, to fixate its type.
     address: Tuple[str]
         A tuple of keys need to index the current value in the recursion. See
         Notes.
@@ -177,34 +94,20 @@ def rec_typenade(
     errors = []
 
     for k, v in incoming.items():
-        if isinstance(v, dict):
+        if not isinstance(v, dict):
+            t = types[k]
+            if type_matches(incoming[k], t):
+                outgoing[k] = type_fixers[t](incoming[k])
+            else:
+                msg = "Actual ({0}) and declared ({1}) types do not match".format(
+                    type(incoming[k]).__name__, t
+                )
+                errors.append(Error(address + (k,), msg))
+                outgoing[k] = None  # type: ignore
+        else:
             outgoing[k], errs = rec_typenade(
-                incoming=v, types=types[k], fixate=fixate, address=(address + (k,))
+                incoming=v, types=types[k], address=(address + (k,))
             )
             errors.extend(errs)
-        else:
-            declared = types[k]
-            if incoming[k] is None:
-                errors.append(
-                    Error(
-                        address + (k,),
-                        "Keyword '{0}' is required but has no value".format(k),
-                    )
-                )
-                outgoing[k] = None  # type: ignore
-            elif type_matches(incoming[k], declared):
-                outgoing[k] = (
-                    type_fixers[declared](incoming[k]) if fixate else incoming[k]
-                )
-            else:
-                errors.append(
-                    Error(
-                        address + (k,),
-                        "Actual ({0}) and declared ({1}) types do not match".format(
-                            type(incoming[k]).__name__, declared
-                        ),
-                    )
-                )
-                outgoing[k] = None  # type: ignore
 
     return outgoing, errors

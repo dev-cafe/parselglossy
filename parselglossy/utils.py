@@ -30,9 +30,10 @@
 """Common utilities."""
 
 import json
+import re
 from functools import reduce
 from string import ascii_letters, digits
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 JSONDict = Dict[str, Any]
 
@@ -66,8 +67,110 @@ def as_complex(dct):
     return dct
 
 
-def check_callable(f: str, d: JSONDict) -> Tuple[str, Optional[Any]]:
-    """Check whether a callable is valid Python code.
+RunCallable = Callable[[Any, str], Tuple[str, Any]]
+
+ScalarTypes = Union[bool, str, int, float, complex]
+
+allowed_scalar_types = ["str", "int", "float", "complex", "bool"]
+
+
+def _type_check_scalar(value: ScalarTypes, expected_type: str) -> bool:
+    return type(value).__name__ == expected_type
+
+
+ListTypes = Union[List[bool], List[str], List[int], List[float], List[complex]]
+
+allowed_list_types = ["List[{}]".format(t) for t in allowed_scalar_types]
+
+
+def _type_check_list(value: ListTypes, expected_type: str) -> bool:
+    # make sure that value is actually a list
+    if type(value).__name__ == "list":
+        # iterate over each element of the list
+        # and check whether it matches T
+        type_checks = all((_type_check_scalar(x, expected_type) for x in value))
+    else:
+        type_checks = False
+
+    return type_checks
+
+
+AllowedTypes = Union[ScalarTypes, ListTypes]
+
+allowed_types = allowed_scalar_types + allowed_list_types
+
+
+def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
+    """Checks whether a value is of the expected type.
+
+    Parameters
+    ----------
+    value : AllowedTypes
+      Value whose type needs to be checked
+    expected_type : str
+
+    Notes
+    -----
+    Allowed types T are: `str`, `int`, `float`, `complex`, `bool`,
+    as well as `List[T]`.
+
+    Returns
+    -------
+    True if value has the type expected_type, otherwise False.
+
+    Raises
+    ------
+    ValueError
+        If expected_type is not among the allowed types.
+    """
+
+    # first verify whether expected_type is allowed
+    if expected_type not in allowed_types:
+        raise ValueError("could not recognize expected_type: {}".format(expected_type))
+
+    expected_type_is_list = re.search(r"^List\[(\w+)\]$", expected_type)
+
+    if expected_type_is_list is not None:
+        return _type_check_list(value, expected_type_is_list.group(1))  # type: ignore
+    else:
+        return _type_check_scalar(value, expected_type)  # type: ignore
+
+
+type_fixers = {
+    "bool": bool,
+    "complex": complex,
+    "float": float,
+    "int": int,
+    "str": str,
+    "List[bool]": lambda x: list(map(bool, x)),
+    "List[complex]": lambda x: list(map(complex, x)),
+    "List[float]": lambda x: list(map(float, x)),
+    "List[int]": lambda x: list(map(int, x)),
+    "List[str]": lambda x: list(map(str, x)),
+}  # type: Dict[str, Callable[[Any], Any]]
+"""Dict[str, Callable[[Any], Any]]: dictionary holding functions for type fixation."""
+
+
+def plain(result: Any, t: str = "") -> Tuple[str, Any]:
+    return "", result
+
+
+def with_type_checks(result: Any, t: str) -> Tuple[str, Optional[Any]]:
+    if type_matches(result, t):
+        msg = ""
+        result = type_fixers[t](result)
+    else:
+        msg = "Actual ({0}) and declared ({1}) types do not match.".format(
+            type(result).__name__, t
+        )
+        result = None
+    return msg, result
+
+
+def run_callable(
+    f: str, d: JSONDict, *, t: Optional[str] = None
+) -> Tuple[str, Optional[Any]]:
+    """Run a callable encoded as a string.
 
     A callable is any function of the input tree.
 
@@ -77,6 +180,10 @@ def check_callable(f: str, d: JSONDict) -> Tuple[str, Optional[Any]]:
         Callable to checked as a string
     d : JSONDict
         The input `dict`.
+    t : str
+        Expected type.
+    post : RunCallable
+        Actions to run after calling ``eval``
 
     Returns
     -------
@@ -87,22 +194,39 @@ def check_callable(f: str, d: JSONDict) -> Tuple[str, Optional[Any]]:
     -----
     The input tree is called ``user``.
     """
-    postfix = "in defaulting closure '{}'.".format(f)
+
+    closure = "lambda user: "
+    if t is None:
+        post = plain
+        closure += "{}"
+    else:
+        post = with_type_checks
+        if t == "str":
+            closure += "'{}'"
+        elif t == "complex":
+            closure += "complex('{}'.replace(' ', ''))"
+        elif t == "List[complex]":
+            closure += "list(map(lambda x: complex(x.replace(' ', '')), {}))"
+        else:
+            closure += "{}"
+
+    postfix = "in closure '{}'.".format(f)
+
     try:
-        result = eval("lambda user: ({})".format(f))(d)
-        msg = ""
+        result = eval(closure.format(f))(d)
+        msg, result = post(result, t)
     except KeyError as e:
-        result = None
         msg = "KeyError {} {:s}".format(e, postfix)
+        result = None
     except SyntaxError as e:
-        result = None
         msg = "SyntaxError {} {:s}".format(e, postfix)
+        result = None
     except TypeError as e:
-        result = None
         msg = "TypeError {} {:s}".format(e, postfix)
-    except NameError as e:
         result = None
+    except NameError as e:
         msg = "NameError {} {:s}".format(e, postfix)
+        result = None
 
     return msg, result
 

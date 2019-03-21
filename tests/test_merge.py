@@ -35,7 +35,6 @@ Tests merging of template and user input `dict`-s into an unvalidated input `dic
 from typing import Optional
 
 import pytest
-
 from parselglossy.exceptions import ParselglossyError
 from parselglossy.validation import merge_ours
 from parselglossy.views import view_by_default
@@ -88,6 +87,10 @@ def test_merge_expected(folder, user, template, ref):
 
 
 unexpected_data = [
+    (
+        "input_missing_keyword.yml",
+        r"Error(?:\(s\))? occurred when merging:\n- At user\['some_section'\]\['a_short_string'\]:\s+Keyword 'a_short_string' is required but has no value\.",
+    ),
     (
         "unexpected_keyword.yml",
         r"Error(?:\(s\))? occurred when merging:\n- Found unexpected keyword: 'strange'",

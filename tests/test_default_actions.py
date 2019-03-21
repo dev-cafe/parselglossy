@@ -29,134 +29,125 @@
 # -*- coding: utf-8 -*-
 """Tests for `parselglossy` package.
 
-Tests defaulting with a callable.
+Tests defaulting:
+  - Required keywords that are absent report errors.
+  - Invalid callables report errors.
+
+To test, we create a fixture with the types and a valid reference dictionary.
+We then proceed to create copies of the reference and modify some of its
+values, to see whether we fix back defaults correctly.
 """
 
-import itertools
 import re
 from contextlib import ExitStack as does_not_raise
+from copy import deepcopy
 
 import pytest
-
 from parselglossy.exceptions import ParselglossyError
 from parselglossy.validation import fix_defaults
 
 
-def noactions_raw():
+def valid():
     return {
         "scf": {
             "another_number": 10,
-            "functional": None,
+            "functional": "B3LYP",
             "max_num_iterations": 20,
             "some_acceleration": False,
-            "some_complex_number": "0.0 + 0.0j",
-            "thresholds": {"energy": 0.001, "some_integral_screening": 0.0001},
+            "list_complex_number": [complex("0.0+0.0j"), complex("1.0+0.5j")],
+            "thresholds": {
+                "some_complex_number": complex("0.0+0.0j"),
+                "energy": 0.001,
+                "some_integral_screening": 0.0001,
+            },
         },
-        "title": None,
+        "list_of_strings": ["foo", "bar"],
+        "title": "My fantastic calculation",
     }
 
 
-noactions_ref = {
+@pytest.fixture
+def types():
+    return {
+        "scf": {
+            "another_number": "int",
+            "functional": "str",
+            "max_num_iterations": "int",
+            "some_acceleration": "bool",
+            "list_complex_number": "List[complex]",
+            "thresholds": {
+                "some_complex_number": "complex",
+                "energy": "float",
+                "some_integral_screening": "float",
+            },
+        },
+        "list_of_strings": "List[str]",
+        "title": "str",
+    }
+
+
+raw = {
     "scf": {
         "another_number": 10,
-        "functional": None,
+        "functional": "B3LYP",
         "max_num_iterations": 20,
         "some_acceleration": False,
-        "some_complex_number": complex("0.0+0.0j"),
-        "thresholds": {"energy": 0.001, "some_integral_screening": 0.0001},
+        "list_complex_number": ["0.0 + 0.0j", "1.0+0.5j"],
+        "thresholds": {
+            "some_complex_number": "0.0 + 0.0j",
+            "energy": 0.001,
+            "some_integral_screening": 0.0001,
+        },
     },
-    "title": None,
+    "list_of_strings": ["foo", "bar"],
+    "title": "My fantastic calculation",
 }
 
 
-def actions_raw():
-    return {
-        "scf": {
-            "another_number": "user['scf']['max_num_iterations'] / 10",
-            "functional": None,
-            "max_num_iterations": 20,
-            "some_acceleration": False,
-            "some_complex_number": "0.0 + 0.0j",
-            "thresholds": {"energy": 0.001, "some_integral_screening": 0.0001},
-        },
-        "title": None,
-    }
+def valid_with_action():
+    d = deepcopy(raw)
+    d["scf"]["another_number"] = "int(user['scf']['max_num_iterations'] / 10)"
+    r = valid()
+    r["scf"]["another_number"] = 2
+    return d, r
 
 
-actions_ref = {
-    "scf": {
-        "another_number": 2,
-        "functional": None,
-        "max_num_iterations": 20,
-        "some_acceleration": False,
-        "some_complex_number": complex("0.0+0.0j"),
-        "thresholds": {"energy": 0.001, "some_integral_screening": 0.0001},
-    },
-    "title": None,
-}
+def one_invalid_action():
+    d = deepcopy(raw)
+    d["scf"]["another_number"] = "int(user['scf']['min_num_iterations'] / 2)"
+    return d
 
 
-def one_invalid_raw():
-    return {
-        "scf": {
-            "another_number": "user['scf']['min_num_iterations'] / 2",
-            "functional": "'B3LYP'",
-            "max_num_iterations": 20,
-            "some_acceleration": False,
-            "some_complex_number": "0.0 + 0.0j",
-            "thresholds": {"energy": 0.001, "some_integral_screening": 0.0001},
-        },
-        "title": None,
-    }
+def two_invalid_actions():
+    d = deepcopy(raw)
+    d["scf"]["another_number"] = "int(user['scf']['min_num_iterations'] / 2)"
+    d["scf"]["thresholds"]["energy"] = "10 * False"
+    return d
 
 
-def two_invalid_raw():
-    return {
-        "scf": {
-            "another_number": "user['scf']['min_num_iterations'] / 2",
-            "functional": "'B3LYP' / 2",
-            "max_num_iterations": 20,
-            "some_acceleration": False,
-            "some_complex_number": "0.0 + 0.0j",
-            "thresholds": {"energy": 0.001, "some_integral_screening": 0.0001},
-        },
-        "title": None,
-    }
+error_preamble = r"Error(?:\(s\))? occurred when fixing defaults:\n"
 
+msg1 = r"- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in closure 'int\(user\['scf'\]\['min_num_iterations'\] / 2\)'\."
 
-invalid_ref = {
-    "scf": {
-        "another_number": None,
-        "functional": None,
-        "max_num_iterations": 20,
-        "some_acceleration": False,
-        "some_complex_number": complex("0.0+0.0j"),
-        "thresholds": {"energy": 0.001, "some_integral_screening": 0.0001},
-    },
-    "title": None,
-}
+msg2 = r"- At user\['scf'\]\['thresholds'\]\['energy'\]:\s+Actual \(int\) and declared \(float\) types do not match\."
 
 
 invalid_messages = [
-    r"""Error(?:\(s\))? occurred when fixing defaults:\n- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in defaulting closure 'user\['scf'\]\['min_num_iterations'\] / 2'\.\n- At user\['scf'\]\['functional'\]:\s+TypeError unsupported operand type\(s\) for /: 'str' and 'int' in defaulting closure ''B3LYP' / 2'\.""",
-    r"""Error(?:\(s\))? occurred when fixing defaults:\n- At user\['scf'\]\['functional'\]:\s+TypeError unsupported operand type\(s\) for /: 'str' and 'int' in defaulting closure ''B3LYP' / 2'\.\n- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in defaulting closure 'user\['scf'\]\['min_num_iterations'\] / 2'\.
-    """,
+    error_preamble + msg1 + r"\n" + msg2,
+    error_preamble + msg2 + r"\n" + msg1,
 ]
 
 testdata = [
-    (noactions_raw(), noactions_ref, does_not_raise()),
-    (actions_raw(), actions_ref, does_not_raise()),
+    (raw, valid(), does_not_raise()),
+    (*valid_with_action(), does_not_raise()),
     (
-        one_invalid_raw(),
-        invalid_ref,
-        pytest.raises(
-            ParselglossyError,
-            match=r"""Error(?:\(s\))? occurred when fixing defaults:\n- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in defaulting closure 'user\['scf'\]\['min_num_iterations'\] / 2'""",
-        ),
+        one_invalid_action(),
+        valid(),
+        pytest.raises(ParselglossyError, match=(error_preamble + msg1)),
     ),
     (
-        two_invalid_raw(),
-        invalid_ref,
+        two_invalid_actions(),
+        valid(),
         pytest.raises(
             ParselglossyError, match=re.compile("({0}|{1})".format(*invalid_messages))
         ),
@@ -165,11 +156,11 @@ testdata = [
 
 
 @pytest.mark.parametrize(
-    "readin,ref,raises",
+    "user,ref,raises",
     testdata,
-    ids=["noactions", "actions", "one_invalid", "two_invalid_raw"],
+    ids=["noactions", "valid_action", "one_invalid_action", "two_invalid_actions"],
 )
-def test_fix_defaults(readin, ref, raises):
+def test_fix_defaults(types, user, ref, raises):
     with raises:
-        outgoing = fix_defaults(readin)
+        outgoing = fix_defaults(user, types=types)
         assert outgoing == ref

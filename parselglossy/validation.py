@@ -32,8 +32,7 @@
 from typing import List, Optional, Tuple
 
 from .exceptions import Error, ParselglossyError, collate_errors
-from .types import allowed_types
-from .utils import JSONDict, check_callable
+from .utils import JSONDict, allowed_types, location_in_dict, run_callable
 
 
 def check_template(template: JSONDict) -> Optional[JSONDict]:
@@ -127,17 +126,6 @@ def check_keyword(
     else:
         outgoing = keyword
 
-    # if "predicates" in keyword.keys():
-    #    for p in keyword["predicates"]:
-    #        # Replace convenience placeholder value with its full "address"
-    #        where = location_in_dict(address=(address + (k,)))
-    #        p = sub("value", where, p)
-    #        invalid, msg = is_callable_valid(p, start_dict)
-    #        if invalid:
-    #            errors.append(Error((address + (k,)), msg))
-    # else:
-    #    outgoing = keyword
-
     return outgoing, errors
 
 
@@ -227,17 +215,21 @@ def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> Optional[JSONDict]:
     return outgoing
 
 
-def rec_merge_ours(*, theirs: JSONDict, ours: JSONDict) -> Tuple[JSONDict, List[Error]]:
+def rec_merge_ours(
+    *, theirs: JSONDict, ours: JSONDict, address: Tuple = ()
+) -> Tuple[JSONDict, List[Error]]:
     """Recursively merge two `dict`-s with "ours" strategy.
 
     Parameters
     ----------
     theirs : JSONDict
     ours : JSONDict
+    address : Tuple
 
     Returns
     -------
     outgoing : JSONDict
+    errors : List[Error]
 
     Notes
     -----
@@ -255,21 +247,28 @@ def rec_merge_ours(*, theirs: JSONDict, ours: JSONDict) -> Tuple[JSONDict, List[
     if difference != set():
         for k in difference:
             what = "section" if isinstance(ours[k], dict) else "keyword"
-            errors.append(Error(message="Found unexpected {}: '{}'".format(what, k)))
+            errors.append(Error(message="Found unexpected {}: '{}'.".format(what, k)))
 
     for k, v in theirs.items():
         if k not in ours.keys():
-            outgoing[k] = theirs[k]
-        elif isinstance(v, dict):
-            outgoing[k], errs = rec_merge_ours(theirs=v, ours=ours[k])
-            errors.extend(errs)
-        else:
+            if theirs[k] is not None:
+                outgoing[k] = theirs[k]
+            else:
+                outgoing[k] = None
+                msg = "Keyword '{0}' is required but has no value.".format(k)
+                errors.append(Error((address + (k,)), msg))
+        elif not isinstance(v, dict):
             outgoing[k] = ours[k]
+        else:
+            outgoing[k], errs = rec_merge_ours(
+                theirs=v, ours=ours[k], address=(address + (k,))
+            )
+            errors.extend(errs)
 
     return outgoing, errors
 
 
-def fix_defaults(incoming: JSONDict) -> Optional[JSONDict]:
+def fix_defaults(incoming: JSONDict, *, types: JSONDict) -> Optional[JSONDict]:
     """Fixes defaults from a merge input ``dict``.
 
     Parameters
@@ -292,7 +291,7 @@ def fix_defaults(incoming: JSONDict) -> Optional[JSONDict]:
     This is porcelain over recursive function :func:`rec_fix_defaults`.
     """
 
-    outgoing, errors = rec_fix_defaults(incoming)
+    outgoing, errors = rec_fix_defaults(incoming, types=types)
 
     if errors:
         msg = collate_errors(when="fixing defaults", errors=errors)
@@ -302,43 +301,48 @@ def fix_defaults(incoming: JSONDict) -> Optional[JSONDict]:
 
 
 def rec_fix_defaults(
-    incoming: JSONDict, *, start_dict: JSONDict = None, address: Tuple = ()
+    incoming: JSONDict,
+    *,
+    types: JSONDict,
+    start_dict: JSONDict = None,
+    address: Tuple = ()
 ) -> Tuple[JSONDict, List[Error]]:
     """Fixes default values from a merge input ``dict``.
 
     Parameters
     ----------
-    incoming: JSONDict
+    incoming : JSONDict
         The input `dict`. This is supposed to be the one obtained by merging
         user and template `dict`-s.
-    start_dict: JSONDict
+    start_dict : JSONDict
         The `dict` we start recursion from. See Notes.
-    address: Tuple[str]
+    address : Tuple[str]
         A tuple of keys need to index the current value in the recursion. See
         Notes.
 
     Returns
     -------
-    outgoing: JSONDict
+    outgoing : JSONDict
         A dictionary with all default values fixed.
-    errors_at: List[Error]
+    errors : List[Error]
         A list of keys to access elements in the `dict` that raised an error.
         See Notes.
 
     Notes
     -----
-    Since we allow callable actions to appear as defaults, we need to run them
+    Since we allow callables to appear as defaults, we need to run them
     to determine the actual default values.
     This *must* be done **before** type checking and fixation, otherwise we end
     up with false negatives or ambiguous type checks. For example:
 
-    * If the type is ``str`` and the default a callable action, the type will
+    * If the type is ``str`` and the default a callable, the type will
       match, but the default will make no sense.
     * If the type is numerical, *e.g.* ``int``, the type will not match.
 
     To overcome these ambiguities, we decide to turn all default fields into
-    lambda functions. These are first compiled, to ensure that the syntax of
-    callable actions is correct, and then executed::
+    lambda functions. These are executed using ``eval``, to ensure that the
+    syntax of callable actions is correct and that the callable returns
+    correctly::
 
         # Transform to a string
         a = 'lambda x: {:s}'.format(incoming[k])
@@ -352,7 +356,7 @@ def rec_fix_defaults(
     any point. The ``start_dict`` parameter allows us to do this.
 
     Rather than throw errors, we keep track of where the execution of a
-    callable failed and why in the ``errors_at`` return variable. This is a
+    callable failed and why in the ``errors`` return variable. This is a
     list of addressing tuples.
     """
 
@@ -363,16 +367,107 @@ def rec_fix_defaults(
         start_dict = incoming
 
     for k, v in incoming.items():
-        if isinstance(v, dict):
+        if not isinstance(v, dict):
+            msg, outgoing[k] = run_callable(v, start_dict, t=types[k])
+            if msg != "":
+                errors.append(Error(address + (k,), msg))
+        else:
             outgoing[k], errs = rec_fix_defaults(
-                incoming=v, start_dict=start_dict, address=(address + (k,))
+                incoming=v,
+                types=types[k],
+                start_dict=start_dict,
+                address=(address + (k,)),
             )
             errors.extend(errs)
-        elif v is None:
-            outgoing[k] = None  # type: ignore
-        else:
-            msg, outgoing[k] = check_callable(v, start_dict)
-            if msg != "":
-                errors.append(Error((address + (k,)), msg))
+
+    return outgoing, errors
+
+
+def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> Optional[JSONDict]:
+    """Run predicates on input tree with fixed defaults.
+
+    Parameters
+    ----------
+    incoming : JSONDict
+        The input `dict`. This is supposed to be the result of :func:`fix_defaults`.
+    predicates : JSONDict
+        A view-by-predicates of the template ``dict``.
+
+    Returns
+    -------
+    outgoing : JSONDict
+        A dictionary with all values checked.
+
+    Raises
+    ------
+    :exc:`ParselglossyError`
+
+    Notes
+    -----
+    This is porcelain over recursive function :func:`rec_check_predicates`.
+    """
+
+    outgoing, errors = rec_check_predicates(incoming, predicates=predicates)
+
+    if errors:
+        msg = collate_errors(when="checking predicates", errors=errors)
+        raise ParselglossyError(msg)
+
+    return outgoing
+
+
+def rec_check_predicates(
+    incoming: JSONDict,
+    *,
+    predicates: JSONDict,
+    start_dict: JSONDict = None,
+    address: Tuple = ()
+) -> Tuple[JSONDict, List[Error]]:
+    """Run predicates on input tree with fixed defaults.
+
+    Parameters
+    ----------
+    incoming : JSONDict
+        The input `dict`. This is supposed to be the result of :func:`fix_defaults`.
+    predicates : JSONDict
+        A view-by-predicates of the template ``dict``.
+    start_dict : JSONDict
+        The `dict` we start recursion from.
+    address : Tuple[str]
+        A tuple of keys need to index the current value in the recursion.
+
+    Returns
+    -------
+    outgoing : JSONDict
+        A dictionary with all default values fixed.
+    errors : List[Error]
+        A list of keys to access elements in the `dict` that raised an error.
+    """
+
+    outgoing = {}
+    errors = []
+
+    if start_dict is None:
+        start_dict = incoming
+
+    for k, v in incoming.items():
+        if k in predicates.keys():
+            if not isinstance(v, dict):
+                for p in predicates[k]:
+                    # Replace convenience placeholder "value" with its full "address"
+                    where = location_in_dict(address=(address + (k,)))
+                    msg, outgoing[k] = run_callable(
+                        p.replace("value", where), start_dict
+                    )
+                    if msg != "":
+                        errors.append(Error((address + (k,)), msg))
+            else:
+                outgoing[k], errs = rec_check_predicates(
+                    incoming=v,
+                    predicates=predicates[k],
+                    start_dict=start_dict,
+                    address=(address + (k,)),
+                )
+                errors.extend(errs)
 
     return outgoing, errors

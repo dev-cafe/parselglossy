@@ -33,7 +33,6 @@ Tests type checking and type fixation.
 """
 
 import pytest
-
 from parselglossy import views
 from parselglossy.exceptions import ParselglossyError
 from parselglossy.types import typenade
@@ -41,13 +40,6 @@ from parselglossy.validation import merge_ours
 from read_in import read_in
 
 type_checking_data = [
-    (
-        "input_missing_keyword.yml",
-        r"""
-Error occurred when checking types:
-- At user\['some_section'\]\['a_short_string'\]:
-  Keyword 'a_short_string' is required but has no value""",
-    ),
     (
         "input_type_error_bool.yml",
         r"""

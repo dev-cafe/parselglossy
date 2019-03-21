@@ -101,7 +101,7 @@ def collate_errors(*, when: str, errors: List[Error]) -> str:
 
             Error(s) occurred when fixing defaults:
             - At 'user['scf']['another_number']'
-                KeyError 'min_num_iterations' in defaulting closure
+                KeyError 'min_num_iterations' in closure
                 'user['scf']['min_num_iterations'] / 2'
     """
     preamble = "\nError{more:s} occurred when {when:s}:".format(
