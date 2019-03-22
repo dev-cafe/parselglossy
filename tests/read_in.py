@@ -31,14 +31,14 @@
 """Facilities for reading in files for testing."""
 
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 from parselglossy.read_yaml import read_yaml_file
 from parselglossy.utils import JSONDict
 
 
 def read_in(
-    category: str, input_file_name: Optional[str], template_file_name: str
+    category: Union[str, Path], input_file_name: Optional[str], template_file_name: str
 ) -> Tuple[JSONDict, JSONDict]:
     """Helper function to read in input and validation template
 

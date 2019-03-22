@@ -27,7 +27,9 @@
 #
 
 import json
+from contextlib import ExitStack as does_not_raise
 from pathlib import Path
+from typing import List
 
 import pytest
 
@@ -52,10 +54,72 @@ def valid():
     }
 
 
-def test_new_validation(valid):
-    user, template = read_in("overall", "input.yml", "template.yml")
-    user = validate(dumpfr=True, ir=user, template=template)
-    assert user == valid
+template_errors_data = [
+    (
+        "template_no_documentation.yml",
+        ParselglossyError,
+        "section(s) without any documentation: ['some_section']",
+    ),
+    (
+        "template_empty_documentation.yml",
+        ParselglossyError,
+        "section(s) without any documentation: ['some_section']",
+    ),
+    (
+        "template_invalid_predicate.yml",
+        ParselglossyError,
+        "error in predicate '0 < len(value) <= undefined' in keyword 'a_short_string'",
+    ),
+]
+
+validation_data = [
+    ("overall", "input.yml", "template.yml", does_not_raise()),
+    (
+        "template_errors",
+        "input.yml",
+        "template_no_documentation.yml",
+        pytest.raises(
+            ParselglossyError,
+            match=r"- At user\['some_section'\]:\s+Sections must have a non-empty docstring\.\n"
+            r"- At user\['some_section'\]\['a_short_string'\]:\s+Keywords must have a non-empty docstring\.",
+        ),
+    ),
+    (
+        "template_errors",
+        "input.yml",
+        "template_empty_documentation.yml",
+        pytest.raises(
+            ParselglossyError,
+            match=r"- At user\['some_section'\]:\s+Sections must have a non-empty docstring\.\n"
+            r"- At user\['some_section'\]\['a_short_string'\]:\s+Keywords must have a non-empty docstring\.",
+        ),
+    ),
+    (
+        "template_errors",
+        "input.yml",
+        "template_invalid_predicate.yml",
+        pytest.raises(
+            ParselglossyError,
+            match=r"- At user\['some_section'\]\['a_short_string'\]:\s+NameError name 'undefined' is not defined in closure '0 < len\(user\['some_section'\]\['a_short_string'\]\) <= undefined'\.",
+        ),
+    ),
+]
+
+
+def ids(terms: List[str]) -> str:
+    return "-".join([t.rsplit(".", 1)[0] for t in terms])
+
+
+@pytest.mark.parametrize(
+    "folder,input_file_name,template_file_name,raises",
+    [pytest.param(f, i, t, r, id=ids([f, i, t])) for f, i, t, r in validation_data],
+)
+def test_new_validation(valid, folder, input_file_name, template_file_name, raises):
+    user, template = read_in(folder, input_file_name, template_file_name)
+
+    with raises:
+        user = validate(dumpfr=True, ir=user, template=template)
+        assert user == valid
 
     # Round-trip
     infile = Path("validated.json")

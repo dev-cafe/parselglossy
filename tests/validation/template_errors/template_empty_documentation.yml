@@ -22,7 +22,7 @@ sections:
       type: int
       default: 5
       predicates:
-        - "value < input_dict['some_section']['another_number']"
+        - "value < user['some_section']['another_number']"
       docstring: |
         Some number.
     - name: another_number
@@ -31,7 +31,7 @@ sections:
       predicates:
         - '0 <= value <= 40'
         - 'value % 2 == 0'
-        - "value > input_dict['some_section']['some_number']"
+        - "value > user['some_section']['some_number']"
       docstring: |
         Another number.
     - name: some_feature
