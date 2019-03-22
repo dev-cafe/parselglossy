@@ -32,6 +32,9 @@
 Tests that the template is not malformed.
 """
 
+from contextlib import ExitStack as does_not_raise
+from copy import deepcopy
+
 import pytest
 
 from parselglossy.exceptions import ParselglossyError
@@ -42,23 +45,23 @@ keyword = {"name": "title", "type": "str", "docstring": "Title of the calculatio
 section = {"name": "scf", "docstring": "SCF input parameters.", "keywords": [keyword]}
 
 # Malformed keywords
-keyword_with_section = dict(keyword)
+keyword_with_section = deepcopy(keyword)
 keyword_with_section["sections"] = [section]
 
-keyword_with_invalid_type = dict(keyword)
+keyword_with_invalid_type = deepcopy(keyword)
 keyword_with_invalid_type["type"] = "fooffa"
 
-keyword_without_type = dict(keyword)
+keyword_without_type = deepcopy(keyword)
 keyword_without_type.pop("type")
 
-keyword_without_docstring = dict(keyword)
+keyword_without_docstring = deepcopy(keyword)
 keyword_without_docstring.pop("docstring")
 
-keyword_with_nothing = dict(keyword_without_type)
+keyword_with_nothing = deepcopy(keyword_without_type)
 keyword_with_nothing.pop("docstring")
 
 # Malformed sections
-section_without_docstring = dict(section)
+section_without_docstring = deepcopy(section)
 section_without_docstring.pop("docstring")
 
 nested_sections_without_docstring = {
@@ -89,51 +92,101 @@ nested_sections_with_malformed_keyword = {
 
 error_preamble = r"Error(?:\(s\))? occurred when checking the template:\n"
 check_template_data = [
+    ({"keywords": [keyword], "sections": [section]}, does_not_raise()),
     (
         {"keywords": [keyword_with_section]},
-        r"- At user\['title'\]:\s+Sections cannot be nested under keywords.",
+        pytest.raises(
+            ParselglossyError,
+            match=(
+                error_preamble
+                + r"- At user\['title'\]:\s+Sections cannot be nested under keywords."
+            ),
+        ),
     ),
     (
         {"keywords": [keyword_with_invalid_type]},
-        r"- At user\['title'\]:\s+Keywords must have a valid type.",
+        pytest.raises(
+            ParselglossyError,
+            match=(
+                error_preamble
+                + r"- At user\['title'\]:\s+Keywords must have a valid type."
+            ),
+        ),
     ),
     (
         {"keywords": [keyword_without_type]},
-        r"- At user\['title'\]:\s+Keywords must have a valid type.",
+        pytest.raises(
+            ParselglossyError,
+            match=(
+                error_preamble
+                + r"- At user\['title'\]:\s+Keywords must have a valid type."
+            ),
+        ),
     ),
     (
         {"keywords": [keyword_without_docstring]},
-        r"- At user\['title'\]:\s+Keywords must have a non-empty docstring.",
+        pytest.raises(
+            ParselglossyError,
+            match=(
+                error_preamble
+                + r"- At user\['title'\]:\s+Keywords must have a non-empty docstring."
+            ),
+        ),
     ),
     (
         {"keywords": [keyword_with_nothing]},
-        r"- At user\['title'\]:\s+Keywords must have a valid type.\n"
-        r"- At user\['title'\]:\s+Keywords must have a non-empty docstring.",
+        pytest.raises(
+            ParselglossyError,
+            match=(
+                error_preamble
+                + r"- At user\['title'\]:\s+Keywords must have a valid type.\n"
+                r"- At user\['title'\]:\s+Keywords must have a non-empty docstring."
+            ),
+        ),
     ),
     (
         {"sections": [section_without_docstring]},
-        r"- At user\['scf'\]:\s+Sections must have a non-empty docstring.",
+        pytest.raises(
+            ParselglossyError,
+            match=(
+                error_preamble
+                + r"- At user\['scf'\]:\s+Sections must have a non-empty docstring."
+            ),
+        ),
     ),
     (
         nested_sections_without_docstring,
-        r"- At user\['foo'\]:\s+Sections must have a non-empty docstring.\n"
-        r"- At user\['foo'\]\['bar'\]:\s+Sections must have a non-empty docstring.",
+        pytest.raises(
+            ParselglossyError,
+            match=(
+                error_preamble
+                + r"- At user\['foo'\]:\s+Sections must have a non-empty docstring.\n"
+                r"- At user\['foo'\]\['bar'\]:\s+Sections must have a non-empty docstring."
+            ),
+        ),
     ),
     (
         nested_sections_with_malformed_keyword,
-        r"- At user\['foo'\]:\s+Sections must have a non-empty docstring.\n"
-        r"- At user\['foo'\]\['title'\]:\s+Sections cannot be nested under keywords.\n"
-        r"- At user\['foo'\]\['title'\]:\s+Keywords must have a valid type.\n"
-        r"- At user\['foo'\]\['title'\]:\s+Keywords must have a non-empty docstring.\n"
-        r"- At user\['foo'\]\['bar'\]:\s+Sections must have a non-empty docstring.",
+        pytest.raises(
+            ParselglossyError,
+            match=(
+                error_preamble
+                + r"- At user\['foo'\]:\s+Sections must have a non-empty docstring.\n"
+                r"- At user\['foo'\]\['title'\]:\s+Sections cannot be nested under keywords.\n"
+                r"- At user\['foo'\]\['title'\]:\s+Keywords must have a valid type.\n"
+                r"- At user\['foo'\]\['title'\]:\s+Keywords must have a non-empty docstring.\n"
+                r"- At user\['foo'\]\['bar'\]:\s+Sections must have a non-empty docstring."
+            ),
+        ),
     ),
 ]
 
 
 @pytest.mark.parametrize(
-    "template,error_message",
-    [pytest.param(*args) for args in check_template_data],
+    "template,raises",
+    check_template_data,
     ids=[
+        "valid",
         "section_under_keyword",
         "keyword_no_type",
         "keyword_invalid_type",
@@ -144,6 +197,8 @@ check_template_data = [
         "nested_bad_keyword",
     ],
 )
-def test_check_template(template, error_message):
-    with pytest.raises(ParselglossyError, match=(error_preamble + error_message)):
+def test_check_template(template, raises):
+    with raises:
         outgoing = check_template(template)  # type: Optional[JSONDict]
+        # If template is valid, outgoing must be the same as incoming
+        assert outgoing == template
