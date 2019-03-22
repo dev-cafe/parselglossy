@@ -27,7 +27,7 @@ sections:
       predicates:
         - '0 <= value <= 40'
         - 'value % 2 == 0'
-        - "input_dict['scf']['some_acceleration'] == True"
+        - "user['scf']['some_acceleration'] == True"
       docstring: |
         Testing an even number in some range.
     - name: some_acceleration

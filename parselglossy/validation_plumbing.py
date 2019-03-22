@@ -33,7 +33,7 @@ from typing import Any, List, Optional, Tuple
 
 from .exceptions import Error
 from .types import allowed_types, type_fixers, type_matches
-from .utils import JSONDict
+from .utils import JSONDict, location_in_dict
 
 
 def undocumented(x: JSONDict) -> bool:
@@ -136,12 +136,18 @@ def rec_check_template(
     errors = []
 
     keywords = template["keywords"] if "keywords" in template.keys() else []
+    if keywords:
+        outgoing["keywords"] = []
+
     for k in keywords:
         out, errs = check_keyword(k, address=address)
-        outgoing["keywords"] = [out]
+        outgoing["keywords"] += [out]
         errors.extend(errs)
 
     sections = template["sections"] if "sections" in template.keys() else []
+    if sections:
+        outgoing["sections"] = []
+
     for s in sections:
         if undocumented(s):
             errors.append(
@@ -150,9 +156,10 @@ def rec_check_template(
                     "Sections must have a non-empty docstring.",
                 )
             )
-            outgoing["sections"] = [None]
+            outgoing["sections"] += [None]
+        else:
+            outgoing["sections"] += [s]
         out, errs = rec_check_template(s, address=(address + (s["name"],)))
-        outgoing["sections"] = [out]
         errors.extend(errs)
 
     return outgoing, errors
@@ -377,15 +384,15 @@ def rec_check_predicates(
         start_dict = incoming
 
     for k, v in incoming.items():
-        if k in predicates.keys():
+        if predicates[k] is not None:
             if not isinstance(v, dict):
                 for p in predicates[k]:
                     # Replace convenience placeholder "value" with its full "address"
                     where = location_in_dict(address=(address + (k,)))
-                    msg, outgoing[k] = run_callable(
-                        p.replace("value", where), start_dict
-                    )
-                    if msg != "":
+                    msg, success = run_callable(p.replace("value", where), start_dict)
+                    if success:
+                        outgoing[k] = v
+                    else:
                         errors.append(Error((address + (k,)), msg))
             else:
                 outgoing[k], errs = rec_check_predicates(
@@ -395,6 +402,8 @@ def rec_check_predicates(
                     address=(address + (k,)),
                 )
                 errors.extend(errs)
+        else:
+            outgoing[k] = v
 
     return outgoing, errors
 

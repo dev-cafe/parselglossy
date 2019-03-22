@@ -36,7 +36,6 @@ from contextlib import ExitStack as does_not_raise
 from copy import deepcopy
 
 import pytest
-
 from parselglossy.exceptions import ParselglossyError
 from parselglossy.validation import check_template
 
@@ -44,9 +43,28 @@ from parselglossy.validation import check_template
 keyword = {"name": "title", "type": "str", "docstring": "Title of the calculation."}
 section = {"name": "scf", "docstring": "SCF input parameters.", "keywords": [keyword]}
 
+valid = {
+    "keywords": [
+        {"name": "title", "type": "str", "docstring": "Title of the calculation."}
+    ],
+    "sections": [
+        {
+            "name": "foo",
+            "docstring": "brilliant",
+            "keywords": [
+                {
+                    "name": "tragic",
+                    "type": "str",
+                    "docstring": "Title of the calculation.",
+                }
+            ],
+        }
+    ],
+}
+
 # Malformed keywords
 keyword_with_section = deepcopy(keyword)
-keyword_with_section["sections"] = [section]
+keyword_with_section["sections"] = [deepcopy(section)]
 
 keyword_with_invalid_type = deepcopy(keyword)
 keyword_with_invalid_type["type"] = "fooffa"
@@ -92,7 +110,7 @@ nested_sections_with_malformed_keyword = {
 
 error_preamble = r"Error(?:\(s\))? occurred when checking the template:\n"
 check_template_data = [
-    ({"keywords": [keyword], "sections": [section]}, does_not_raise()),
+    (valid, does_not_raise()),
     (
         {"keywords": [keyword_with_section]},
         pytest.raises(
@@ -199,6 +217,6 @@ check_template_data = [
 )
 def test_check_template(template, raises):
     with raises:
-        outgoing = check_template(template)  # type: Optional[JSONDict]
-        # If template is valid, outgoing must be the same as incoming
-        assert outgoing == template
+        stencil = check_template(template)  # type: Optional[JSONDict]
+        # If template is valid, outgoing will be its view-by-default
+        assert stencil == template
