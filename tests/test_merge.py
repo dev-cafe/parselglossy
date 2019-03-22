@@ -35,6 +35,7 @@ Tests merging of template and user input `dict`-s into an unvalidated input `dic
 from typing import Optional
 
 import pytest
+
 from parselglossy.exceptions import ParselglossyError
 from parselglossy.validation import merge_ours
 from parselglossy.views import view_by_default
@@ -58,12 +59,17 @@ expected_data = [
         },
     ),
     (
-        "defaulting",
-        "input_with_default_section.yml",
-        "default_section.yml",
+        "overall",
+        "default.yml",
+        "template_with_default_section.yml",
         {"foobar": False, "foo": {"bar": True}},
     ),
-    ("defaulting", None, "all_default.yml", {"foobar": True, "foo": {"bar": False}}),
+    (
+        "overall",
+        None,
+        "template_all_default.yml",
+        {"foobar": True, "foo": {"bar": False}},
+    ),
 ]
 
 

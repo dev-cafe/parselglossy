@@ -38,7 +38,6 @@ from .validation_plumbing import (
     rec_fix_defaults,
     rec_is_template_valid,
     rec_merge_ours,
-    rec_typenade,
 )
 
 
@@ -129,39 +128,6 @@ def fix_defaults(incoming: JSONDict, *, types: JSONDict) -> Optional[JSONDict]:
 
     if errors:
         msg = collate_errors(when="fixing defaults", errors=errors)
-        raise ParselglossyError(msg)
-
-    return outgoing
-
-
-def typenade(incoming: JSONDict, types: JSONDict) -> Optional[JSONDict]:
-    """Checks types of input values for a merge input ``dict``.
-
-    Parameters
-    ----------
-    incoming: JSONDict
-        The input `dict`. This is supposed to be the one obtained by merging
-        user and template `dict`-s.
-    types: JSONDict
-        Types of all keywords in the input. Generated from :func:`view_by_types`.
-
-    Returns
-    -------
-    outgoing: JSONDict
-        A dictionary with all values type checked.
-
-    Raises
-    ------
-    :exc:`ParselglossyError`
-
-    Notes
-    -----
-    This is porcelain over the recursive function :func:`rec_typenade`.
-    """
-    outgoing, errors = rec_typenade(incoming, types)
-
-    if errors:
-        msg = collate_errors(when="checking types", errors=errors)
         raise ParselglossyError(msg)
 
     return outgoing

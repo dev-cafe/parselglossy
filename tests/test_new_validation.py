@@ -56,54 +56,136 @@ def valid():
 
 template_errors_data = [
     (
+        "template_errors",
+        "input.yml",
         "template_no_documentation.yml",
-        ParselglossyError,
-        "section(s) without any documentation: ['some_section']",
+        pytest.raises(
+            ParselglossyError,
+            match=r"- At user\['some_section'\]:\s+Sections must have a non-empty docstring\.\n"
+            r"- At user\['some_section'\]\['a_short_string'\]:\s+Keywords must have a non-empty docstring\.",
+        ),
     ),
     (
+        "template_errors",
+        "input.yml",
         "template_empty_documentation.yml",
-        ParselglossyError,
-        "section(s) without any documentation: ['some_section']",
+        pytest.raises(
+            ParselglossyError,
+            match=r"- At user\['some_section'\]:\s+Sections must have a non-empty docstring\.\n"
+            r"- At user\['some_section'\]\['a_short_string'\]:\s+Keywords must have a non-empty docstring\.",
+        ),
     ),
     (
+        "template_errors",
+        "input.yml",
         "template_invalid_predicate.yml",
-        ParselglossyError,
-        "error in predicate '0 < len(value) <= undefined' in keyword 'a_short_string'",
+        pytest.raises(
+            ParselglossyError,
+            match=r"- At user\['some_section'\]\['a_short_string'\]:\s+NameError name 'undefined' is not defined in closure '0 < len\(value\) <= undefined'\.",
+        ),
     ),
 ]
 
-validation_data = [
-    ("overall", "input.yml", "template.yml", does_not_raise()),
+input_errors_data = [
     (
-        "template_errors",
-        "input.yml",
-        "template_no_documentation.yml",
+        "input_errors",
+        "unexpected_keyword.yml",
+        "template.yml",
         pytest.raises(
             ParselglossyError,
-            match=r"- At user\['some_section'\]:\s+Sections must have a non-empty docstring\.\n"
-            r"- At user\['some_section'\]\['a_short_string'\]:\s+Keywords must have a non-empty docstring\.",
+            match=r"Error(?:\(s\))? occurred when merging:\n- Found unexpected keyword: 'strange'",
         ),
     ),
     (
-        "template_errors",
-        "input.yml",
-        "template_empty_documentation.yml",
+        "input_errors",
+        "unexpected_section.yml",
+        "template.yml",
         pytest.raises(
             ParselglossyError,
-            match=r"- At user\['some_section'\]:\s+Sections must have a non-empty docstring\.\n"
-            r"- At user\['some_section'\]\['a_short_string'\]:\s+Keywords must have a non-empty docstring\.",
+            match=r"Error(?:\(s\))? occurred when merging:\n- Found unexpected section: 'weird'",
         ),
     ),
     (
-        "template_errors",
-        "input.yml",
-        "template_invalid_predicate.yml",
+        "input_errors",
+        "input_missing_keyword.yml",
+        "template.yml",
         pytest.raises(
             ParselglossyError,
-            match=r"- At user\['some_section'\]\['a_short_string'\]:\s+NameError name 'undefined' is not defined in closure '0 < len\(user\['some_section'\]\['a_short_string'\]\) <= undefined'\.",
+            match=r"Error(?:\(s\))? occurred when merging:\n- At user\['some_section'\]\['a_short_string'\]:\s+Keyword 'a_short_string' is required but has no value\.",
+        ),
+    ),
+    (
+        "input_errors",
+        "input_type_error_bool.yml",
+        "template.yml",
+        pytest.raises(
+            ParselglossyError,
+            match=r"Error(?:\(s\))? occurred when fixing defaults:\n- At user\['some_section'\]\['some_feature'\]:\s+Actual \(int\) and declared \(bool\) types do not match\.",
+        ),
+    ),
+    (
+        "input_errors",
+        "input_type_error_float.yml",
+        "template.yml",
+        pytest.raises(
+            ParselglossyError,
+            match=r"Error(?:\(s\))? occurred when fixing defaults:\n- At user\['some_float'\]:\s+Actual \(int\) and declared \(float\) types do not match\.",
+        ),
+    ),
+    (
+        "input_errors",
+        "input_type_error_int.yml",
+        "template.yml",
+        pytest.raises(
+            ParselglossyError,
+            match=r"Error(?:\(s\))? occurred when fixing defaults:\n- At user\['some_section'\]\['some_number'\]:\s+Actual \(float\) and declared \(int\) types do not match\.",
+        ),
+    ),
+    (
+        "input_errors",
+        "input_type_error_list.yml",
+        "template.yml",
+        pytest.raises(
+            ParselglossyError,
+            match=r"Error(?:\(s\))? occurred when fixing defaults:\n- At user\['some_section'\]\['some_list'\]:\s+Actual \(List\[float, float, int\]\) and declared \(List\[float\]\) types do not match\.",
+        ),
+    ),
+    (
+        "input_errors",
+        "input_type_error_str.yml",
+        "template.yml",
+        pytest.raises(
+            ParselglossyError,
+            match=r"Error(?:\(s\))? occurred when fixing defaults:\n- At user\['some_section'\]\['a_short_string'\]:\s+Actual \(int\) and declared \(str\) types do not match\.",
+        ),
+    ),
+    (
+        "input_errors",
+        "input_predicate_intra.yml",
+        "template.yml",
+        pytest.raises(
+            ParselglossyError,
+            match=r"Error(?:\(s\))? occurred when checking predicates:\n- At user\['some_section'\]\['another_number'\]:\s+Predicate 'value % 2 == 0' not satisfied\.",
+        ),
+    ),
+    (
+        "input_errors",
+        "input_predicate_cross.yml",
+        "template.yml",
+        pytest.raises(
+            ParselglossyError,
+            match=r"Error(?:\(s\))? occurred when checking predicates:"
+            r"\n- At user\['some_section'\]\['some_number'\]:\s+Predicate 'value < user\['some_section'\]\['another_number'\]' not satisfied\."
+            r"\n- At user\['some_section'\]\['another_number'\]:\s+Predicate 'value > user\['some_section'\]\['some_number'\]' not satisfied\.",
         ),
     ),
 ]
+
+validation_data = (
+    [("overall", "input.yml", "template.yml", does_not_raise())]
+    + template_errors_data
+    + input_errors_data
+)
 
 
 def ids(terms: List[str]) -> str:

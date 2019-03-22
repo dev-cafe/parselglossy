@@ -75,6 +75,12 @@ def valid_predicates():
     return d
 
 
+def failing_predicates():
+    d = deepcopy(empty_predicates)
+    d["scf"]["another_number"] = ["value % 3 == 0"]
+    return d
+
+
 def syntax_error_predicates():
     d = deepcopy(empty_predicates)
     d["scf"]["another_number"] = ["value =< user['scf']['max_num_iterations']"]
@@ -111,6 +117,14 @@ def multiple_errors_predicates():
 
 testdata = [
     (valid_predicates(), does_not_raise(), True),
+    (
+        failing_predicates(),
+        pytest.raises(
+            ParselglossyError,
+            match=r"Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+Predicate 'value % 3 == 0' not satisfied\.",
+        ),
+        False,
+    ),
     (
         syntax_error_predicates(),
         pytest.raises(
@@ -159,6 +173,7 @@ testdata = [
     testdata,
     ids=[
         "valid",
+        "failing",
         "syntax_error",
         "name_error",
         "key_error",

@@ -43,6 +43,7 @@ from contextlib import ExitStack as does_not_raise
 from copy import deepcopy
 
 import pytest
+
 from parselglossy.exceptions import ParselglossyError
 from parselglossy.validation import fix_defaults
 
@@ -92,9 +93,9 @@ raw = {
         "functional": "B3LYP",
         "max_num_iterations": 20,
         "some_acceleration": False,
-        "list_complex_number": ["0.0 + 0.0j", "1.0+0.5j"],
+        "list_complex_number": ["0.0+0.0j", "1.0+0.5j"],
         "thresholds": {
-            "some_complex_number": "0.0 + 0.0j",
+            "some_complex_number": "0.0+0.0j",
             "energy": 0.001,
             "some_integral_screening": 0.0001,
         },
@@ -106,7 +107,7 @@ raw = {
 
 def valid_with_action():
     d = deepcopy(raw)
-    d["scf"]["another_number"] = "int(user['scf']['max_num_iterations'] / 10)"
+    d["scf"]["another_number"] = "user['scf']['max_num_iterations'] / 10"
     r = valid()
     r["scf"]["another_number"] = 2
     return d, r
@@ -114,23 +115,30 @@ def valid_with_action():
 
 def one_invalid_action():
     d = deepcopy(raw)
-    d["scf"]["another_number"] = "int(user['scf']['min_num_iterations'] / 2)"
+    d["scf"]["another_number"] = "user['scf']['min_num_iterations'] / 2"
+    return d
+
+
+def type_error_action():
+    d = deepcopy(raw)
+    d["scf"]["another_number"] = "user['title'] / 2"
     return d
 
 
 def two_invalid_actions():
     d = deepcopy(raw)
-    d["scf"]["another_number"] = "int(user['scf']['min_num_iterations'] / 2)"
+    d["scf"]["another_number"] = "user['scf']['min_num_iterations'] / 2"
     d["scf"]["thresholds"]["energy"] = "10 * False"
     return d
 
 
 error_preamble = r"Error(?:\(s\))? occurred when fixing defaults:\n"
 
-msg1 = r"- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in closure 'int\(user\['scf'\]\['min_num_iterations'\] / 2\)'\."
+msg1 = r"- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in closure 'user\['scf'\]\['min_num_iterations'\] / 2'\."
 
-msg2 = r"- At user\['scf'\]\['thresholds'\]\['energy'\]:\s+Actual \(int\) and declared \(float\) types do not match\."
+msg2 = r"- At user\['scf'\]\['thresholds'\]\['energy'\]:\s+Actual \(str\) and declared \(float\) types do not match\."
 
+msg3 = r"- At user\['scf'\]\['another_number'\]:\s+TypeError unsupported operand type\(s\) for /: 'str' and 'int' in closure 'user\['title'\] / 2'\."
 
 invalid_messages = [
     error_preamble + msg1 + r"\n" + msg2,
@@ -146,6 +154,11 @@ testdata = [
         pytest.raises(ParselglossyError, match=(error_preamble + msg1)),
     ),
     (
+        type_error_action(),
+        valid(),
+        pytest.raises(ParselglossyError, match=(error_preamble + msg3)),
+    ),
+    (
         two_invalid_actions(),
         valid(),
         pytest.raises(
@@ -158,7 +171,13 @@ testdata = [
 @pytest.mark.parametrize(
     "user,ref,raises",
     testdata,
-    ids=["noactions", "valid_action", "one_invalid_action", "two_invalid_actions"],
+    ids=[
+        "noactions",
+        "valid_action",
+        "one_invalid_action",
+        "type_error_action",
+        "two_invalid_actions",
+    ],
 )
 def test_fix_defaults(types, user, ref, raises):
     with raises:

@@ -33,13 +33,7 @@ import json
 from pathlib import Path
 
 from .utils import ComplexEncoder, JSONDict
-from .validation import (
-    check_predicates,
-    fix_defaults,
-    is_template_valid,
-    merge_ours,
-    typenade,
-)
+from .validation import check_predicates, fix_defaults, is_template_valid, merge_ours
 from .views import view_by_default, view_by_predicates, view_by_type
 
 
@@ -70,7 +64,6 @@ def validate(*, dumpfr: bool, ir: JSONDict, template: JSONDict) -> JSONDict:
 
     fr = merge_ours(theirs=stencil, ours=ir)
     fr = fix_defaults(fr, types=types)
-    fr = typenade(fr, types=types)
     predicates_ok = check_predicates(fr, predicates=predicates)
 
     if dumpfr:

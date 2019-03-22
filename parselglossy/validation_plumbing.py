@@ -36,61 +36,6 @@ from .types import allowed_types, type_fixers, type_matches
 from .utils import JSONDict, location_in_dict
 
 
-def undocumented(x: JSONDict) -> bool:
-    return (
-        True if "docstring" not in x.keys() or x["docstring"].strip() == "" else False
-    )
-
-
-def untyped(x: JSONDict) -> bool:
-    return True if "type" not in x.keys() or x["type"] not in allowed_types else False
-
-
-def check_keyword(keyword: JSONDict, *, address: Tuple = ()) -> List[Error]:
-    """Checks that a template keyword is well-formed.
-
-    In this function, a template keyword is well-formed if it has:
-
-    * An allowed type.
-    * A non-empty docstring.
-
-    The two additional criteria:
-
-    * A default callable that is valid Python, if present.
-    * Predicates that are valid Python, if present.
-
-    can only be checked meaningfully later, as they might depend on
-    keyword(s)/section(s) of the input that are only known after merging.
-
-    Parameters
-    ----------
-    template : JSONDict
-    address : Tuple
-
-    Returns
-    -------
-    errors : List[Error]
-    """
-
-    errors = []
-
-    k = keyword["name"]
-    if "sections" in keyword.keys():
-        errors.append(
-            Error((address + (k,)), "Sections cannot be nested under keywords.")
-        )
-
-    if untyped(keyword):
-        errors.append(Error((address + (k,)), "Keywords must have a valid type."))
-
-    if undocumented(keyword):
-        errors.append(
-            Error((address + (k,)), "Keywords must have a non-empty docstring.")
-        )
-
-    return errors
-
-
 def rec_is_template_valid(template: JSONDict, *, address: Tuple = ()) -> List[Error]:
     """Checks a template `dict` is well-formed.
 
@@ -201,15 +146,18 @@ def rec_fix_defaults(
     start_dict: JSONDict = None,
     address: Tuple = ()
 ) -> Tuple[JSONDict, List[Error]]:
-    """Fixes default values from a merge input ``dict``.
+    """Fix default value and perform type checking.
 
     Parameters
     ----------
     incoming : JSONDict
-        The input `dict`. This is supposed to be the one obtained by merging
-        user and template `dict`-s.
+        The input ``dict``. This is supposed to be the one obtained by merging
+        user and template ``dict``-s.
+    types: JSONDict
+        Types of all keywords in the input. Generated from :func:`view_by_types`.
     start_dict : JSONDict
-        The `dict` we start recursion from. See Notes.
+        The ``dict`` we start recursion from. This parameter is needed to keep
+        around a copy of the full ``dict`` during the recursion.
     address : Tuple[str]
         A tuple of keys need to index the current value in the recursion. See
         Notes.
@@ -226,32 +174,28 @@ def rec_fix_defaults(
     -----
     Since we allow callables to appear as defaults, we need to run them
     to determine the actual default values.
-    This *must* be done **before** type checking and fixation, otherwise we end
-    up with false negatives or ambiguous type checks. For example:
+
+    This operation must be done with some care, to avoid false negatives or
+    ambiguous type checks. For example:
 
     * If the type is ``str`` and the default a callable, the type will
       match, but the default will make no sense.
     * If the type is numerical, *e.g.* ``int``, the type will not match.
 
-    To overcome these ambiguities, we decide to turn all default fields into
-    lambda functions. These are executed using ``eval``, to ensure that the
-    syntax of callable actions is correct and that the callable returns
-    correctly::
+    However, by design the callables **must** refer to some other field in the
+    input tree, hence they **must** contain the reserved token "user". This
+    allows us to disambiguate a callable as default from a value as default.
 
-        # Transform to a string
-        a = 'lambda x: {:s}'.format(incoming[k])
-        # Evaluate, within a ``try``-``except`` block, and set defaults
-        outgoing[k] = eval(a)(start_dict)
+    The final strategy adopted is then:
 
-    We need to pass the full ``incoming`` dictionary as argument to the
-    ``eval``, because we allow indexing in the *global* ``dict``. That is,
-    since it is **allowed** to define defaults in a given section based on
-    defaults in other section we **must** be able to access the full input at
-    any point. The ``start_dict`` parameter allows us to do this.
-
-    Rather than throw errors, we keep track of where the execution of a
-    callable failed and why in the ``errors`` return variable. This is a
-    list of addressing tuples.
+    1. Perform type checking with :func:`type_matches`. If successful, we
+    coerce the type.
+    2. If types did not match, we further check whether the value is a string,
+    containing the reserved token "value". This means the default value is
+    actually a callable. We run the callable, which internally coerces the type
+    of the result to the expected one.
+    3. If even this check was unsuccessful, types really were unmatched. We
+    report the error and move on.
     """
 
     outgoing = {}
@@ -262,7 +206,30 @@ def rec_fix_defaults(
 
     for k, v in incoming.items():
         if not isinstance(v, dict):
-            msg, outgoing[k] = run_callable(v, start_dict, t=types[k])
+            t = types[k]
+            types_ok = type_matches(v, t)
+            if types_ok:
+                # Yes! Types match up front, you're awesome
+                msg = ""
+                outgoing[k] = type_fixers[t](v)
+            else:
+                # Types did not match :/
+                if type(v).__name__ == "str" and "user" in v:
+                    # BUT! It's actually a string and it's a callable
+                    # We assume that if it contains the reserved tokens "value"
+                    # or "user" we're trying to perform some sort of defaulting
+                    # action.
+                    msg, outgoing[k] = run_callable(v, start_dict, t=t)
+                else:
+                    # NOPE. You're an unrepentant sinner
+                    actual = (
+                        type(v).__name__
+                        if type(v) is not list
+                        else "List[{}]".format(", ".join([type(x).__name__ for x in v]))
+                    )
+                    msg = "Actual ({0}) and declared ({1}) types do not match.".format(
+                        actual, t
+                    )
             if msg != "":
                 errors.append(Error(address + (k,), msg))
         else:
@@ -271,54 +238,6 @@ def rec_fix_defaults(
                 types=types[k],
                 start_dict=start_dict,
                 address=(address + (k,)),
-            )
-            errors.extend(errs)
-
-    return outgoing, errors
-
-
-def rec_typenade(
-    incoming: JSONDict, types: JSONDict, *, address: Tuple = ()
-) -> Tuple[JSONDict, List[Error]]:
-    """Perform type checking and type fixing.
-
-    Parameters
-    ----------
-    incoming: JSONDict
-        The input `dict`. This is supposed to be the one obtained by merging
-        user and template `dict`-s.
-    types: JSONDict
-        Types of all keywords in the input. Generated from :func:`view_by_types`.
-    address: Tuple[str]
-        A tuple of keys need to index the current value in the recursion. See
-        Notes.
-
-    Returns
-    -------
-    outgoing: JSONDict
-        A dictionary with all default values fixed.
-    errors_at: List[Tuple[str]]
-        A list of keys to access elements in the `dict` that raised an error.
-        See Notes.
-    """
-
-    outgoing = {}
-    errors = []
-
-    for k, v in incoming.items():
-        if not isinstance(v, dict):
-            t = types[k]
-            if type_matches(incoming[k], t):
-                outgoing[k] = type_fixers[t](incoming[k])
-            else:
-                msg = "Actual ({0}) and declared ({1}) types do not match.".format(
-                    type(incoming[k]).__name__, t
-                )
-                errors.append(Error(address + (k,), msg))
-                outgoing[k] = None  # type: ignore
-        else:
-            outgoing[k], errs = rec_typenade(
-                incoming=v, types=types[k], address=(address + (k,))
             )
             errors.extend(errs)
 
@@ -360,9 +279,8 @@ def rec_check_predicates(
         if predicates[k] is not None:
             if not isinstance(v, dict):
                 for p in predicates[k]:
-                    # Replace convenience placeholder "value" with its full "address"
                     where = location_in_dict(address=(address + (k,)))
-                    msg, success = run_predicate(p.replace("value", where), start_dict)
+                    msg, success = run_predicate(p, where, start_dict)
                     if not success:
                         errors.append(Error((address + (k,)), msg))
             else:
@@ -377,13 +295,31 @@ def rec_check_predicates(
     return errors
 
 
-def run_predicate(predicate: str, user: JSONDict) -> Tuple[str, bool]:
+def run_predicate(predicate: str, where: str, user: JSONDict) -> Tuple[str, bool]:
+    """Run a predicate to check whether it is satisfied.
 
+    Parameters
+    ----------
+    predicate : str
+    where : str
+    user : JSONDict
+
+    Returns
+    -------
+
+    Notes
+    -----
+    We replace the convenience placeholder "value" with its full "address" in ``user``.
+    """
+
+    p = predicate.replace("value", where)
     postfix = "in closure '{}'.".format(predicate)
 
     try:
         msg = ""
-        success = eval("lambda user: {}".format(predicate))(user)
+        success = eval("lambda user: {}".format(p))(user)
+        if not success:
+            msg = "Predicate '{}' not satisfied.".format(predicate)
     except KeyError as e:
         msg = "KeyError {} {:s}".format(e, postfix)
         success = False
@@ -422,30 +358,24 @@ def run_callable(f: str, d: JSONDict, *, t: str) -> Tuple[str, Optional[Any]]:
     Notes
     -----
     The input tree is called ``user``.
+    The callable is turned into a lambda function and executed using ``eval``,
+    to ensure that the syntax of callable actions is correct and that the
+    callable returns correctly.
+
+    We need to pass the full ``incoming`` dictionary as argument to
+    ``eval``, because we allow indexing in the *global* ``dict``. That is,
+    since it is **allowed** to define defaults in a given section based on
+    defaults in other section we **must** be able to access the full input at
+    any point.
     """
 
-    closure = "lambda user: "
-    if t == "str":
-        closure += "'{}'"
-    elif t == "complex":
-        closure += "complex('{}'.replace(' ', ''))"
-    elif t == "List[complex]":
-        closure += "list(map(lambda x: complex(x.replace(' ', '')), {}))"
-    else:
-        closure += "{}"
-
+    closure = "lambda user: {}"
     postfix = "in closure '{}'.".format(f)
 
     try:
+        msg = ""
         result = eval(closure.format(f))(d)
-        if type_matches(result, t):
-            msg = ""
-            result = type_fixers[t](result)
-        else:
-            msg = "Actual ({0}) and declared ({1}) types do not match.".format(
-                type(result).__name__, t
-            )
-            result = None
+        result = type_fixers[t](result)
     except KeyError as e:
         msg = "KeyError {} {:s}".format(e, postfix)
         result = None
@@ -460,3 +390,58 @@ def run_callable(f: str, d: JSONDict, *, t: str) -> Tuple[str, Optional[Any]]:
         result = None
 
     return msg, result
+
+
+def undocumented(x: JSONDict) -> bool:
+    return (
+        True if "docstring" not in x.keys() or x["docstring"].strip() == "" else False
+    )
+
+
+def untyped(x: JSONDict) -> bool:
+    return True if "type" not in x.keys() or x["type"] not in allowed_types else False
+
+
+def check_keyword(keyword: JSONDict, *, address: Tuple = ()) -> List[Error]:
+    """Checks that a template keyword is well-formed.
+
+    In this function, a template keyword is well-formed if it has:
+
+    * An allowed type.
+    * A non-empty docstring.
+
+    The two additional criteria:
+
+    * A default callable that is valid Python, if present.
+    * Predicates that are valid Python, if present.
+
+    can only be checked meaningfully later, as they might depend on
+    keyword(s)/section(s) of the input that are only known after merging.
+
+    Parameters
+    ----------
+    template : JSONDict
+    address : Tuple
+
+    Returns
+    -------
+    errors : List[Error]
+    """
+
+    errors = []
+
+    k = keyword["name"]
+    if "sections" in keyword.keys():
+        errors.append(
+            Error((address + (k,)), "Sections cannot be nested under keywords.")
+        )
+
+    if untyped(keyword):
+        errors.append(Error((address + (k,)), "Keywords must have a valid type."))
+
+    if undocumented(keyword):
+        errors.append(
+            Error((address + (k,)), "Keywords must have a non-empty docstring.")
+        )
+
+    return errors

@@ -35,7 +35,7 @@ Tests type checking and type fixation.
 import pytest
 
 from parselglossy.exceptions import ParselglossyError
-from parselglossy.validation import typenade
+from parselglossy.validation import fix_defaults
 
 
 @pytest.fixture
@@ -70,7 +70,7 @@ def type_error_bool():
 
     n = "type_error_bool"
     e = r"""
-Error occurred when checking types:
+Error occurred when fixing defaults:
 - At user\['some_section'\]\['some_feature'\]:
   Actual \(int\) and declared \(bool\) types do not match\."""
 
@@ -92,7 +92,7 @@ def type_error_float():
     }
     n = "type_error_float"
     e = r"""
-Error occurred when checking types:
+Error occurred when fixing defaults:
 - At user\['some_float'\]:
   Actual \(int\) and declared \(float\) types do not match\."""
 
@@ -114,7 +114,7 @@ def type_error_int():
     }
     n = "type_error_int"
     e = r"""
-Error occurred when checking types:
+Error occurred when fixing defaults:
 - At user\['some_section'\]\['some_number'\]:
   Actual \(float\) and declared \(int\) types do not match\."""
 
@@ -136,9 +136,9 @@ def type_error_list():
     }
     n = "type_error_list"
     e = r"""
-Error occurred when checking types:
+Error occurred when fixing defaults:
 - At user\['some_section'\]\['some_list'\]:
-  Actual \(list\) and declared \(List\[float\]\) types do not match\."""
+  Actual \(List\[float, float, int\]\) and declared \(List\[float\]\) types do not match\."""
 
     return d, n, e
 
@@ -158,33 +158,9 @@ def type_error_str():
     }
     n = "type_error_str"
     e = r"""
-Error(?:\(s\))? occurred when checking types:
+Error(?:\(s\))? occurred when fixing defaults:
 - At user\['some_section'\]\['a_short_string'\]:
   Actual \(int\) and declared \(str\) types do not match\."""
-
-    return d, n, e
-
-
-def type_error_complex():
-    d = {
-        "title": "this is my title",
-        "some_float": 2.4,
-        "some_section": {
-            "a_short_string": 0,
-            "some_number": 7,
-            "another_number": 20,
-            "some_feature": True,
-            "some_list": [1.0, 2.0, 3.0],
-            "some_complex": "0.0+1.0j",
-        },
-    }
-    n = "type_error_complex"
-    e = r"""
-Error(?:\(s\))? occurred when checking types:
-- At user\['some_section'\]\['a_short_string'\]:
-  Actual \(int\) and declared \(str\) types do not match\.
-- At user\['some_section'\]\['some_complex'\]:
-  Actual \(str\) and declared \(complex\) types do not match\."""
 
     return d, n, e
 
@@ -195,7 +171,6 @@ type_checking_data = [
     type_error_int(),
     type_error_list(),
     type_error_str(),
-    type_error_complex(),
 ]
 
 
@@ -204,4 +179,4 @@ type_checking_data = [
 )
 def test_input_errors(types, user, error_message):
     with pytest.raises(ParselglossyError, match=error_message):
-        outgoing = typenade(user, types)
+        outgoing = fix_defaults(user, types=types)

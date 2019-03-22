@@ -36,26 +36,9 @@ ScalarTypes = Union[bool, str, int, float, complex]
 allowed_scalar_types = ["str", "int", "float", "complex", "bool"]
 
 
-def _type_check_scalar(value: ScalarTypes, expected_type: str) -> bool:
-    return type(value).__name__ == expected_type
-
-
 ListTypes = Union[List[bool], List[str], List[int], List[float], List[complex]]
 
 allowed_list_types = ["List[{}]".format(t) for t in allowed_scalar_types]
-
-
-def _type_check_list(value: ListTypes, expected_type: str) -> bool:
-    # make sure that value is actually a list
-    if type(value).__name__ == "list":
-        # iterate over each element of the list
-        # and check whether it matches T
-        type_checks = all((_type_check_scalar(x, expected_type) for x in value))
-    else:
-        type_checks = False
-
-    return type_checks
-
 
 AllowedTypes = Union[ScalarTypes, ListTypes]
 
@@ -84,11 +67,20 @@ def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
     ------
     ValueError
         If expected_type is not among the allowed types.
+
+    Notes
+    -----
+    Complex numbers are a tad more fastidious, as they *might be* read in as
+    strings. To avoid false negatives, we perform a transformation by calling
+    the ``complex`` constructor. RDR will forever burn in hell for this hack.
     """
 
     # first verify whether expected_type is allowed
     if expected_type not in allowed_types:
         raise ValueError("could not recognize expected_type: {}".format(expected_type))
+
+    if expected_type == "complex" or expected_type == "List[complex]":
+        value = _complex_helper(value)
 
     expected_type_is_list = re.search(r"^List\[(\w+)\]$", expected_type)
 
@@ -96,6 +88,31 @@ def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
         return _type_check_list(value, expected_type_is_list.group(1))  # type: ignore
     else:
         return _type_check_scalar(value, expected_type)  # type: ignore
+
+
+def _complex_helper(
+    value: Union[complex, List[complex]]
+) -> Union[complex, List[complex]]:
+    if type(value).__name__ == "list":
+        return type_fixers["List[complex]"](value)
+    else:
+        return type_fixers["complex"](value)
+
+
+def _type_check_scalar(value: ScalarTypes, expected_type: str) -> bool:
+    return type(value).__name__ == expected_type
+
+
+def _type_check_list(value: ListTypes, expected_type: str) -> bool:
+    # make sure that value is actually a list
+    if type(value).__name__ == "list":
+        # iterate over each element of the list
+        # and check whether it matches T
+        type_checks = all((_type_check_scalar(x, expected_type) for x in value))
+    else:
+        type_checks = False
+
+    return type_checks
 
 
 type_fixers = {
