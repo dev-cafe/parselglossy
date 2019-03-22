@@ -35,14 +35,14 @@ from .exceptions import ParselglossyError, collate_errors
 from .utils import JSONDict
 from .validation_plumbing import (
     rec_check_predicates,
-    rec_check_template,
     rec_fix_defaults,
+    rec_is_template_valid,
     rec_merge_ours,
     rec_typenade,
 )
 
 
-def check_template(template: JSONDict) -> Optional[JSONDict]:
+def is_template_valid(template: JSONDict) -> Optional[bool]:
     """Checks a template `dict` is well-formed.
 
     Parameters
@@ -51,7 +51,7 @@ def check_template(template: JSONDict) -> Optional[JSONDict]:
 
     Returns
     -------
-    outgoing : Optional[JSONDict]
+    is_valid : Optional[bool]
 
     Raises
     ------
@@ -59,16 +59,18 @@ def check_template(template: JSONDict) -> Optional[JSONDict]:
 
     Notes
     -----
-    This is porcelain over the recursive :func:`rec_check_template`.
+    This is porcelain over the recursive :func:`rec_is_template_valid`.
     """
 
-    outgoing, errors = rec_check_template(template)
+    is_valid = True
+    errors = rec_is_template_valid(template)
 
     if errors:
+        is_valid = False
         msg = collate_errors(when="checking the template", errors=errors)
         raise ParselglossyError(msg)
 
-    return outgoing
+    return is_valid
 
 
 def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> Optional[JSONDict]:

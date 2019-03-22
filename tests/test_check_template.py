@@ -36,8 +36,9 @@ from contextlib import ExitStack as does_not_raise
 from copy import deepcopy
 
 import pytest
+
 from parselglossy.exceptions import ParselglossyError
-from parselglossy.validation import check_template
+from parselglossy.validation import is_template_valid
 
 # Well formed keyword and section
 keyword = {"name": "title", "type": "str", "docstring": "Title of the calculation."}
@@ -110,7 +111,7 @@ nested_sections_with_malformed_keyword = {
 
 error_preamble = r"Error(?:\(s\))? occurred when checking the template:\n"
 check_template_data = [
-    (valid, does_not_raise()),
+    (valid, does_not_raise(), True),
     (
         {"keywords": [keyword_with_section]},
         pytest.raises(
@@ -120,6 +121,7 @@ check_template_data = [
                 + r"- At user\['title'\]:\s+Sections cannot be nested under keywords."
             ),
         ),
+        False,
     ),
     (
         {"keywords": [keyword_with_invalid_type]},
@@ -130,6 +132,7 @@ check_template_data = [
                 + r"- At user\['title'\]:\s+Keywords must have a valid type."
             ),
         ),
+        False,
     ),
     (
         {"keywords": [keyword_without_type]},
@@ -140,6 +143,7 @@ check_template_data = [
                 + r"- At user\['title'\]:\s+Keywords must have a valid type."
             ),
         ),
+        False,
     ),
     (
         {"keywords": [keyword_without_docstring]},
@@ -150,6 +154,7 @@ check_template_data = [
                 + r"- At user\['title'\]:\s+Keywords must have a non-empty docstring."
             ),
         ),
+        False,
     ),
     (
         {"keywords": [keyword_with_nothing]},
@@ -161,6 +166,7 @@ check_template_data = [
                 r"- At user\['title'\]:\s+Keywords must have a non-empty docstring."
             ),
         ),
+        False,
     ),
     (
         {"sections": [section_without_docstring]},
@@ -171,6 +177,7 @@ check_template_data = [
                 + r"- At user\['scf'\]:\s+Sections must have a non-empty docstring."
             ),
         ),
+        False,
     ),
     (
         nested_sections_without_docstring,
@@ -182,6 +189,7 @@ check_template_data = [
                 r"- At user\['foo'\]\['bar'\]:\s+Sections must have a non-empty docstring."
             ),
         ),
+        False,
     ),
     (
         nested_sections_with_malformed_keyword,
@@ -196,12 +204,13 @@ check_template_data = [
                 r"- At user\['foo'\]\['bar'\]:\s+Sections must have a non-empty docstring."
             ),
         ),
+        False,
     ),
 ]
 
 
 @pytest.mark.parametrize(
-    "template,raises",
+    "template,raises, valid",
     check_template_data,
     ids=[
         "valid",
@@ -215,8 +224,7 @@ check_template_data = [
         "nested_bad_keyword",
     ],
 )
-def test_check_template(template, raises):
+def test_check_template(template, raises, valid):
     with raises:
-        stencil = check_template(template)  # type: Optional[JSONDict]
-        # If template is valid, outgoing will be its view-by-default
-        assert stencil == template
+        is_valid = is_template_valid(template)  # type: Optional[JSONDict]
+        assert is_valid == valid

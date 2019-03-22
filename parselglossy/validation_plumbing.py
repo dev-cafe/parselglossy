@@ -46,9 +46,7 @@ def untyped(x: JSONDict) -> bool:
     return True if "type" not in x.keys() or x["type"] not in allowed_types else False
 
 
-def check_keyword(
-    keyword: JSONDict, *, address: Tuple = ()
-) -> Tuple[JSONDict, List[Error]]:
+def check_keyword(keyword: JSONDict, *, address: Tuple = ()) -> List[Error]:
     """Checks that a template keyword is well-formed.
 
     In this function, a template keyword is well-formed if it has:
@@ -71,11 +69,9 @@ def check_keyword(
 
     Returns
     -------
-    outgoing : JSONDict
     errors : List[Error]
     """
 
-    outgoing = {}
     errors = []
 
     k = keyword["name"]
@@ -83,27 +79,19 @@ def check_keyword(
         errors.append(
             Error((address + (k,)), "Sections cannot be nested under keywords.")
         )
-    else:
-        outgoing = keyword
 
     if untyped(keyword):
         errors.append(Error((address + (k,)), "Keywords must have a valid type."))
-    else:
-        outgoing = keyword
 
     if undocumented(keyword):
         errors.append(
             Error((address + (k,)), "Keywords must have a non-empty docstring.")
         )
-    else:
-        outgoing = keyword
 
-    return outgoing, errors
+    return errors
 
 
-def rec_check_template(
-    template: JSONDict, *, address: Tuple = ()
-) -> Tuple[JSONDict, List[Error]]:
+def rec_is_template_valid(template: JSONDict, *, address: Tuple = ()) -> List[Error]:
     """Checks a template `dict` is well-formed.
 
     A template `dict` is well-formed if:
@@ -128,26 +116,17 @@ def rec_check_template(
 
     Returns
     -------
-    outgoing : JSONDict
     errors : List[Error]
     """
 
-    outgoing = {}
     errors = []
 
     keywords = template["keywords"] if "keywords" in template.keys() else []
-    if keywords:
-        outgoing["keywords"] = []
-
     for k in keywords:
-        out, errs = check_keyword(k, address=address)
-        outgoing["keywords"] += [out]
+        errs = check_keyword(k, address=address)
         errors.extend(errs)
 
     sections = template["sections"] if "sections" in template.keys() else []
-    if sections:
-        outgoing["sections"] = []
-
     for s in sections:
         if undocumented(s):
             errors.append(
@@ -156,13 +135,10 @@ def rec_check_template(
                     "Sections must have a non-empty docstring.",
                 )
             )
-            outgoing["sections"] += [None]
-        else:
-            outgoing["sections"] += [s]
-        out, errs = rec_check_template(s, address=(address + (s["name"],)))
+        errs = rec_is_template_valid(s, address=(address + (s["name"],)))
         errors.extend(errs)
 
-    return outgoing, errors
+    return errors
 
 
 def rec_merge_ours(

@@ -87,7 +87,7 @@ predicates = {
         "another_number": [
             "0 <= value <= 40",
             "value % 2 == 0",
-            "input_dict['scf']['some_acceleration'] " "== True",
+            "user['scf']['some_acceleration'] " "== True",
         ],
         "functional": ["len(value) <= 80"],
         "max_num_iterations": None,
