@@ -29,10 +29,18 @@
 # -*- coding: utf-8 -*-
 """Console script for parselglossy."""
 
+from pathlib import Path
+from typing import Union
+
 import click
+
+from . import __version__
+from .parselglossy import validate
+from .utils import JSONDict
 
 
 @click.group()
+@click.version_option(prog_name="parselglossy", version=__version__)
 def cli(args=None):
     """Console script for parselglossy."""
     return 0
@@ -45,7 +53,11 @@ def cli(args=None):
     help="serialize IR to JSON file",
     metavar="<dumpir>",
 )
-@click.argument("infile", metavar="<infile>")
+@click.argument(
+    "infile",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    metavar="<infile>",
+)
 def lex(dumpir, infile):
     """Run lexer to obtain JSON intermediate representation.
 
@@ -69,20 +81,28 @@ def lex(dumpir, infile):
     help="serialize FR to JSON file",
     metavar="<dumpfr>",
 )
-def validate(dumpfr, ir):
+def _validate(dumpfr: bool, ir: JSONDict, template: JSONDict) -> JSONDict:
     """Validate intermediate representation into final representation.
 
     \b
     Parameters
     ----------
     dumpir : bool
-             Whether to serialize FR to JSON. Location and name of file are
-             determined based on the input file.
-    ir : dict
-         Intermediate representation of the input file.
+        Whether to serialize FR to JSON. Location and name of file are
+        determined based on the input file.
+    ir : JSONDict
+        Intermediate representation of the input file.
+
+    Returns
+    -------
+    fr : JSONDict
+        The validated input.
+
+    Raises
+    ------
+    :exc:`ParselglossyError`
     """
-    fr = {}
-    return fr
+    return validate(dumpfr=dumpfr, ir=ir, template=template)
 
 
 @click.command()
@@ -92,16 +112,20 @@ def validate(dumpfr, ir):
     help="serialize parsed input to JSON file",
     metavar="<dump>",
 )
-@click.argument("infile", metavar="<infile>")
-def parse(dump, infile):
+@click.argument(
+    "infile",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    metavar="<infile>",
+)
+def parse(dump: bool, infile: Union[str, Path]) -> JSONDict:
     """Parse input file.
 
     \b
     Parameters
     ----------
-    dumpir : bool
-             Whether to serialize parsed input to JSON. Location and name of file are
-             determined based on the input file.
+    dump : bool
+            Whether to serialize parsed input to JSON. Location and name of file are
+            determined based on the input file.
     infile : str or path
             The input file to be parsed.
     """
@@ -112,7 +136,7 @@ def parse(dump, infile):
 
 @click.command()
 @click.option("--doc-type", type=click.Choice(["md", "rst", "tex"]))
-def doc(doctype):
+def doc(doctype: str):
     """Generate documentation from validation specs.
 
     \b
@@ -126,6 +150,6 @@ def doc(doctype):
 
 
 cli.add_command(lex)
-cli.add_command(validate)
+cli.add_command(_validate)
 cli.add_command(parse)
 cli.add_command(doc)

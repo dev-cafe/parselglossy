@@ -117,3 +117,5 @@ GPATH
 GRTAGS
 GTAGS
 
+# Validated input files produced during testing
+validated.json

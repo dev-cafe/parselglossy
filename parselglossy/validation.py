@@ -136,6 +136,7 @@ def fix_defaults(incoming: JSONDict, *, types: JSONDict) -> Optional[JSONDict]:
 
 def typenade(incoming: JSONDict, types: JSONDict) -> Optional[JSONDict]:
     """Checks types of input values for a merge input ``dict``.
+
     Parameters
     ----------
     incoming: JSONDict
@@ -143,13 +144,16 @@ def typenade(incoming: JSONDict, types: JSONDict) -> Optional[JSONDict]:
         user and template `dict`-s.
     types: JSONDict
         Types of all keywords in the input. Generated from :func:`view_by_types`.
+
     Returns
     -------
     outgoing: JSONDict
         A dictionary with all values type checked.
+
     Raises
     ------
-    :exc:`ValidationError`
+    :exc:`ParselglossyError`
+
     Notes
     -----
     This is porcelain over the recursive function :func:`rec_typenade`.
@@ -163,7 +167,7 @@ def typenade(incoming: JSONDict, types: JSONDict) -> Optional[JSONDict]:
     return outgoing
 
 
-def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> Optional[JSONDict]:
+def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> Optional[bool]:
     """Run predicates on input tree with fixed defaults.
 
     Parameters
@@ -175,8 +179,8 @@ def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> Optional[JS
 
     Returns
     -------
-    outgoing : JSONDict
-        A dictionary with all values checked.
+    success : Optional[bool]
+        Whether all predicates were successful.
 
     Raises
     ------
@@ -187,10 +191,12 @@ def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> Optional[JS
     This is porcelain over recursive function :func:`rec_check_predicates`.
     """
 
-    outgoing, errors = rec_check_predicates(incoming, predicates=predicates)
+    success = True
+    errors = rec_check_predicates(incoming, predicates=predicates)
 
     if errors:
+        success = False
         msg = collate_errors(when="checking predicates", errors=errors)
         raise ParselglossyError(msg)
 
-    return outgoing
+    return success

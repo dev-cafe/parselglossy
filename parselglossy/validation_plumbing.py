@@ -331,7 +331,7 @@ def rec_check_predicates(
     predicates: JSONDict,
     start_dict: JSONDict = None,
     address: Tuple = ()
-) -> Tuple[JSONDict, List[Error]]:
+) -> List[Error]:
     """Run predicates on input tree with fixed defaults.
 
     Parameters
@@ -347,13 +347,10 @@ def rec_check_predicates(
 
     Returns
     -------
-    outgoing : JSONDict
-        A dictionary with all default values fixed.
     errors : List[Error]
         A list of keys to access elements in the `dict` that raised an error.
     """
 
-    outgoing = {}
     errors = []
 
     if start_dict is None:
@@ -365,44 +362,45 @@ def rec_check_predicates(
                 for p in predicates[k]:
                     # Replace convenience placeholder "value" with its full "address"
                     where = location_in_dict(address=(address + (k,)))
-                    msg, success = run_callable(p.replace("value", where), start_dict)
-                    if success:
-                        outgoing[k] = v
-                    else:
+                    msg, success = run_predicate(p.replace("value", where), start_dict)
+                    if not success:
                         errors.append(Error((address + (k,)), msg))
             else:
-                outgoing[k], errs = rec_check_predicates(
+                errs = rec_check_predicates(
                     incoming=v,
                     predicates=predicates[k],
                     start_dict=start_dict,
                     address=(address + (k,)),
                 )
                 errors.extend(errs)
-        else:
-            outgoing[k] = v
 
-    return outgoing, errors
+    return errors
 
 
-def plain(result: Any, t: str = "") -> Tuple[str, Any]:
-    return "", result
+def run_predicate(predicate: str, user: JSONDict) -> Tuple[str, bool]:
 
+    postfix = "in closure '{}'.".format(predicate)
 
-def with_type_checks(result: Any, t: str) -> Tuple[str, Optional[Any]]:
-    if type_matches(result, t):
+    try:
         msg = ""
-        result = type_fixers[t](result)
-    else:
-        msg = "Actual ({0}) and declared ({1}) types do not match.".format(
-            type(result).__name__, t
-        )
-        result = None
-    return msg, result
+        success = eval("lambda user: {}".format(predicate))(user)
+    except KeyError as e:
+        msg = "KeyError {} {:s}".format(e, postfix)
+        success = False
+    except SyntaxError as e:
+        msg = "SyntaxError {} {:s}".format(e, postfix)
+        success = False
+    except TypeError as e:
+        msg = "TypeError {} {:s}".format(e, postfix)
+        success = False
+    except NameError as e:
+        msg = "NameError {} {:s}".format(e, postfix)
+        success = False
+
+    return msg, success
 
 
-def run_callable(
-    f: str, d: JSONDict, *, t: Optional[str] = None
-) -> Tuple[str, Optional[Any]]:
+def run_callable(f: str, d: JSONDict, *, t: str) -> Tuple[str, Optional[Any]]:
     """Run a callable encoded as a string.
 
     A callable is any function of the input tree.
@@ -415,8 +413,6 @@ def run_callable(
         The input `dict`.
     t : str
         Expected type.
-    post : RunCallable
-        Actions to run after calling ``eval``
 
     Returns
     -------
@@ -429,25 +425,27 @@ def run_callable(
     """
 
     closure = "lambda user: "
-    if t is None:
-        post = plain
-        closure += "{}"
+    if t == "str":
+        closure += "'{}'"
+    elif t == "complex":
+        closure += "complex('{}'.replace(' ', ''))"
+    elif t == "List[complex]":
+        closure += "list(map(lambda x: complex(x.replace(' ', '')), {}))"
     else:
-        post = with_type_checks
-        if t == "str":
-            closure += "'{}'"
-        elif t == "complex":
-            closure += "complex('{}'.replace(' ', ''))"
-        elif t == "List[complex]":
-            closure += "list(map(lambda x: complex(x.replace(' ', '')), {}))"
-        else:
-            closure += "{}"
+        closure += "{}"
 
     postfix = "in closure '{}'.".format(f)
 
     try:
         result = eval(closure.format(f))(d)
-        msg, result = post(result, t)
+        if type_matches(result, t):
+            msg = ""
+            result = type_fixers[t](result)
+        else:
+            msg = "Actual ({0}) and declared ({1}) types do not match.".format(
+                type(result).__name__, t
+            )
+            result = None
     except KeyError as e:
         msg = "KeyError {} {:s}".format(e, postfix)
         result = None
