@@ -32,7 +32,6 @@
 Tests checking predicates.
 """
 
-import re
 from contextlib import ExitStack as does_not_raise
 
 import pytest

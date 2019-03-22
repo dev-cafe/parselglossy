@@ -33,62 +33,175 @@ Tests type checking and type fixation.
 """
 
 import pytest
-from parselglossy import views
-from parselglossy.exceptions import ParselglossyError
-from parselglossy.types import typenade
-from parselglossy.validation import merge_ours
-from read_in import read_in
 
-type_checking_data = [
-    (
-        "input_type_error_bool.yml",
-        r"""
+from parselglossy.exceptions import ParselglossyError
+from parselglossy.validation import typenade
+
+
+@pytest.fixture
+def types():
+    return {
+        "title": "str",
+        "some_float": "float",
+        "some_section": {
+            "a_short_string": "str",
+            "some_number": "int",
+            "another_number": "int",
+            "some_feature": "bool",
+            "some_list": "List[float]",
+            "some_complex": "complex",
+        },
+    }
+
+
+def type_error_bool():
+    d = {
+        "title": "this is my title",
+        "some_float": 2.4,
+        "some_section": {
+            "a_short_string": "short",
+            "some_number": 7,
+            "another_number": 20,
+            "some_feature": 1,
+            "some_list": [1.0, 2.0, 3.0],
+            "some_complex": complex(0.0, 1.0),
+        },
+    }
+
+    n = "type_error_bool"
+    e = r"""
 Error occurred when checking types:
 - At user\['some_section'\]\['some_feature'\]:
-  Actual \(int\) and declared \(bool\) types do not match""",
-    ),
-    (
-        "input_type_error_float.yml",
-        r"""
+  Actual \(int\) and declared \(bool\) types do not match\."""
+
+    return d, n, e
+
+
+def type_error_float():
+    d = {
+        "title": "this is my title",
+        "some_float": 2,
+        "some_section": {
+            "a_short_string": "short",
+            "some_number": 7,
+            "another_number": 20,
+            "some_feature": True,
+            "some_list": [1.0, 2.0, 3.0],
+            "some_complex": complex(0.0, 1.0),
+        },
+    }
+    n = "type_error_float"
+    e = r"""
 Error occurred when checking types:
 - At user\['some_float'\]:
-  Actual \(int\) and declared \(float\) types do not match""",
-    ),
-    (
-        "input_type_error_int.yml",
-        r"""
+  Actual \(int\) and declared \(float\) types do not match\."""
+
+    return d, n, e
+
+
+def type_error_int():
+    d = {
+        "title": "this is my title",
+        "some_float": 2.4,
+        "some_section": {
+            "a_short_string": "short",
+            "some_number": 7.0,
+            "another_number": 20,
+            "some_feature": True,
+            "some_list": [1.0, 2.0, 3.0],
+            "some_complex": complex(0.0, 1.0),
+        },
+    }
+    n = "type_error_int"
+    e = r"""
 Error occurred when checking types:
 - At user\['some_section'\]\['some_number'\]:
-  Actual \(float\) and declared \(int\) types do not match""",
-    ),
-    (
-        "input_type_error_list.yml",
-        r"""
+  Actual \(float\) and declared \(int\) types do not match\."""
+
+    return d, n, e
+
+
+def type_error_list():
+    d = {
+        "title": "this is my title",
+        "some_float": 2.4,
+        "some_section": {
+            "a_short_string": "short",
+            "some_number": 7,
+            "another_number": 20,
+            "some_feature": True,
+            "some_list": [1.0, 2.0, 3],
+            "some_complex": complex(0.0, 1.0),
+        },
+    }
+    n = "type_error_list"
+    e = r"""
 Error occurred when checking types:
 - At user\['some_section'\]\['some_list'\]:
-  Actual \(list\) and declared \(List\[float\]\) types do not match""",
-    ),
-    (
-        "input_type_error_str.yml",
-        r"""
+  Actual \(list\) and declared \(List\[float\]\) types do not match\."""
+
+    return d, n, e
+
+
+def type_error_str():
+    d = {
+        "title": "this is my title",
+        "some_float": 2.4,
+        "some_section": {
+            "a_short_string": 0,
+            "some_number": 7,
+            "another_number": 20,
+            "some_feature": True,
+            "some_list": [1.0, 2.0, 3.0],
+            "some_complex": complex(0.0, 1.0),
+        },
+    }
+    n = "type_error_str"
+    e = r"""
 Error(?:\(s\))? occurred when checking types:
 - At user\['some_section'\]\['a_short_string'\]:
-  Actual \(int\) and declared \(str\) types do not match""",
-    ),
+  Actual \(int\) and declared \(str\) types do not match\."""
+
+    return d, n, e
+
+
+def type_error_complex():
+    d = {
+        "title": "this is my title",
+        "some_float": 2.4,
+        "some_section": {
+            "a_short_string": 0,
+            "some_number": 7,
+            "another_number": 20,
+            "some_feature": True,
+            "some_list": [1.0, 2.0, 3.0],
+            "some_complex": "0.0+1.0j",
+        },
+    }
+    n = "type_error_complex"
+    e = r"""
+Error(?:\(s\))? occurred when checking types:
+- At user\['some_section'\]\['a_short_string'\]:
+  Actual \(int\) and declared \(str\) types do not match\.
+- At user\['some_section'\]\['some_complex'\]:
+  Actual \(str\) and declared \(complex\) types do not match\."""
+
+    return d, n, e
+
+
+type_checking_data = [
+    type_error_bool(),
+    type_error_float(),
+    type_error_int(),
+    type_error_list(),
+    type_error_str(),
+    type_error_complex(),
 ]
 
 
 @pytest.mark.parametrize(
-    "input_file_name,error_message",
-    [
-        pytest.param(fname, msg, id=fname.rsplit(".", 1)[0])
-        for fname, msg in type_checking_data
-    ],
+    "user,error_message", [pytest.param(d, e, id=n) for d, n, e in type_checking_data]
 )
-def test_input_errors(input_file_name, error_message):
-    user, template = read_in("input_errors", input_file_name, "template.yml")
-    outgoing = merge_ours(theirs=views.view_by_default(template), ours=user)
-    types = views.view_by_type(template)
-
+def test_input_errors(types, user, error_message):
     with pytest.raises(ParselglossyError, match=error_message):
-        outgoing = typenade(outgoing, types)
+        outgoing = typenade(user, types)
