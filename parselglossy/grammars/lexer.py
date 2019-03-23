@@ -27,30 +27,59 @@
 #
 
 # -*- coding: utf-8 -*-
+"""Top-level functions for parselglossy."""
 
+import json
 from pathlib import Path
+from typing import IO, Any, Union
 
-import yaml
+from . import getkw
+from ..exceptions import ParselglossyError
+from ..utils import ComplexEncoder, JSONDict, path_resolver
 
-from .utils import JSONDict
 
-
-def read_yaml_file(file_name: Path) -> JSONDict:
-    """Reads a YAML file and returns it as a dictionary.
+def lex_from_str(
+    *, in_str: IO[Any], grammar: str = "standard", ir_file: Union[str, Path] = None
+) -> JSONDict:
+    """Run grammar of choice on input string.
 
     Parameters
     ----------
-    file_name: Path
-        Path object for the YAML file.
+    in_str : IO[Any]
+         The string to be parsed.
+    grammar : str
+         Grammar to be used. Defaults to "standard".
+    ir_file : Union[str, Path]
+         File to write intermediate representation to (JSON format).
+         None by default, which means file is not written out.
 
     Returns
     -------
-    d: JSONDict
-        A dictionary with the contents of the YAML file.
+    The contents of the input string as a dictionary.
+
+    Raises
+    ------
+    :exc:`ParselglossyError`
     """
-    with file_name.open("r") as f:
-        try:
-            d = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print(e)
-    return d
+
+    try:
+        lexer = dispatch_grammar(grammar)
+    except KeyError:
+        raise ParselglossyError("Grammar {} not available.".format(grammar))
+
+    ir = lexer.parseString(in_str).asDict()
+
+    if ir_file is not None:
+        ir_file = path_resolver(ir_file)
+        with ir_file.open("w") as out:
+            json.dump(ir, out, cls=ComplexEncoder)
+
+    return ir
+
+
+def dispatch_grammar(grammar: str):
+    available_grammars = {
+        "getkw": getkw.grammar(),
+        "standard": getkw.grammar(has_complex=True),
+    }
+    return available_grammars[grammar]

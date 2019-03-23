@@ -33,9 +33,10 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from parselglossy.api import validate
+
 from parselglossy.exceptions import ParselglossyError
 from parselglossy.utils import ComplexEncoder, as_complex
+from parselglossy.validation import validate_from_dicts
 from read_in import read_in
 
 
@@ -234,15 +235,12 @@ def test_validation(
     user, template = read_in(folder, input_file_name, template_file_name)
 
     with raises as e:
-        user = validate(ir=user, template=template)
+        # Validate and dump JSON
+        dumped = Path("validated.json")
+        user = validate_from_dicts(ir=user, template=template, fr_file=dumped)
         assert user == valid
         # Check error message is correct
         assert re.match("|".join(error_message), str(e)) is not None
-
-        # Dump JSON
-        dumped = Path("validated.json")
-        with Path(dumped).open("w") as out:
-            json.dump(user, out, cls=ComplexEncoder)
 
         # Read JSON (round-trip check)
         with dumped.open("r") as v:

@@ -29,14 +29,61 @@
 # -*- coding: utf-8 -*-
 """Validation facilities."""
 
+import json
+from pathlib import Path
+from typing import Union
+
 from .exceptions import ParselglossyError, collate_errors
-from .utils import JSONDict
+from .utils import ComplexEncoder, JSONDict, path_resolver
 from .validation_plumbing import (
     rec_check_predicates,
     rec_fix_defaults,
     rec_is_template_valid,
     rec_merge_ours,
 )
+from .views import view_by_default, view_by_predicates, view_by_type
+
+
+def validate_from_dicts(
+    *, ir: JSONDict, template: JSONDict, fr_file: Union[str, Path] = None
+) -> JSONDict:
+    """Validate intermediate representation into final representation.
+
+    Parameters
+    ----------
+    dumpir : bool
+        Whether to serialize FR to JSON. Location and name of file are
+        determined based on the input file.
+    ir : JSONDict
+        Intermediate representation of the input file.
+    fr_file : Union[str, Path]
+         File to write final representation to (JSON format).
+         None by default, which means file is not written out.
+
+    Returns
+    -------
+    fr : JSONDict
+        The validated input.
+
+    Raises
+    ------
+    :exc:`ParselglossyError`
+    """
+    is_template_valid(template)
+    stencil = view_by_default(template)
+    types = view_by_type(template)
+    predicates = view_by_predicates(template)
+
+    fr = merge_ours(theirs=stencil, ours=ir)
+    fr = fix_defaults(fr, types=types)
+    check_predicates(fr, predicates=predicates)
+
+    if fr_file is not None:
+        fr_file = path_resolver(fr_file)
+        with fr_file.open("w") as out:
+            json.dump(fr, out, cls=ComplexEncoder)
+
+    return fr
 
 
 def is_template_valid(template: JSONDict) -> None:

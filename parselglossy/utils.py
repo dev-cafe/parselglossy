@@ -31,8 +31,11 @@
 
 import json
 from functools import reduce
+from pathlib import Path
 from string import ascii_letters, digits
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Union
+
+import yaml
 
 JSONDict = Dict[str, Any]
 
@@ -81,3 +84,44 @@ def location_in_dict(*, address: Tuple, dict_name: str = "user") -> str:
     where : str
     """
     return reduce(lambda x, y: x + "['{}']".format(y), address, "user")
+
+
+def path_resolver(f: Union[str, Path]) -> Path:
+    """Resolve a path.
+
+    Parameters
+    ----------
+    f : Union[str, Path]
+        File whose path needs to be resolved.
+
+    Returns
+    -------
+    path : Path
+        File as a ``Path`` object.
+    """
+    if isinstance(f, str):
+        path = Path(f).resolve()
+    else:
+        path = f.resolve()
+    return path
+
+
+def read_yaml_file(file_name: Path) -> JSONDict:
+    """Reads a YAML file and returns it as a dictionary.
+
+    Parameters
+    ----------
+    file_name: Path
+        Path object for the YAML file.
+
+    Returns
+    -------
+    d: JSONDict
+        A dictionary with the contents of the YAML file.
+    """
+    with file_name.open("r") as f:
+        try:
+            d = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            print(e)
+    return d

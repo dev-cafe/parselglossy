@@ -29,62 +29,120 @@
 # -*- coding: utf-8 -*-
 """Top-level functions for parselglossy."""
 
-from typing import IO, Any
+import json
+from pathlib import Path
+from typing import Union
 
-from .grammars import getkw
-from .utils import JSONDict
-from .validation import check_predicates, fix_defaults, is_template_valid, merge_ours
-from .views import view_by_default, view_by_predicates, view_by_type
+from .grammars import lexer
+from .utils import ComplexEncoder, JSONDict, as_complex, path_resolver, read_yaml_file
+from .validation import validate_from_dicts
 
 
-def lex(*, in_str: IO[Any], grammar: str) -> JSONDict:
+def lex(
+    *, infile: Union[str, Path], grammar: str, ir_file: Union[str, Path] = None
+) -> JSONDict:
     """Run grammar of choice on input string.
 
     Parameters
     ----------
-    in_str : str
-         The string to be parsed.
+    in_str : IO[Any]
+        The string to be parsed.
     grammar : str
-         Grammar to be used.
+        Grammar to be used.
+    ir_file : Union[str, Path]
+        File to write intermediate representation to (JSON format).
+        None by default, which means file is not written out.
 
     Returns
     -------
     The contents of the input string as a dictionary.
     """
-    if grammar == "getkw":
-        lexer = getkw.grammar()
-    else:
-        lexer = getkw.grammar(has_complex=True)
-    return lexer.parseString(in_str).asDict()
+
+    infile = path_resolver(infile)
+    if ir_file is not None:
+        ir_file = path_resolver(ir_file)
+
+    with infile.open("r") as f:
+        ir = lexer.lex_from_str(in_str=f, grammar=grammar, ir_file=ir_file)
+
+    return ir
 
 
-def validate(*, ir: JSONDict, template: JSONDict) -> JSONDict:
+def validate(
+    *,
+    infile: Union[str, Path],
+    fr_file: Union[str, Path] = None,
+    template: Union[str, Path]
+) -> JSONDict:
     """Validate intermediate representation into final representation.
 
     Parameters
     ----------
-    dumpir : bool
-        Whether to serialize FR to JSON. Location and name of file are
-        determined based on the input file.
-    ir : JSONDict
-        Intermediate representation of the input file.
-
-    Returns
-    -------
-    fr : JSONDict
-        The validated input.
-
-    Raises
-    ------
-    :exc:`ParselglossyError`
+    infile : Union[str, Path]
+        The file with the intermediate representation (JSON format).
+    fr_file : Union[str, Path]
+        File to write final representation to (JSON format).
+        None by default, which means file is not written out.
+    template : Union[str, Path]
+        Which validation template to use.
     """
-    is_template_valid(template)
-    stencil = view_by_default(template)
-    types = view_by_type(template)
-    predicates = view_by_predicates(template)
 
-    fr = merge_ours(theirs=stencil, ours=ir)
-    fr = fix_defaults(fr, types=types)
-    check_predicates(fr, predicates=predicates)
+    infile = path_resolver(infile)
+    with infile.open("r") as f:
+        ir = json.load(f, object_hook=as_complex)
+
+    template = path_resolver(template)
+    stencil = read_yaml_file(Path(template))
+
+    if fr_file is not None:
+        fr_file = path_resolver(fr_file)
+
+    fr = validate_from_dicts(ir=ir, template=stencil, fr_file=fr_file)
 
     return fr
+
+
+def parse(
+    *,
+    infile: Union[str, Path],
+    outfile: Union[str, Path] = None,
+    grammar: str,
+    template: Union[str, Path],
+    dump_ir: bool = False
+) -> None:
+    """Parse input file.
+
+    Parameters
+    ----------
+    infile : Union[str, Path]
+        The input file to be parsed.
+    outfile : Union[str, Path]
+        The output file.
+        None by default, which means file name default to <infile>_fr.json
+    grammar : str
+        Which grammar to use.
+    template : Union[str, Path]
+        Which validation template to use.
+    write_ir_out : bool
+        Whether to write out the intermediate representation to file (JSON format).
+        False by default. If true the filename if <infile>_ir.json
+    """
+
+    stem = infile.rsplit(".", 1)[0]
+
+    infile = path_resolver(infile)
+    if dump_ir:
+        ir_file = path_resolver(stem + "_ir.json")
+    else:
+        ir_file = None
+
+    ir = lex(infile=infile, outfile=ir_file, grammar=grammar)
+
+    template = path_resolver(template)
+
+    fr = validate(infile=ir_file, outfile=outfile, template=template)
+
+    if outfile is not None:
+        outfile = path_resolver(stem + "_fr.json")
+        with outfile.open("w") as out:
+            json.dump(fr, out, cls=ComplexEncoder)

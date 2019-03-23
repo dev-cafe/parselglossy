@@ -35,8 +35,7 @@ from pathlib import Path
 import click
 
 from . import __version__, api
-from .read_yaml import read_yaml_file
-from .utils import ComplexEncoder, as_complex
+from .utils import ComplexEncoder, as_complex, read_yaml_file
 
 
 @click.group()
@@ -80,13 +79,10 @@ def _lex(infile: str, outfile: str, grammar: str) -> None:
         Which grammar to use.
     """
 
-    with Path(infile).open("r") as f:
-        ir = api.lex(in_str=f, grammar=grammar)
-
     if not outfile:
         outfile = infile.rsplit(".", 1)[0] + "_ir.json"
-    with Path(outfile).open("w") as out:
-        json.dump(ir, out, cls=ComplexEncoder)
+
+    api.lex(infile=infile, grammar=grammar, ir_file=outfile)
 
 
 @click.command(name="validate")
@@ -98,6 +94,7 @@ def _lex(infile: str, outfile: str, grammar: str) -> None:
 @click.option(
     "--outfile",
     type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    default="",
     help="name or path for the validated output JSON file",
     metavar="<outfile>",
 )
@@ -120,19 +117,14 @@ def _validate(infile: str, outfile: str, template: str) -> None:
     template : str
         Which validation template to use.
     """
-    with Path(infile).open("r") as f:
-        ir = json.load(f, object_hook=as_complex)
-
-    stencil = read_yaml_file(Path(template))
-    fr = api.validate(ir=ir, template=stencil)
 
     if not outfile:
-        outfile = infile.rsplit(".", 1)[0] + "_ir.json"
-    with Path(outfile).open("w") as out:
-        json.dump(fr, out, cls=ComplexEncoder)
+        outfile = infile.rsplit(".", 1)[0] + "_fr.json"
+
+    api.validate(infile=infile, outfile=outfile, template=template)
 
 
-@click.command()
+@click.command(name="parse")
 @click.argument(
     "infile",
     type=click.Path(exists=True, dir_okay=False, resolve_path=True),
@@ -141,6 +133,7 @@ def _validate(infile: str, outfile: str, template: str) -> None:
 @click.option(
     "--outfile",
     type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    default="",
     help="name or path for the parsed JSON output file",
     metavar="<outfile>",
 )
@@ -158,7 +151,16 @@ def _validate(infile: str, outfile: str, template: str) -> None:
     metavar="<template>",
     help="which validation template to use",
 )
-def parse(infile: str, outfile: str, grammar: str, template: str) -> None:
+@click.option(
+    "--dump-ir/--no-dump-ir",
+    default=False,
+    help="whether to dump intermediate representation to JSON file",
+    show_default=True,
+    metavar="<dumpir>",
+)
+def _parse(
+    infile: str, outfile: str, grammar: str, template: str, dumpir: bool
+) -> None:
     """Parse input file.
 
     \b
@@ -179,12 +181,16 @@ def parse(infile: str, outfile: str, grammar: str, template: str) -> None:
     The intermediate representation is saved to <outfile>_ir.json
     """
 
-    stem = infile.rsplit(".", 1)[0]
     if not outfile:
-        outfile = stem + "_fr.json"
-    ir_file = stem + "_ir.json"
-    _lex(infile, Path(ir_file), grammar)
-    _validate(ir_file, outfile, template)
+        outfile = infile.rsplit(".", 1)[0] + "_fr.json"
+
+    api.parse(
+        infile=infile,
+        outfile=outfile,
+        grammar=grammar,
+        template=template,
+        dump_ir=dumpir,
+    )
 
 
 @click.command(name="doc")
@@ -220,4 +226,4 @@ def _doc(doctype: str):
 cli.add_command(_doc)
 cli.add_command(_lex)
 cli.add_command(_validate)
-cli.add_command(parse)
+cli.add_command(_parse)

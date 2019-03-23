@@ -33,7 +33,7 @@
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
-from parselglossy.read_yaml import read_yaml_file
+from parselglossy.utils import read_yaml_file
 from parselglossy.utils import JSONDict
 
 
