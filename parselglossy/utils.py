@@ -66,7 +66,7 @@ def as_complex(dct):
     return dct
 
 
-def location_in_dict(*, address: Tuple[str], dict_name: str = "user") -> str:
+def location_in_dict(*, address: Tuple, dict_name: str = "user") -> str:
     """Convert tuple of keys of a ``JSONDict`` to its representation in code.
 
     For example, given ``("a", "b", "c")`` returns the string ``user['a']['b']['c']``.

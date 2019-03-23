@@ -117,7 +117,7 @@ Before you submit a pull request, check that it meets these guidelines:
 3. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in ``README.rst``.
-4. The pull request should work for Python 3.4, 3.5, 3.6, and 3.7. Check
+4. The pull request should work for Python 3.5, 3.6, and 3.7. Check
    https://travis-ci.org/dev-cafe/parselglossy/pull_requests
    and make sure that the tests pass for all supported Python versions.
 

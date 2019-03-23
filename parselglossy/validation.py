@@ -29,8 +29,6 @@
 # -*- coding: utf-8 -*-
 """Validation facilities."""
 
-from typing import Optional
-
 from .exceptions import ParselglossyError, collate_errors
 from .utils import JSONDict
 from .validation_plumbing import (
@@ -64,7 +62,7 @@ def is_template_valid(template: JSONDict) -> None:
         raise ParselglossyError(msg)
 
 
-def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> Optional[JSONDict]:
+def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> JSONDict:
     """Recursively merge two `dict`-s with "ours" strategy.
 
     Parameters
@@ -93,7 +91,7 @@ def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> Optional[JSONDict]:
     return outgoing
 
 
-def fix_defaults(incoming: JSONDict, *, types: JSONDict) -> Optional[JSONDict]:
+def fix_defaults(incoming: JSONDict, *, types: JSONDict) -> JSONDict:
     """Fixes defaults from a merge input ``dict``.
 
     Parameters

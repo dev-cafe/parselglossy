@@ -151,7 +151,7 @@ def view_by(
     has_keywords = True if "keywords" in d else False
     has_sections = True if "sections" in d else False
 
-    view = {}
+    view = {}  # type: JSONDict
     if has_keywords:
         view = {
             v["name"]: transformer(v[what])

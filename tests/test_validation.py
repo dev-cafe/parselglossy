@@ -32,10 +32,9 @@ from pathlib import Path
 from typing import List
 
 import pytest
-
+from parselglossy.api import validate
 from parselglossy.exceptions import ParselglossyError
-from parselglossy.parselglossy import validate
-from parselglossy.utils import as_complex
+from parselglossy.utils import ComplexEncoder, as_complex
 from read_in import read_in
 
 
@@ -227,15 +226,19 @@ def ids(terms: List[str]) -> str:
         for f, i, t, r, v in validation_data
     ],
 )
-def test_new_validation(folder, input_file_name, template_file_name, raises, valid):
+def test_validation(folder, input_file_name, template_file_name, raises, valid):
     user, template = read_in(folder, input_file_name, template_file_name)
 
     with raises:
-        user = validate(dumpfr=True, ir=user, template=template)
+        user = validate(ir=user, template=template)
         assert user == valid
 
-        # Round-trip
+        # Dump JSON
         dumped = Path("validated.json")
+        with Path(dumped).open("w") as out:
+            json.dump(user, out, cls=ComplexEncoder)
+
+        # Read JSON (round-trip check)
         with dumped.open("r") as v:
             validated = json.load(v, object_hook=as_complex)
         assert validated == valid

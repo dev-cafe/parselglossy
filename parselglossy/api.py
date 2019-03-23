@@ -29,15 +29,36 @@
 # -*- coding: utf-8 -*-
 """Top-level functions for parselglossy."""
 
-import json
-from pathlib import Path
+from typing import IO, Any
 
-from .utils import ComplexEncoder, JSONDict
+from .grammars import getkw
+from .utils import JSONDict
 from .validation import check_predicates, fix_defaults, is_template_valid, merge_ours
 from .views import view_by_default, view_by_predicates, view_by_type
 
 
-def validate(*, dumpfr: bool, ir: JSONDict, template: JSONDict) -> JSONDict:
+def lex(*, in_str: IO[Any], grammar: str) -> JSONDict:
+    """Run grammar of choice on input string.
+
+    Parameters
+    ----------
+    in_str : str
+         The string to be parsed.
+    grammar : str
+         Grammar to be used.
+
+    Returns
+    -------
+    The contents of the input string as a dictionary.
+    """
+    if grammar == "getkw":
+        lexer = getkw.grammar()
+    else:
+        lexer = getkw.grammar(has_complex=True)
+    return lexer.parseString(in_str).asDict()
+
+
+def validate(*, ir: JSONDict, template: JSONDict) -> JSONDict:
     """Validate intermediate representation into final representation.
 
     Parameters
@@ -65,10 +86,5 @@ def validate(*, dumpfr: bool, ir: JSONDict, template: JSONDict) -> JSONDict:
     fr = merge_ours(theirs=stencil, ours=ir)
     fr = fix_defaults(fr, types=types)
     check_predicates(fr, predicates=predicates)
-
-    if dumpfr:
-        outfile = Path("validated.json")
-        with outfile.open("w") as outfile:
-            json.dump(fr, outfile, cls=ComplexEncoder)
 
     return fr

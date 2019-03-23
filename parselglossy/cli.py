@@ -29,14 +29,14 @@
 # -*- coding: utf-8 -*-
 """Console script for parselglossy."""
 
+import json
 from pathlib import Path
-from typing import Union
 
 import click
 
-from . import __version__
-from .parselglossy import validate
-from .utils import JSONDict
+from . import __version__, api
+from .read_yaml import read_yaml_file
+from .utils import ComplexEncoder, as_complex
 
 
 @click.group()
@@ -46,110 +46,178 @@ def cli(args=None):
     return 0
 
 
-@click.command()
-@click.option(
-    "--dump-ir/--no-dump-ir",
-    default=False,
-    help="serialize IR to JSON file",
-    metavar="<dumpir>",
-)
+@click.command(name="lex")
 @click.argument(
     "infile",
     type=click.Path(exists=True, dir_okay=False, resolve_path=True),
     metavar="<infile>",
 )
-def lex(dumpir, infile):
-    """Run lexer to obtain JSON intermediate representation.
+@click.option(
+    "--outfile",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    help="name or path for the lexed output JSON file",
+    metavar="<outfile>",
+)
+@click.option(
+    "--grammar",
+    default="standard",
+    type=click.Choice(["standard", "getkw"]),
+    show_default=True,
+    help="which grammar to use",
+    metavar="<grammar>",
+)
+def _lex(infile: str, outfile: str, grammar: str) -> None:
+    """Run lexer and dump intermediate representation to JSON.
 
     \b
     Parameters
     ----------
-    dumpir : bool
-             Whether to serialize IR to JSON. Location and name of file are
-             determined based on the input file.
-    infile : str or path
-            The input file to be parsed.
+    infile : str
+        The input file to be parsed.
+    outfile : str
+        The output file. Defaults to <infile>_ir.json
+    grammar : str
+        Which grammar to use.
     """
-    ir = {}
-    return ir
+
+    with Path(infile).open("r") as f:
+        ir = api.lex(in_str=f, grammar=grammar)
+
+    if not outfile:
+        outfile = infile.rsplit(".", 1)[0] + "_ir.json"
+    with Path(outfile).open("w") as out:
+        json.dump(ir, out, cls=ComplexEncoder)
 
 
 @click.command(name="validate")
-@click.option(
-    "--dump-fr/--no-dump-fr",
-    default=False,
-    help="serialize FR to JSON file",
-    metavar="<dumpfr>",
+@click.argument(
+    "infile",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    metavar="<infile>",
 )
-def _validate(dumpfr: bool, ir: JSONDict, template: JSONDict) -> JSONDict:
+@click.option(
+    "--outfile",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    help="name or path for the validated output JSON file",
+    metavar="<outfile>",
+)
+@click.option(
+    "--template",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    metavar="<template>",
+    help="which validation template to use",
+)
+def _validate(infile: str, outfile: str, template: str) -> None:
     """Validate intermediate representation into final representation.
 
     \b
     Parameters
     ----------
-    dumpir : bool
-        Whether to serialize FR to JSON. Location and name of file are
-        determined based on the input file.
-    ir : JSONDict
-        Intermediate representation of the input file.
-
-    Returns
-    -------
-    fr : JSONDict
-        The validated input.
-
-    Raises
-    ------
-    :exc:`ParselglossyError`
+    infile : str
+        The input file to be parsed.
+    outfile : str
+        The output file. Defaults to <infile>_fr.json
+    template : str
+        Which validation template to use.
     """
-    return validate(dumpfr=dumpfr, ir=ir, template=template)
+    with Path(infile).open("r") as f:
+        ir = json.load(f, object_hook=as_complex)
+
+    stencil = read_yaml_file(Path(template))
+    fr = api.validate(ir=ir, template=stencil)
+
+    if not outfile:
+        outfile = infile.rsplit(".", 1)[0] + "_ir.json"
+    with Path(outfile).open("w") as out:
+        json.dump(fr, out, cls=ComplexEncoder)
 
 
 @click.command()
-@click.option(
-    "--dump/--no-dump",
-    default=False,
-    help="serialize parsed input to JSON file",
-    metavar="<dump>",
-)
 @click.argument(
     "infile",
     type=click.Path(exists=True, dir_okay=False, resolve_path=True),
     metavar="<infile>",
 )
-def parse(dump: bool, infile: Union[str, Path]) -> JSONDict:
+@click.option(
+    "--outfile",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    help="name or path for the parsed JSON output file",
+    metavar="<outfile>",
+)
+@click.option(
+    "--grammar",
+    default="standard",
+    type=click.Choice(["standard", "getkw"]),
+    show_default=True,
+    help="which grammar to use",
+    metavar="<grammar>",
+)
+@click.option(
+    "--template",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    metavar="<template>",
+    help="which validation template to use",
+)
+def parse(infile: str, outfile: str, grammar: str, template: str) -> None:
     """Parse input file.
 
     \b
     Parameters
     ----------
-    dump : bool
-            Whether to serialize parsed input to JSON. Location and name of file are
-            determined based on the input file.
-    infile : str or path
-            The input file to be parsed.
+    infile : str
+        The input file to be parsed.
+    outfile : str
+        The output file. Defaults to <infile>_fr.json
+    grammar : str
+        Which grammar to use.
+    template : str
+        Which validation template to use.
+
+    \b
+    Notes
+    -----
+    The intermediate representation is saved to <outfile>_ir.json
     """
-    ir = lex(infile, dump)
-    fr = validate(dump, ir)
-    return fr
+
+    stem = infile.rsplit(".", 1)[0]
+    if not outfile:
+        outfile = stem + "_fr.json"
+    ir_file = stem + "_ir.json"
+    _lex(infile, Path(ir_file), grammar)
+    _validate(ir_file, outfile, template)
 
 
-@click.command()
-@click.option("--doc-type", type=click.Choice(["md", "rst", "tex"]))
-def doc(doctype: str):
-    """Generate documentation from validation specs.
+@click.command(name="doc")
+@click.option(
+    "--doc-type",
+    default="rst",
+    type=click.Choice(["md", "rst", "tex"]),
+    show_default=True,
+    help="format for the autogenerated documentation",
+    metavar="<doctype>",
+)
+@click.option(
+    "--template",
+    type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+    metavar="<template>",
+    help="which validation template to use",
+)
+def _doc(doctype: str):
+    """Generate documentation from validation template.
 
     \b
     Parameters
     ----------
     doctype : str
-              Format of the generated documentation.
-              Valid choices are `md`, `rst`, and `tex`.
+        Format of the generated documentation.
+        Valid choices are ``md``, ``rst``, and ``tex``. Defaults to ``rst``.
+    template : str
+        Which validation template to use.
     """
-    pass
+    raise NotImplementedError("Coming soon!")
 
 
-cli.add_command(lex)
+cli.add_command(_doc)
+cli.add_command(_lex)
 cli.add_command(_validate)
 cli.add_command(parse)
-cli.add_command(doc)

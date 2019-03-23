@@ -5,6 +5,7 @@ History
 Unreleased
 ----------
 
+* Dropped support for Python 3.4.
 * Renamed the ``section`` and ``keyword`` fields in the template to ``name``.
 * Renamed the ``documentation`` field in the template to ``docstring``.
 * Arbitrary callables of the input dictionary are now allowed in the ``default``
