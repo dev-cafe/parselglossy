@@ -31,15 +31,18 @@
 
 import json
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from .grammars import lexer
-from .utils import ComplexEncoder, JSONDict, as_complex, path_resolver, read_yaml_file
+from .utils import JSONDict, as_complex, path_resolver, read_yaml_file
 from .validation import validate_from_dicts
 
 
 def lex(
-    *, infile: Union[str, Path], grammar: str, ir_file: Union[str, Path] = None
+    *,
+    infile: Union[str, Path],
+    grammar: str,
+    ir_file: Optional[Union[str, Path]] = None
 ) -> JSONDict:
     """Run grammar of choice on input string.
 
@@ -71,7 +74,7 @@ def lex(
 def validate(
     *,
     infile: Union[str, Path],
-    fr_file: Union[str, Path] = None,
+    fr_file: Optional[Union[str, Path]] = None,
     template: Union[str, Path]
 ) -> JSONDict:
     """Validate intermediate representation into final representation.
@@ -105,7 +108,7 @@ def validate(
 def parse(
     *,
     infile: Union[str, Path],
-    outfile: Union[str, Path] = None,
+    outfile: Optional[Union[str, Path]] = None,
     grammar: str,
     template: Union[str, Path],
     dump_ir: bool = False
@@ -128,7 +131,7 @@ def parse(
         False by default. If true the filename if <infile>_ir.json
     """
 
-    stem = infile.rsplit(".", 1)[0]
+    stem = infile.rsplit(".", 1)[0] if isinstance(infile, str) else infile.stem
 
     infile = path_resolver(infile)
     if dump_ir:
@@ -136,13 +139,12 @@ def parse(
     else:
         ir_file = None
 
-    ir = lex(infile=infile, outfile=ir_file, grammar=grammar)
+    ir = lex(infile=infile, ir_file=ir_file, grammar=grammar)
 
     template = path_resolver(template)
-
-    fr = validate(infile=ir_file, outfile=outfile, template=template)
+    stencil = read_yaml_file(Path(template))
 
     if outfile is not None:
-        outfile = path_resolver(stem + "_fr.json")
-        with outfile.open("w") as out:
-            json.dump(fr, out, cls=ComplexEncoder)
+        outfile = path_resolver(outfile)
+
+    fr = validate_from_dicts(ir=ir, template=stencil, fr_file=outfile)  # noqa: F841

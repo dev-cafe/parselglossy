@@ -29,13 +29,10 @@
 # -*- coding: utf-8 -*-
 """Console script for parselglossy."""
 
-import json
-from pathlib import Path
 
 import click
 
 from . import __version__, api
-from .utils import ComplexEncoder, as_complex, read_yaml_file
 
 
 @click.group()
@@ -121,7 +118,7 @@ def _validate(infile: str, outfile: str, template: str) -> None:
     if not outfile:
         outfile = infile.rsplit(".", 1)[0] + "_fr.json"
 
-    api.validate(infile=infile, outfile=outfile, template=template)
+    api.validate(infile=infile, fr_file=outfile, template=template)
 
 
 @click.command(name="parse")
