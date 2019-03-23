@@ -158,7 +158,7 @@ def type_error_str():
     }
     n = "type_error_str"
     e = r"""
-Error(?:\(s\))? occurred when fixing defaults:
+Error(?:s)? occurred when fixing defaults:
 - At user\['some_section'\]\['a_short_string'\]:
   Actual \(int\) and declared \(str\) types do not match\."""
 

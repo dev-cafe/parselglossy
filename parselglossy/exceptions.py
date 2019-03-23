@@ -93,7 +93,7 @@ def collate_errors(*, when: str, errors: List[Error]) -> str:
                 'user['scf']['min_num_iterations'] / 2'
     """
     preamble = "\nError{more:s} occurred when {when:s}:".format(
-        more="(s)" if len(errors) > 1 else "", when=when
+        more="s" if len(errors) > 1 else "", when=when
     )
     msgs = [preamble] + ["{}".format(e) for e in errors]
 

@@ -132,44 +132,47 @@ def two_invalid_actions():
     return d
 
 
-error_preamble = r"Error(?:\(s\))? occurred when fixing defaults:\n"
+error_preamble = r"Error(?:s)? occurred when fixing defaults:\n"
 
 msg1 = r"- At user\['scf'\]\['another_number'\]:\s+KeyError 'min_num_iterations' in closure 'user\['scf'\]\['min_num_iterations'\] / 2'\."
 
 msg2 = r"- At user\['scf'\]\['thresholds'\]\['energy'\]:\s+Actual \(str\) and declared \(float\) types do not match\."
 
-msg3 = r"- At user\['scf'\]\['another_number'\]:\s+TypeError unsupported operand type\(s\) for /: 'str' and 'int' in closure 'user\['title'\] / 2'\."
-
+# We need to check against two possible orderings of the error message.
+# In Python 3.5 orderings of dict is not guaranteed!
 invalid_messages = [
     error_preamble + msg1 + r"\n" + msg2,
     error_preamble + msg2 + r"\n" + msg1,
 ]
 
+msg3 = r"- At user\['scf'\]\['another_number'\]:\s+TypeError unsupported operand type\(s\) for /: 'str' and 'int' in closure 'user\['title'\] / 2'\."
+
 testdata = [
-    (raw, valid(), does_not_raise()),
-    (*valid_with_action(), does_not_raise()),
+    (raw, valid(), does_not_raise(), [""]),
+    (*valid_with_action(), does_not_raise(), [""]),
     (
         one_invalid_action(),
         valid(),
-        pytest.raises(ParselglossyError, match=(error_preamble + msg1)),
+        pytest.raises(ParselglossyError),
+        [error_preamble + msg1],
     ),
     (
         type_error_action(),
         valid(),
-        pytest.raises(ParselglossyError, match=(error_preamble + msg3)),
+        pytest.raises(ParselglossyError),
+        [error_preamble + msg3],
     ),
     (
         two_invalid_actions(),
         valid(),
-        pytest.raises(
-            ParselglossyError, match=re.compile("({0}|{1})".format(*invalid_messages))
-        ),
+        pytest.raises(ParselglossyError),
+        invalid_messages,
     ),
 ]
 
 
 @pytest.mark.parametrize(
-    "user,ref,raises",
+    "user,ref,raises,error_message",
     testdata,
     ids=[
         "noactions",
@@ -179,7 +182,9 @@ testdata = [
         "two_invalid_actions",
     ],
 )
-def test_fix_defaults(types, user, ref, raises):
-    with raises:
+def test_fix_defaults(types, user, ref, raises, error_message):
+    with raises as e:
         outgoing = fix_defaults(user, types=types)
         assert outgoing == ref
+        # Check error message is correct
+        assert re.match("|".join(error_message), str(e)) is not None

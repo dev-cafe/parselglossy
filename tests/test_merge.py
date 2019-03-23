@@ -95,23 +95,23 @@ def test_merge_expected(folder, user, template, ref):
 unexpected_data = [
     (
         "input_missing_keyword.yml",
-        r"Error(?:\(s\))? occurred when merging:\n- At user\['some_section'\]\['a_short_string'\]:\s+Keyword 'a_short_string' is required but has no value\.",
+        r"Error(?:s)? occurred when merging:\n- At user\['some_section'\]\['a_short_string'\]:\s+Keyword 'a_short_string' is required but has no value\.",
     ),
     (
         "unexpected_keyword.yml",
-        r"Error(?:\(s\))? occurred when merging:\n- Found unexpected keyword: 'strange'",
+        r"Error(?:s)? occurred when merging:\n- Found unexpected keyword: 'strange'",
     ),
     (
         "unexpected_section.yml",
-        r"Error(?:\(s\))? occurred when merging:\n- Found unexpected section: 'weird'",
+        r"Error(?:s)? occurred when merging:\n- Found unexpected section: 'weird'",
     ),
     (
         "unexpected_keyword_in_section.yml",
-        r"Error(?:\(s\))? occurred when merging:\n- Found unexpected keyword: 'strange'",
+        r"Error(?:s)? occurred when merging:\n- Found unexpected keyword: 'strange'",
     ),
     (
         "unexpected_section_nested.yml",
-        r"Error(?:\(s\))? occurred when merging:\n- Found unexpected section: 'weird'",
+        r"Error(?:s)? occurred when merging:\n- Found unexpected section: 'weird'",
     ),
 ]
 

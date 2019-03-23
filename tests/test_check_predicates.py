@@ -32,6 +32,7 @@
 Tests checking predicates.
 """
 
+import re
 from contextlib import ExitStack as does_not_raise
 from copy import deepcopy
 
@@ -116,54 +117,55 @@ def multiple_errors_predicates():
 
 
 testdata = [
-    (valid_predicates(), does_not_raise()),
+    (valid_predicates(), does_not_raise(), [""]),
     (
         failing_predicates(),
-        pytest.raises(
-            ParselglossyError,
-            match=r"Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+Predicate 'value % 3 == 0' not satisfied\.",
-        ),
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+Predicate 'value % 3 == 0' not satisfied\."
+        ],
     ),
     (
         syntax_error_predicates(),
-        pytest.raises(
-            ParselglossyError,
-            match=r"""Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+SyntaxError.*""",
-        ),
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+SyntaxError.*"
+        ],
     ),
     (
         name_error_predicates(),
-        pytest.raises(
-            ParselglossyError,
-            match=r"""Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+NameError.*""",
-        ),
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+NameError.*"
+        ],
     ),
     (
         key_error_predicates(),
-        pytest.raises(
-            ParselglossyError,
-            match=r"""Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+KeyError.*""",
-        ),
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+KeyError.*"
+        ],
     ),
     (
         type_error_predicates(),
-        pytest.raises(
-            ParselglossyError,
-            match=r"""Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+TypeError.*""",
-        ),
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+TypeError.*"
+        ],
     ),
     (
         multiple_errors_predicates(),
-        pytest.raises(
-            ParselglossyError,
-            match=r"""Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+TypeError.*\n- At user\['title'\]:\s+KeyError.*""",
-        ),
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+TypeError.*\n- At user\['title'\]:\s+KeyError.*",
+            r"Error(?:s)? occurred when checking predicates:\n- At user\['title'\]:\s+KeyError.*\n- At user\['scf'\]\['another_number'\]:\s+TypeError.*",
+        ],
     ),
 ]
 
 
 @pytest.mark.parametrize(
-    "predicates,raises",
+    "predicates,raises,error_message",
     testdata,
     ids=[
         "valid",
@@ -175,6 +177,8 @@ testdata = [
         "two_errors",
     ],
 )
-def test_check_predicates(user, predicates, raises):
-    with raises:
+def test_check_predicates(user, predicates, raises, error_message):
+    with raises as e:
         check_predicates(incoming=user, predicates=predicates)
+        # Check error message is correct
+        assert re.match("|".join(error_message), str(e)) is not None

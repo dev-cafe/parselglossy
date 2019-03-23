@@ -109,7 +109,7 @@ nested_sections_with_malformed_keyword = {
     ]
 }
 
-error_preamble = r"Error(?:\(s\))? occurred when checking the template:\n"
+error_preamble = r"Error(?:s)? occurred when checking the template:\n"
 check_template_data = [
     (valid, does_not_raise()),
     (
