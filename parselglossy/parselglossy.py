@@ -57,14 +57,14 @@ def validate(*, dumpfr: bool, ir: JSONDict, template: JSONDict) -> JSONDict:
     ------
     :exc:`ParselglossyError`
     """
-    template_ok = is_template_valid(template)
+    is_template_valid(template)
     stencil = view_by_default(template)
     types = view_by_type(template)
     predicates = view_by_predicates(template)
 
     fr = merge_ours(theirs=stencil, ours=ir)
     fr = fix_defaults(fr, types=types)
-    predicates_ok = check_predicates(fr, predicates=predicates)
+    check_predicates(fr, predicates=predicates)
 
     if dumpfr:
         outfile = Path("validated.json")

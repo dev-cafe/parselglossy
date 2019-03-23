@@ -29,7 +29,7 @@
 # -*- coding: utf-8 -*-
 """Tools to extract views of dictionaries."""
 
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Optional, Type
 
 from .exceptions import ParselglossyError
 from .utils import JSONDict
@@ -171,60 +171,3 @@ def view_by(
             )
 
     return view
-
-
-def apply_mask(incoming: JSONDict, mask: Dict[str, Callable[[Any], Any]]) -> JSONDict:
-    """Apply a mask over a dictionary.
-
-    Parameters
-    ----------
-    incoming: JSONDict
-        Dictionary to be masked.
-    mask: Dict[str, Callable[[Any], Any]]
-        Mask to apply to `incoming`.
-
-    Notes
-    -----
-    There are no checks on consistency of the structure of the two dictionaries.
-    """
-
-    outgoing = {}
-    for k, v in incoming.items():
-        if isinstance(v, dict):
-            outgoing[k] = apply_mask(v, mask[k])
-        elif v is None:
-            outgoing[k] = None  # type: ignore
-        else:
-            outgoing[k] = mask[k](v)
-
-    return outgoing
-
-
-def predicate_checker(incoming: Dict[str, Optional[List[str]]]) -> JSONDict:
-    """Check that predicates are valid Python.
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-    """
-    outgoing = {}  # type: JSONDict
-    for k, ps in incoming.items():
-        if isinstance(ps, dict):
-            outgoing[k] = predicate_checker(ps)
-        elif ps is None:
-            outgoing[k] = None
-        else:
-            outgoing[k] = []
-            for p in ps:
-                try:
-                    outgoing[k].append(compile(p, "<unknown>", "eval"))
-                except SyntaxError:
-                    outgoing[k].append(
-                        ParselglossyError(
-                            'Python syntax error in predicate "{:s}"'.format(p)
-                        )
-                    )
-
-    return outgoing

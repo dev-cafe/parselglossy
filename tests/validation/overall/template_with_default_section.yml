@@ -5,9 +5,11 @@ keywords:
       foobar
 sections:
   - name: foo
+    docstring: |
+      babababbarrrr
     keywords:
       - name: bar
         type: bool
-        default: true
+        default: false
         docstring: |
           foo.bar

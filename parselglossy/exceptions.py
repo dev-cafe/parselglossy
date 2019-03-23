@@ -35,18 +35,6 @@ from typing import List
 from .utils import location_in_dict
 
 
-class ValidationError(Exception):
-    """Exception raised for invalid input files."""
-
-    pass
-
-
-class SpecificationError(Exception):
-    """Exception raised for malformed validation template."""
-
-    pass
-
-
 class ParselglossyError(Exception):
     """Exception raised when parsing fails."""
 

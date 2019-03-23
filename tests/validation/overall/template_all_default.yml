@@ -6,6 +6,8 @@ keywords:
       foobar
 sections:
   - name: foo
+    docstring: |
+      babababbarrrr
     keywords:
       - name: bar
         type: bool

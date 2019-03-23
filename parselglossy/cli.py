@@ -74,7 +74,7 @@ def lex(dumpir, infile):
     return ir
 
 
-@click.command()
+@click.command(name="validate")
 @click.option(
     "--dump-fr/--no-dump-fr",
     default=False,

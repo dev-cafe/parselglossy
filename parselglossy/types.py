@@ -71,32 +71,71 @@ def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
     Notes
     -----
     Complex numbers are a tad more fastidious, as they *might be* read in as
-    strings. To avoid false negatives, we perform a transformation by calling
-    the ``complex`` constructor. RDR will forever burn in hell for this hack.
+    strings. To avoid false negatives, we have a nasty hack, for which RDR will
+    forever burn in hell. For complex and List[complex] we will re-run type
+    checking after type
+    casting if and only if:
+      - We expected complex and List[complex].
+      - We got a str or List[str].
+      - The string are in the right format for the type casting operator.
     """
 
     # first verify whether expected_type is allowed
     if expected_type not in allowed_types:
         raise ValueError("could not recognize expected_type: {}".format(expected_type))
 
-    if expected_type == "complex" or expected_type == "List[complex]":
-        value = _complex_helper(value)
+    expected_complex = expected_type == "complex" or expected_type == "List[complex]"
 
     expected_type_is_list = re.search(r"^List\[(\w+)\]$", expected_type)
 
+    matches = False
     if expected_type_is_list is not None:
-        return _type_check_list(value, expected_type_is_list.group(1))  # type: ignore
+        matches = _type_check_list(
+            value, expected_type_is_list.group(1)
+        )  # type: ignore
     else:
-        return _type_check_scalar(value, expected_type)  # type: ignore
+        matches = _type_check_scalar(value, expected_type)  # type: ignore
+
+    recheck_complex = (
+        expected_complex
+        and _scalar_type_is_str(value)
+        and _str_is_complex_number(value)
+    )
+    if not matches and recheck_complex:
+        # Run the type cast, this might fail with ValueError and return None.
+        value = _complex_helper(value)  # type: ignore
+        if value is not None:
+            matches = type_matches(value, expected_type)  # type:ignore
+        else:
+            matches = False
+
+    return matches
 
 
 def _complex_helper(
     value: Union[complex, List[complex]]
-) -> Union[complex, List[complex]]:
+) -> Optional[Union[complex, List[complex]]]:
+    try:
+        if type(value).__name__ == "list":
+            return type_fixers["List[complex]"](value)
+        else:
+            return type_fixers["complex"](value)
+    except ValueError:
+        return None
+
+
+def _scalar_type_is_str(value: AllowedTypes) -> bool:
+    return any(
+        [_type_check_scalar(value, "str"), _type_check_list(value, "str")]
+    )  # type: ignore
+
+
+def _str_is_complex_number(value: AllowedTypes) -> bool:
+    cmplx = re.compile(r"^.*\d+j$")
     if type(value).__name__ == "list":
-        return type_fixers["List[complex]"](value)
+        return all((cmplx.match(x) is not None for x in value))
     else:
-        return type_fixers["complex"](value)
+        return cmplx.match(value) is not None
 
 
 def _type_check_scalar(value: ScalarTypes, expected_type: str) -> bool:
@@ -104,10 +143,7 @@ def _type_check_scalar(value: ScalarTypes, expected_type: str) -> bool:
 
 
 def _type_check_list(value: ListTypes, expected_type: str) -> bool:
-    # make sure that value is actually a list
     if type(value).__name__ == "list":
-        # iterate over each element of the list
-        # and check whether it matches T
         type_checks = all((_type_check_scalar(x, expected_type) for x in value))
     else:
         type_checks = False

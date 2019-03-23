@@ -62,7 +62,7 @@ expected_data = [
         "overall",
         "default.yml",
         "template_with_default_section.yml",
-        {"foobar": False, "foo": {"bar": True}},
+        {"foobar": False, "foo": {"bar": False}},
     ),
     (
         "overall",

@@ -116,14 +116,13 @@ def multiple_errors_predicates():
 
 
 testdata = [
-    (valid_predicates(), does_not_raise(), True),
+    (valid_predicates(), does_not_raise()),
     (
         failing_predicates(),
         pytest.raises(
             ParselglossyError,
             match=r"Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+Predicate 'value % 3 == 0' not satisfied\.",
         ),
-        False,
     ),
     (
         syntax_error_predicates(),
@@ -131,7 +130,6 @@ testdata = [
             ParselglossyError,
             match=r"""Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+SyntaxError.*""",
         ),
-        False,
     ),
     (
         name_error_predicates(),
@@ -139,7 +137,6 @@ testdata = [
             ParselglossyError,
             match=r"""Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+NameError.*""",
         ),
-        False,
     ),
     (
         key_error_predicates(),
@@ -147,7 +144,6 @@ testdata = [
             ParselglossyError,
             match=r"""Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+KeyError.*""",
         ),
-        False,
     ),
     (
         type_error_predicates(),
@@ -155,7 +151,6 @@ testdata = [
             ParselglossyError,
             match=r"""Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+TypeError.*""",
         ),
-        False,
     ),
     (
         multiple_errors_predicates(),
@@ -163,13 +158,12 @@ testdata = [
             ParselglossyError,
             match=r"""Error(?:\(s\))? occurred when checking predicates:\n- At user\['scf'\]\['another_number'\]:\s+TypeError.*\n- At user\['title'\]:\s+KeyError.*""",
         ),
-        False,
     ),
 ]
 
 
 @pytest.mark.parametrize(
-    "predicates,raises,success",
+    "predicates,raises",
     testdata,
     ids=[
         "valid",
@@ -181,7 +175,6 @@ testdata = [
         "two_errors",
     ],
 )
-def test_check_predicates(user, predicates, raises, success):
+def test_check_predicates(user, predicates, raises):
     with raises:
-        all_ok = check_predicates(incoming=user, predicates=predicates)
-        assert all_ok == success
+        check_predicates(incoming=user, predicates=predicates)

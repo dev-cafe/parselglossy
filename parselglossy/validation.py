@@ -41,16 +41,12 @@ from .validation_plumbing import (
 )
 
 
-def is_template_valid(template: JSONDict) -> Optional[bool]:
+def is_template_valid(template: JSONDict) -> None:
     """Checks a template `dict` is well-formed.
 
     Parameters
     ----------
     template : JSONDict
-
-    Returns
-    -------
-    is_valid : Optional[bool]
 
     Raises
     ------
@@ -61,15 +57,11 @@ def is_template_valid(template: JSONDict) -> Optional[bool]:
     This is porcelain over the recursive :func:`rec_is_template_valid`.
     """
 
-    is_valid = True
     errors = rec_is_template_valid(template)
 
     if errors:
-        is_valid = False
         msg = collate_errors(when="checking the template", errors=errors)
         raise ParselglossyError(msg)
-
-    return is_valid
 
 
 def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> Optional[JSONDict]:
@@ -117,7 +109,7 @@ def fix_defaults(incoming: JSONDict, *, types: JSONDict) -> Optional[JSONDict]:
 
     Raises
     ------
-    :exc:`SpecificationError`
+    :exc:`ParselglossyError`
 
     Notes
     -----
@@ -133,7 +125,7 @@ def fix_defaults(incoming: JSONDict, *, types: JSONDict) -> Optional[JSONDict]:
     return outgoing
 
 
-def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> Optional[bool]:
+def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> None:
     """Run predicates on input tree with fixed defaults.
 
     Parameters
@@ -142,11 +134,6 @@ def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> Optional[bo
         The input `dict`. This is supposed to be the result of :func:`fix_defaults`.
     predicates : JSONDict
         A view-by-predicates of the template ``dict``.
-
-    Returns
-    -------
-    success : Optional[bool]
-        Whether all predicates were successful.
 
     Raises
     ------
@@ -157,12 +144,8 @@ def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> Optional[bo
     This is porcelain over recursive function :func:`rec_check_predicates`.
     """
 
-    success = True
     errors = rec_check_predicates(incoming, predicates=predicates)
 
     if errors:
-        success = False
         msg = collate_errors(when="checking predicates", errors=errors)
         raise ParselglossyError(msg)
-
-    return success
