@@ -103,8 +103,8 @@ def path_resolver(f: Union[str, Path]) -> Path:
     -----
     The file will be created if not already existent.
     """
-    if isinstance(f, str):
-        path = Path(f)
+
+    path = Path(f) if isinstance(f, str) else f
 
     if not path.exists():
         path.touch()
