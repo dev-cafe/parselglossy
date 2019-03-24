@@ -97,8 +97,8 @@ def make_list_t(
 ) -> Any:
     """Atom for lists.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     scalars: Union[Any, List[Any]]
         Scalar parser elements, already combined or as a list. The list will be
         combined using the `^` operator.

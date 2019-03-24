@@ -52,7 +52,7 @@ def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
     Parameters
     ----------
     value : AllowedTypes
-      Value whose type needs to be checked
+        Value whose type needs to be checked
     expected_type : str
 
     Notes
