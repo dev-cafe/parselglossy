@@ -98,12 +98,18 @@ def path_resolver(f: Union[str, Path]) -> Path:
     -------
     path : Path
         File as a ``Path`` object.
+
+    Notes
+    -----
+    The file will be created if not already existent.
     """
     if isinstance(f, str):
-        path = Path(f).resolve()
-    else:
-        path = f.resolve()
-    return path
+        path = Path(f)
+
+    if not path.exists():
+        path.touch()
+
+    return path.resolve()
 
 
 def read_yaml_file(file_name: Path) -> JSONDict:
