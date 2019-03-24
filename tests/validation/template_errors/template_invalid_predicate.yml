@@ -1,47 +1,47 @@
 keywords:
-  - keyword: title
+  - name: title
     type: str
-    documentation: |
+    docstring: |
       Title of the calculation.
-  - keyword: some_float
+  - name: some_float
     type: float
     default: 1.2
-    documentation: |
+    docstring: |
       Some float.
 sections:
-  - section: some_section
-    documentation: |
+  - name: some_section
+    docstring: |
       Some section.
     keywords:
-    - keyword: a_short_string
+    - name: a_short_string
       type: str
       predicates:
         - '0 < len(value) <= undefined'
 #       - '0 < len(value) <= 5'
-      documentation: |
+      docstring: |
         Some short string.
-    - keyword: some_number
+    - name: some_number
       type: int
       default: 5
       predicates:
-        - "value < input_dict['some_section']['another_number']"
-      documentation: |
+        - "value < user['some_section']['another_number']"
+      docstring: |
         Some number.
-    - keyword: another_number
+    - name: another_number
       type: int
       default: 10
       predicates:
         - '0 <= value <= 40'
         - 'value % 2 == 0'
-        - "value > input_dict['some_section']['some_number']"
-      documentation: |
+        - "value > user['some_section']['some_number']"
+      docstring: |
         Another number.
-    - keyword: some_feature
+    - name: some_feature
       type: bool
       default: False
-      documentation: |
+      docstring: |
         Some feature.
-    - keyword: some_list
+    - name: some_list
       type: List[float]
-      documentation: |
+      docstring: |
         A list of floats.

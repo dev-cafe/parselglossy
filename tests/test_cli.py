@@ -31,16 +31,26 @@
 # -*- coding: utf-8 -*-
 """Tests for `parselglossy` package."""
 
+import re
+
+import pytest
 from click.testing import CliRunner
-from parselglossy import cli
+
+from parselglossy import __version__, cli
 
 
-def test_command_line_interface():
+@pytest.mark.parametrize(
+    "command,expected",
+    [
+        ([], "Console script for parselglossy"),
+        (["--version"], "parselglossy, version {}".format(__version__)),
+        (["--help"], r"--help\s+Show this message and exit"),
+    ],
+    ids=["plain", "version", "help"],
+)
+def test_command_line_interface(command, expected):
     """Test the CLI."""
     runner = CliRunner()
-    result = runner.invoke(cli.cli)
+    result = runner.invoke(cli.cli, command)
     assert result.exit_code == 0
-    assert "Console script for parselglossy" in result.output
-    help_result = runner.invoke(cli.cli, ["--help"])
-    assert help_result.exit_code == 0
-    assert "--help  Show this message and exit." in help_result.output
+    assert re.search(expected, result.output, re.M) is not None

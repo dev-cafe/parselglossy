@@ -33,7 +33,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from parselglossy.validate import type_matches
+from parselglossy.types import type_matches
 
 
 @given(a=st.booleans())

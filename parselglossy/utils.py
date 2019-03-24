@@ -28,9 +28,14 @@
 
 # -*- coding: utf-8 -*-
 """Common utilities."""
+
 import json
+from functools import reduce
+from pathlib import Path
 from string import ascii_letters, digits
-from typing import Any, Dict
+from typing import Any, Dict, Tuple, Union
+
+import yaml
 
 JSONDict = Dict[str, Any]
 
@@ -62,3 +67,67 @@ def as_complex(dct):
     if "__complex__" in dct:
         return complex(dct["__complex__"][0], dct["__complex__"][1])
     return dct
+
+
+def location_in_dict(*, address: Tuple, dict_name: str = "user") -> str:
+    """Convert tuple of keys of a ``JSONDict`` to its representation in code.
+
+    For example, given ``("a", "b", "c")`` returns the string ``user['a']['b']['c']``.
+
+    Parameters
+    ----------
+    address : Tuple[str]
+    dict_name : str
+
+    Returns
+    -------
+    where : str
+    """
+    return reduce(lambda x, y: x + "['{}']".format(y), address, "user")
+
+
+def path_resolver(f: Union[str, Path]) -> Path:
+    """Resolve a path.
+
+    Parameters
+    ----------
+    f : Union[str, Path]
+        File whose path needs to be resolved.
+
+    Returns
+    -------
+    path : Path
+        File as a ``Path`` object.
+
+    Notes
+    -----
+    The file will be created if not already existent.
+    """
+
+    path = Path(f) if isinstance(f, str) else f
+
+    if not path.exists():
+        path.touch()
+
+    return path.resolve()
+
+
+def read_yaml_file(file_name: Path) -> JSONDict:
+    """Reads a YAML file and returns it as a dictionary.
+
+    Parameters
+    ----------
+    file_name: Path
+        Path object for the YAML file.
+
+    Returns
+    -------
+    d: JSONDict
+        A dictionary with the contents of the YAML file.
+    """
+    with file_name.open("r") as f:
+        try:
+            d = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            print(e)
+    return d

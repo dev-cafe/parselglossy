@@ -39,7 +39,7 @@ import pytest
 from parselglossy.grammars import getkw
 from parselglossy.utils import ComplexEncoder, as_complex
 
-# yapf: disable
+# fmt: off
 reference = {
     'int': 42
   , 'dbl': math.pi
@@ -53,7 +53,7 @@ reference = {
   , 'str_array': ["foo", "bar", "lorem", "IpSuM"]
   , 'raw': "H 0.0 0.0 0.0\nF 1.0 1.0 1.0\n"
 }
-# yapf: enable
+# fmt: on
 
 
 def contents():

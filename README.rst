@@ -52,7 +52,7 @@ Generic input parsing library, speaking in tongues
 Requirements
 ------------
 
-* Python 3.4 or later.
+* Python 3.5 or later.
 
 
 Features

@@ -3,10 +3,10 @@ dist: xenial
 language: python
 
 python:
-  - 3.7
-  - 3.6
   - 3.5
-  - 3.4
+  - 3.6
+  - 3.7
+  - 3.8-dev
 
 env:
   - PIPENV_VERBOSITY=-1

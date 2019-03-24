@@ -26,38 +26,22 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
+import json
+import re
+from contextlib import ExitStack as does_not_raise
 from pathlib import Path
+from typing import List
 
 import pytest
 
-from parselglossy.exceptions import SpecificationError, ValidationError
-from parselglossy.read_yaml import read_yaml_file
-from parselglossy.utils import JSONDict
-from parselglossy.validate import check_predicates_node, validate_node
+from parselglossy.exceptions import ParselglossyError
+from parselglossy.utils import ComplexEncoder, as_complex
+from parselglossy.validation import validate_from_dicts
+from read_in import read_in
 
 
-def _helper(category: str, input_file_name: str, template_file_name: str) -> JSONDict:
-    this_path = Path(__file__).parent
-
-    input_file = this_path / "validation" / category / input_file_name
-    template_file = this_path / "validation" / category / template_file_name
-
-    input_dict = read_yaml_file(input_file)
-    template_dict = read_yaml_file(template_file)
-
-    # checks everything except predicates
-    input_dict = validate_node(input_dict, template_dict)
-
-    # now that all keywords have some value, we can check predicates
-    check_predicates_node(input_dict, input_dict, template_dict)
-
-    return input_dict
-
-
-def test_validation():
-    input_dict = _helper("overall", "input.yml", "template.yml")
-
-    reference = {
+def valid():
+    return {
         "title": "this is an example",
         "scf": {
             "functional": "B3LYP",
@@ -65,100 +49,201 @@ def test_validation():
             "some_acceleration": True,
             "thresholds": {"some_integral_screening": 0.0002, "energy": 1e-05},
             "another_number": 10,
-            # the complex number is a string here because this is how
-            # pyyaml interprets it
-            # for follow-up please see
-            # https://github.com/dev-cafe/parselglossy/issues/26
-            "some_complex_number": "0.0+0.0j",
+            "some_complex_number": complex(0.0, 0.0),
         },
     }
-
-    assert input_dict == reference
 
 
 template_errors_data = [
     (
+        "template_errors",
+        "input.yml",
         "template_no_documentation.yml",
-        SpecificationError,
-        "section(s) without any documentation: ['some_section']",
+        pytest.raises(ParselglossyError),
+        [
+            r"- At user\['some_section'\]:\s+Sections must have a non-empty docstring\.\n"
+            r"- At user\['some_section'\]\['a_short_string'\]:\s+Keywords must have a non-empty docstring\."
+        ],
+        None,
     ),
     (
+        "template_errors",
+        "input.yml",
         "template_empty_documentation.yml",
-        SpecificationError,
-        "section(s) without any documentation: ['some_section']",
+        pytest.raises(ParselglossyError),
+        [
+            r"- At user\['some_section'\]:\s+Sections must have a non-empty docstring\.\n"
+            r"- At user\['some_section'\]\['a_short_string'\]:\s+Keywords must have a non-empty docstring\."
+        ],
+        None,
     ),
     (
+        "template_errors",
+        "input.yml",
         "template_invalid_predicate.yml",
-        SpecificationError,
-        "error in predicate '0 < len(value) <= undefined' in keyword 'a_short_string'",
+        pytest.raises(ParselglossyError),
+        [
+            r"- At user\['some_section'\]\['a_short_string'\]:\s+NameError name 'undefined' is not defined in closure '0 < len\(value\) <= undefined'\."
+        ],
+        None,
     ),
 ]
-
-
-@pytest.mark.parametrize(
-    "template_file_name,exception,error_message",
-    [
-        pytest.param(fname, exc, msg, id=fname.rstrip(".yml"))
-        for fname, exc, msg in template_errors_data
-    ],
-)
-def test_template_errors(template_file_name, exception, error_message):
-    with pytest.raises(exception) as e:
-        input_dict = _helper("template_errors", "input.yml", template_file_name)
-    assert str(e.value) == error_message
-
 
 input_errors_data = [
-    ("input_unexpected_keyword.yml", "found unexpected keyword(s): {'strange'}"),
-    ("input_unexpected_section.yml", "found unexpected section(s): {'weird'}"),
     (
+        "input_errors",
+        "unexpected_keyword.yml",
+        "template.yml",
+        pytest.raises(ParselglossyError),
+        [r"Error(?:s)? occurred when merging:\n- Found unexpected keyword: 'strange'"],
+        None,
+    ),
+    (
+        "input_errors",
+        "unexpected_section.yml",
+        "template.yml",
+        pytest.raises(ParselglossyError),
+        [r"Error(?:s)? occurred when merging:\n- Found unexpected section: 'weird'"],
+        None,
+    ),
+    (
+        "input_errors",
         "input_missing_keyword.yml",
-        "the following keyword(s) must be set: {'a_short_string'}",
-    ),
-    (
-        "input_type_error_bool.yml",
-        "incorrect type for keyword: 'some_feature', expected 'bool' type",
-    ),
-    (
-        "input_type_error_float.yml",
-        "incorrect type for keyword: 'some_float', expected 'float' type",
-    ),
-    (
-        "input_type_error_int.yml",
-        "incorrect type for keyword: 'some_number', expected 'int' type",
-    ),
-    (
-        "input_type_error_list.yml",
-        "incorrect type for keyword: 'some_list', expected 'List[float]' type",
-    ),
-    (
-        "input_type_error_str.yml",
-        "incorrect type for keyword: 'a_short_string', expected 'str' type",
-    ),
-    (
-        "input_predicate_intra.yml",
-        'predicate "value % 2 == 0" failed in keyword "another_number"',
-    ),
-    # in python < 3.6 the dict order is not guaranteed so we are not sure
-    # which of the two errors we hit first
-    (
-        "input_predicate_cross.yml",
+        "template.yml",
+        pytest.raises(ParselglossyError),
         [
-            "predicate \"value < input_dict['some_section']['another_number']\" failed in keyword \"some_number\"",
-            "predicate \"value > input_dict['some_section']['some_number']\" failed in keyword \"another_number\"",
+            r"Error(?:s)? occurred when merging:\n- At user\['some_section'\]\['a_short_string'\]:\s+Keyword 'a_short_string' is required but has no value\."
         ],
+        None,
+    ),
+    (
+        "input_errors",
+        "input_type_error_bool.yml",
+        "template.yml",
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when fixing defaults:\n- At user\['some_section'\]\['some_feature'\]:\s+Actual \(int\) and declared \(bool\) types do not match\."
+        ],
+        None,
+    ),
+    (
+        "input_errors",
+        "input_type_error_float.yml",
+        "template.yml",
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when fixing defaults:\n- At user\['some_float'\]:\s+Actual \(int\) and declared \(float\) types do not match\."
+        ],
+        None,
+    ),
+    (
+        "input_errors",
+        "input_type_error_int.yml",
+        "template.yml",
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when fixing defaults:\n- At user\['some_section'\]\['some_number'\]:\s+Actual \(float\) and declared \(int\) types do not match\."
+        ],
+        None,
+    ),
+    (
+        "input_errors",
+        "input_type_error_list.yml",
+        "template.yml",
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when fixing defaults:\n- At user\['some_section'\]\['some_list'\]:\s+Actual \(List\[float, float, int\]\) and declared \(List\[float\]\) types do not match\."
+        ],
+        None,
+    ),
+    (
+        "input_errors",
+        "input_type_error_str.yml",
+        "template.yml",
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when fixing defaults:\n- At user\['some_section'\]\['a_short_string'\]:\s+Actual \(int\) and declared \(str\) types do not match\."
+        ],
+        None,
+    ),
+    (
+        "input_errors",
+        "input_predicate_intra.yml",
+        "template.yml",
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when checking predicates:\n- At user\['some_section'\]\['another_number'\]:\s+Predicate 'value % 2 == 0' not satisfied\."
+        ],
+        None,
+    ),
+    (
+        "input_errors",
+        "input_predicate_cross.yml",
+        "template.yml",
+        pytest.raises(ParselglossyError),
+        [
+            r"Error(?:s)? occurred when checking predicates:"
+            r"\n- At user\['some_section'\]\['some_number'\]:\s+Predicate 'value < user\['some_section'\]\['another_number'\]' not satisfied\."
+            r"\n- At user\['some_section'\]\['another_number'\]:\s+Predicate 'value > user\['some_section'\]\['some_number'\]' not satisfied\.",
+            r"Error(?:s)? occurred when checking predicates:"
+            r"\n- At user\['some_section'\]\['another_number'\]:\s+Predicate 'value > user\['some_section'\]\['some_number'\]' not satisfied\."
+            r"\n- At user\['some_section'\]\['some_number'\]:\s+Predicate 'value < user\['some_section'\]\['another_number'\]' not satisfied\.",
+        ],
+        None,
     ),
 ]
 
+validation_data = (
+    [
+        ("overall", "input.yml", "template.yml", does_not_raise(), valid(), [""]),
+        (
+            "overall",
+            "default.yml",
+            "template_with_default_section.yml",
+            does_not_raise(),
+            {"foobar": False, "foo": {"bar": False}},
+            [""],
+        ),
+        (
+            "overall",
+            None,
+            "template_all_default.yml",
+            does_not_raise(),
+            {"foobar": True, "foo": {"bar": False}},
+            [""],
+        ),
+    ]
+    + template_errors_data
+    + input_errors_data
+)
+
+
+def ids(terms: List[str]) -> str:
+    return "-".join([t.rsplit(".", 1)[0] if t is not None else "" for t in terms])
+
 
 @pytest.mark.parametrize(
-    "input_file_name,error_message",
+    "folder,input_file_name,template_file_name,raises,valid,error_message",
     [
-        pytest.param(fname, msg, id=fname.rstrip(".yml"))
-        for fname, msg in input_errors_data
+        pytest.param(f, i, t, r, v, e, id=ids([f, i, t]))
+        for f, i, t, r, v, e in validation_data
     ],
 )
-def test_input_errors(input_file_name, error_message):
-    with pytest.raises(ValidationError) as e:
-        input_dict = _helper("input_errors", input_file_name, "template.yml")
-    assert str(e.value) in error_message
+def test_validation(
+    folder, input_file_name, template_file_name, raises, valid, error_message
+):
+    user, template = read_in(folder, input_file_name, template_file_name)
+
+    with raises as e:
+        # Validate and dump JSON
+        dumped = Path("validated.json")
+        user = validate_from_dicts(ir=user, template=template, fr_file=dumped)
+        assert user == valid
+        # Check error message is correct
+        assert re.match("|".join(error_message), str(e)) is not None
+
+        # Read JSON (round-trip check)
+        with dumped.open("r") as v:
+            validated = json.load(v, object_hook=as_complex)
+        assert validated == valid
+        dumped.unlink()
