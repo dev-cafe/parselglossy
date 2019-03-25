@@ -134,10 +134,9 @@ def parse(
     stem = infile.rsplit(".", 1)[0] if isinstance(infile, str) else infile.stem
 
     infile = path_resolver(infile)
+    ir_file = None  # type: Optional[Path]
     if dump_ir:
         ir_file = path_resolver(stem + "_ir.json")
-    else:
-        ir_file = None
 
     ir = lex(infile=infile, ir_file=ir_file, grammar=grammar)
 

@@ -26,43 +26,53 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
+from pathlib import Path
+
 import pytest
 from parselglossy.documentation import documentation_generator
 
-valid = {
-    "keywords": [
-        {"name": "title", "type": "str", "docstring": "Title of the calculation."}
-    ],
-    "sections": [
-        {
-            "name": "foo",
-            "docstring": "brilliant",
-            "keywords": [
-                {
-                    "name": "tragic",
-                    "type": "str",
-                    "docstring": "Title of the calculation.",
-                    "default": "Wham! Bang! Pow! Let's Rock Out!",
-                }
-            ],
-            "sections": [
-                {
-                    "name": "Bar",
-                    "docstring": "A ba-bar section",
-                    "keywords": [
-                        {
-                            "name": "amazing",
-                            "type": "str",
-                            "docstring": "Title of the calculation.",
-                            "default": "Bobson Dugnutt",
-                        }
-                    ],
-                }
-            ],
-        }
-    ],
-}
+
+@pytest.fixture
+def template():
+    return {
+        "keywords": [
+            {"name": "title", "type": "str", "docstring": "Title of the calculation."}
+        ],
+        "sections": [
+            {
+                "name": "foo",
+                "docstring": "brilliant",
+                "keywords": [
+                    {
+                        "name": "tragic",
+                        "type": "str",
+                        "docstring": "Title of the calculation.",
+                        "default": "Wham! Bang! Pow! Let's Rock Out!",
+                    }
+                ],
+                "sections": [
+                    {
+                        "name": "Bar",
+                        "docstring": "A ba-bar section",
+                        "keywords": [
+                            {
+                                "name": "amazing",
+                                "type": "str",
+                                "docstring": "Title of the calculation.",
+                                "default": "Bobson Dugnutt",
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
 
 
-def test_documentation():
-    print(documentation_generator(valid))
+def test_documentation(template):
+    here = Path(__file__).parent
+    doc_ref = here / Path("documentation/input.rst")
+    with doc_ref.open("r") as ref:
+        stuff = ref.read().rstrip("\n")
+
+    assert documentation_generator(template) == stuff
