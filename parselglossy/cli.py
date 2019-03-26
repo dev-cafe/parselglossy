@@ -33,6 +33,7 @@
 import click
 
 from . import __version__, api
+from .utils import default_outfile
 
 
 @click.group()
@@ -78,8 +79,10 @@ def _lex(infile: str, outfile: str, grammar: str) -> None:
         Which grammar to use.
     """
 
+    click.echo(outfile)
     if outfile is None:
         outfile = default_outfile(fname=infile, suffix="_ir.json")
+    click.echo(outfile)
 
     api.lex(infile=infile, grammar=grammar, ir_file=outfile)
 
@@ -240,23 +243,6 @@ def _doc(template: str, outfile: str, header: str):
         outfile = "input.rst"
 
     api.document(template=template, outfile=outfile, header=header)
-
-
-def default_outfile(*, fname: str, suffix: str) -> str:
-    """Default name for output file.
-
-    Parameters
-    ----------
-    fname : str
-        Name to use as stencil.
-    suffix : str
-        Suffix to append.
-
-    Returns
-    -------
-    The name of the output file.
-    """
-    return (fname.split("/")[-1]).rsplit(".", 1)[0] + suffix
 
 
 cli.add_command(_doc)

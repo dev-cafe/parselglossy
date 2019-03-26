@@ -30,6 +30,7 @@
 """Tests for `parselglossy` package."""
 
 from collections import namedtuple
+from string import ascii_letters, digits
 
 from hypothesis import strategies as st
 
@@ -81,6 +82,16 @@ def complex_numbers(draw):
 
 
 @st.composite
+def unquoted_str(draw):
+    """Generate strings compatible with our definition of an unquoted string."""
+
+    start = draw(st.text(alphabet=(ascii_letters + "_"), min_size=1))
+    body = draw(st.text(alphabet=(ascii_letters + digits + "_")))
+
+    return start + body
+
+
+@st.composite
 def list_of_floats(draw, *, start: str = "[", end: str = "]", delimiter: str = ","):
     """Generate list of floating point numbers in various formats.
 
@@ -90,7 +101,7 @@ def list_of_floats(draw, *, start: str = "[", end: str = "]", delimiter: str = "
     """
     lst = draw(st.lists(floats(), min_size=1))
 
-    list_as_string = start + ",".join((x.string for x in lst)) + end
+    list_as_string = start + delimiter.join((x.string for x in lst)) + end
     numbers = [x.value for x in lst]
 
     return Strategy(list_as_string, numbers)
@@ -108,7 +119,20 @@ def list_of_complex_numbers(
     """
     lst = draw(st.lists(complex_numbers(), min_size=1))
 
-    list_as_string = start + ",".join((x.string for x in lst)) + end
+    list_as_string = start + delimiter.join((x.string for x in lst)) + end
     numbers = [x.value for x in lst]
 
     return Strategy(list_as_string, numbers)
+
+
+@st.composite
+def list_of_unquoted_str(
+    draw, *, start: str = "[", end: str = "]", delimiter: str = ","
+):
+    """Generate list of unquoted strings."""
+    lst = draw(st.lists(unquoted_str(), min_size=1))
+
+    list_as_string = start + delimiter.join((x for x in lst)) + end
+    strings = [x for x in lst]
+
+    return Strategy(list_as_string, strings)

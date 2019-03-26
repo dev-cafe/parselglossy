@@ -112,6 +112,27 @@ def path_resolver(f: Union[str, Path]) -> Path:
     return path.resolve()
 
 
+def default_outfile(*, fname: Union[str, Path], suffix: str) -> str:
+    """Default name for output file.
+
+    Parameters
+    ----------
+    fname : Union[str, Path]
+        Name to use as stencil.
+    suffix : str
+        Suffix to append.
+
+    Returns
+    -------
+    The name of the output file.
+    """
+    fname = Path(fname) if isinstance(fname, str) else fname
+
+    base = fname.name
+
+    return base.rsplit(".", 1)[0] + suffix
+
+
 def read_yaml_file(file_name: Path) -> JSONDict:
     """Reads a YAML file and returns it as a dictionary.
 

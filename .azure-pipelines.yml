@@ -1,8 +1,8 @@
 jobs:
 
-- job: 'macOS'
+- job: 'Windows'
   pool:
-    vmImage: 'macOS-10.13'
+    vmImage: 'vs2017-win2016'
   strategy:
     matrix:
       Python36:
@@ -13,9 +13,9 @@ jobs:
   steps:
   - template: .ci/azure-steps.yml
 
-- job: 'Windows'
+- job: 'macOS'
   pool:
-    vmImage: 'vs2017-win2016'
+    vmImage: 'macOS-10.13'
   strategy:
     matrix:
       Python36:

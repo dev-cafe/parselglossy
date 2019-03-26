@@ -41,6 +41,8 @@ from custom_strategies import (
     floats,
     list_of_complex_numbers,
     list_of_floats,
+    list_of_unquoted_str,
+    unquoted_str,
 )
 from parselglossy.grammars import atoms
 from parselglossy.utils import falsey, printable, truthy
@@ -64,9 +66,9 @@ def test_atoms_float(a):
     assert tokens[0] == pytest.approx(a.value)
 
 
-@given(a=st.text(alphabet=(printable), min_size=1))
+@given(a=unquoted_str())
 @example(a="foo_BAR")
-@example(a="!")
+@example(a="_123rdfoo_BAR")
 def test_atoms_unquoted_str(a):
     tokens = atoms.unquoted_str_t.parseString(a).asList()
     assert tokens[0] == a
@@ -123,10 +125,10 @@ def test_list_float(a):
     assert tokens == pytest.approx(a.value)
 
 
-@given(a=st.lists(st.text(alphabet=(printable)), min_size=1))
+@given(a=list_of_unquoted_str())
 def test_list_unquoted_str(a):
-    tokens = atoms.list_t.parseString("{}".format(a)).asList()
-    assert tokens == a
+    tokens = atoms.list_t.parseString(a.string).asList()
+    assert tokens == a.value
 
 
 @pytest.mark.parametrize(
@@ -143,11 +145,11 @@ def test_list_quoted_str(a, quoting):
 def test_list_complex(a):
     scalar = (
         atoms.quoted_str_t
+        ^ atoms.unquoted_str_t
         ^ atoms.complex_t
         ^ atoms.float_t
         ^ atoms.int_t
         ^ atoms.bool_t
-        ^ atoms.unquoted_str_t
     )
     list_t = atoms.make_list_t(scalar)
     tokens = list_t.parseString(a.string).asList()

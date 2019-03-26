@@ -61,15 +61,16 @@ def test_api_lex(args, out, reference):
     ir = api.lex(*args)
 
     # Check intermediate representation matches with reference
-    ref_json = Path(reference)
+    ref_json = Path(reference).resolve()
     if out is None:
         with ref_json.open("r") as f:
             assert ir == json.loads(f.read(), object_hook=as_complex)
     else:
-        with ref_json.open("r") as ref, Path(out).open("r") as o:
+        dumped = Path(out).resolve()
+        with ref_json.open("r") as ref, dumped.open("r") as o:
             assert o.read() == ref.read()
         # Clean up JSON file
-        Path(out).unlink()
+        dumped.unlink()
 
 
 @pytest.mark.parametrize(
@@ -96,15 +97,16 @@ def test_api_validate(args, out, reference):
     fr = api.validate(*args)
 
     # Check final representation matches with reference
-    ref_json = Path(reference)
+    ref_json = Path(reference).resolve()
     if out is None:
         with ref_json.open("r") as f:
             assert fr == json.loads(f.read(), object_hook=as_complex)
     else:
-        with ref_json.open("r") as ref, Path(out).open("r") as o:
+        dumped = Path(out).resolve()
+        with ref_json.open("r") as ref, dumped.open("r") as o:
             assert o.read() == ref.read()
         # Clean up JSON file
-        Path(out).unlink()
+        dumped.unlink()
 
 
 @pytest.mark.parametrize(
@@ -142,15 +144,16 @@ def test_api_parse(args, out, reference):
     fr = api.parse(*args)
 
     # Check final representation matches with reference
-    ref_json = Path(reference)
+    ref_json = Path(reference).resolve()
     if out is None:
         with ref_json.open("r") as f:
             assert fr == json.loads(f.read(), object_hook=as_complex)
     else:
-        with ref_json.open("r") as ref, Path(out).open("r") as o:
+        dumped = Path(out).resolve()
+        with ref_json.open("r") as ref, dumped.open("r") as o:
             assert o.read() == ref.read()
         # Clean up JSON file
-        Path(out).unlink()
+        dumped.unlink()
 
 
 @pytest.mark.parametrize(
@@ -178,12 +181,14 @@ def test_api_document(args, out, reference):
     docs = api.document(*args)
 
     # Check final representation matches with reference
-    ref_rst = Path(reference)
+    ref_rst = Path(reference).resolve()
     if out is None:
         with ref_rst.open("r") as ref:
             assert docs == ref.read()
     else:
-        with ref_rst.open("r") as ref, Path(out).open("r") as o:
+        dumped = Path(out).resolve()
+        with ref_rst.open("r") as ref, dumped.open("r") as o:
             assert o.read() == ref.read()
+
         # Clean up .rst file
-        Path(out).unlink()
+        dumped.unlink()
