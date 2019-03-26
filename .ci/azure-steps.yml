@@ -11,5 +11,5 @@ steps:
   displayName: 'Install dependencies'
 
 - script: |
-    pipenv run py.test -s -v tests/ --doctest-modules
+    pipenv run py.test -svvv tests/ --doctest-modules
   displayName: 'Running tests'

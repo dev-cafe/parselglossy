@@ -34,7 +34,7 @@ from typing import Any, List, Union
 
 import pyparsing as pp
 
-from ..utils import falsey, printable, truthy
+from ..utils import falsey, truthy
 
 
 def to_bool(x):
@@ -60,7 +60,9 @@ int_t = pp.pyparsing_common.signed_integer
 float_t = pp.pyparsing_common.sci_real
 
 quoted_str_t = pp.quotedString.setParseAction(pp.removeQuotes)
-unquoted_str_t = pp.Word(printable)
+unquoted_str_t = pp.Word(pp.alphas + "_", pp.alphanums + "_")
+"""An unquoted string starts with alphabetic characters and underscores,
+followed by alphanumeric characters and underscores."""
 
 I_unit = functools.reduce(
     lambda x, y: x ^ y, map(pp.CaselessLiteral, ["*j", "*i"])
@@ -97,8 +99,8 @@ def make_list_t(
 ) -> Any:
     """Atom for lists.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     scalars: Union[Any, List[Any]]
         Scalar parser elements, already combined or as a list. The list will be
         combined using the `^` operator.
@@ -141,4 +143,4 @@ def make_list_t(
     )
 
 
-list_t = make_list_t(quoted_str_t ^ float_t ^ int_t ^ bool_t ^ unquoted_str_t)
+list_t = make_list_t(quoted_str_t ^ float_t ^ int_t ^ unquoted_str_t ^ bool_t)

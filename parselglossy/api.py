@@ -33,16 +33,16 @@ import json
 from pathlib import Path
 from typing import Optional, Union
 
+from .documentation import documentation_generator
 from .grammars import lexer
 from .utils import JSONDict, as_complex, path_resolver, read_yaml_file
-from .validation import validate_from_dicts
+from .validation import is_template_valid, validate_from_dicts
 
 
 def lex(
-    *,
     infile: Union[str, Path],
-    grammar: str,
-    ir_file: Optional[Union[str, Path]] = None
+    grammar: str = "standard",
+    ir_file: Optional[Union[str, Path]] = None,
 ) -> JSONDict:
     """Run grammar of choice on input string.
 
@@ -66,16 +66,15 @@ def lex(
         ir_file = path_resolver(ir_file)
 
     with infile.open("r") as f:
-        ir = lexer.lex_from_str(in_str=f, grammar=grammar, ir_file=ir_file)
+        ir = lexer.lex_from_str(in_str=f.read(), grammar=grammar, ir_file=ir_file)
 
     return ir
 
 
 def validate(
-    *,
     infile: Union[str, Path],
+    template: Union[str, Path],
     fr_file: Optional[Union[str, Path]] = None,
-    template: Union[str, Path]
 ) -> JSONDict:
     """Validate intermediate representation into final representation.
 
@@ -83,11 +82,15 @@ def validate(
     ----------
     infile : Union[str, Path]
         The file with the intermediate representation (JSON format).
+    template : Union[str, Path]
+        Which validation template to use.
     fr_file : Union[str, Path]
         File to write final representation to (JSON format).
         None by default, which means file is not written out.
-    template : Union[str, Path]
-        Which validation template to use.
+
+    Returns
+    -------
+    The validated input as a dictionary.
     """
 
     infile = path_resolver(infile)
@@ -95,56 +98,94 @@ def validate(
         ir = json.load(f, object_hook=as_complex)
 
     template = path_resolver(template)
-    stencil = read_yaml_file(Path(template))
+    stencil = read_yaml_file(template)
 
     if fr_file is not None:
         fr_file = path_resolver(fr_file)
 
-    fr = validate_from_dicts(ir=ir, template=stencil, fr_file=fr_file)
-
-    return fr
+    return validate_from_dicts(ir=ir, template=stencil, fr_file=fr_file)
 
 
 def parse(
-    *,
     infile: Union[str, Path],
-    outfile: Optional[Union[str, Path]] = None,
-    grammar: str,
     template: Union[str, Path],
-    dump_ir: bool = False
-) -> None:
+    outfile: Optional[Union[str, Path]] = None,
+    grammar: str = "standard",
+    dump_ir: bool = False,
+) -> JSONDict:
     """Parse input file.
 
     Parameters
     ----------
     infile : Union[str, Path]
         The input file to be parsed.
-    outfile : Union[str, Path]
-        The output file.
-        None by default, which means file name default to <infile>_fr.json
-    grammar : str
-        Which grammar to use.
     template : Union[str, Path]
         Which validation template to use.
+    outfile : Optional[Union[str, Path]]
+        The output file.
+        Defaults to ``None``, which means writing to ``<infile>_fr.json``.
+    grammar : str
+        Which grammar to use. Defaults to ``standard``.
     write_ir_out : bool
         Whether to write out the intermediate representation to file (JSON format).
-        False by default. If true the filename if <infile>_ir.json
+        False by default. If true the filename if ``<infile>_ir.json``
+
+    Returns
+    -------
+    The validated input as a dictionary.
     """
 
     stem = infile.rsplit(".", 1)[0] if isinstance(infile, str) else infile.stem
 
     infile = path_resolver(infile)
+    ir_file = None  # type: Optional[Path]
     if dump_ir:
         ir_file = path_resolver(stem + "_ir.json")
-    else:
-        ir_file = None
 
     ir = lex(infile=infile, ir_file=ir_file, grammar=grammar)
 
     template = path_resolver(template)
-    stencil = read_yaml_file(Path(template))
+    stencil = read_yaml_file(template)
 
     if outfile is not None:
         outfile = path_resolver(outfile)
 
-    fr = validate_from_dicts(ir=ir, template=stencil, fr_file=outfile)  # noqa: F841
+    return validate_from_dicts(ir=ir, template=stencil, fr_file=outfile)
+
+
+def document(
+    template: Union[str, Path],
+    outfile: Optional[Union[str, Path]] = None,
+    header: str = "Input parameters",
+) -> str:
+    """Generate documentation in reStructuredText format from validation template.
+
+    Parameters
+    ----------
+    template : Union[str, Path]
+        Which validation template to use.
+    output : Union[str, Path]
+        Where to save the generated documentation.
+        Defaults to ``None``.
+    header : str
+        Header for the documentation page.
+        Defaults to ``Input parameters``.
+
+    Returns
+    -------
+    The documentation page as a string.
+    """
+
+    template = path_resolver(template)
+    stencil = read_yaml_file(template)
+
+    is_template_valid(stencil)
+
+    docs = documentation_generator(stencil, header=header)
+
+    if outfile is not None:
+        outfile = path_resolver(outfile)
+        with outfile.open("w") as o:
+            o.write(docs)
+
+    return docs

@@ -1,0 +1,20 @@
+keywords:
+- docstring: Title of the calculation.
+  name: title
+  type: str
+sections:
+- docstring: brilliant
+  keywords:
+  - default: Wham! Bang! Pow! Let's Rock Out!
+    docstring: Title of the calculation.
+    name: tragic
+    type: str
+  name: foo
+  sections:
+  - docstring: A ba-bar section
+    keywords:
+    - default: Bobson Dugnutt
+      docstring: Title of the calculation.
+      name: amazing
+      type: str
+    name: Bar

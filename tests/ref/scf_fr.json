@@ -1,0 +1,1 @@
+{"title": "My fantastic calculation", "scf": {"functional": "B3LYP", "max_num_iterations": 40, "another_number": 10, "some_acceleration": true, "some_complex_number": {"__complex__": [1.0, 9.4]}, "thresholds": {"some_integral_screening": 1e-08, "energy": 1e-05}}}

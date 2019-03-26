@@ -1,0 +1,22 @@
+/* This is a comment */
+title = "My fantastic calculation"
+
+// This is another comment
+! Yet another comment
+
+scf {
+  /* This is a comment */
+  functional = "B3LYP"
+  // This is another comment
+  max_num_iterations = 40
+  ! Yet another comment
+  some_complex_number = 1.0 +9.4*j
+  some_acceleration = true
+  thresholds {
+    energy = 1.0e-5
+# I love comments!
+    some_integral_screening = 1.0e-8
+  }
+}
+
+# I love comments!
