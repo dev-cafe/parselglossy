@@ -68,7 +68,9 @@ def test_api_lex(args, out, reference):
     else:
         dumped = Path(out).resolve()
         with ref_json.open("r") as ref, dumped.open("r") as o:
-            assert o.read() == ref.read()
+            assert json.loads(o.read(), object_hook=as_complex) == json.loads(
+                ref.read(), object_hook=as_complex
+            )
         # Clean up JSON file
         dumped.unlink()
 
@@ -104,7 +106,9 @@ def test_api_validate(args, out, reference):
     else:
         dumped = Path(out).resolve()
         with ref_json.open("r") as ref, dumped.open("r") as o:
-            assert o.read() == ref.read()
+            assert json.loads(o.read(), object_hook=as_complex) == json.loads(
+                ref.read(), object_hook=as_complex
+            )
         # Clean up JSON file
         dumped.unlink()
 
@@ -151,7 +155,9 @@ def test_api_parse(args, out, reference):
     else:
         dumped = Path(out).resolve()
         with ref_json.open("r") as ref, dumped.open("r") as o:
-            assert o.read() == ref.read()
+            assert json.loads(o.read(), object_hook=as_complex) == json.loads(
+                ref.read(), object_hook=as_complex
+            )
         # Clean up JSON file
         dumped.unlink()
 

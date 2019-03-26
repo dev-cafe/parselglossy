@@ -92,7 +92,7 @@ def test_keyword(keywords):
     assert tokens == reference
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, indent=4)
     del tokens
 
     # load from JSON
@@ -120,7 +120,7 @@ def test_section(name):
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, indent=4)
     del tokens
 
     # load from JSON
@@ -152,7 +152,7 @@ def test_flat_sections(flat_sections):
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, indent=4)
     del tokens
 
     # load from JSON
@@ -185,7 +185,7 @@ def test_nested_sections(nested_sections):
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, indent=4)
     del tokens
 
     # load from JSON
@@ -236,7 +236,7 @@ def test_keywords_and_section(name):
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, indent=4)
     del tokens
 
     # load from JSON
@@ -290,7 +290,7 @@ def test_keywords_and_flat_sections(keywords_and_flat_sections):
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, indent=4)
     del tokens
 
     # load from JSON
@@ -344,7 +344,7 @@ def test_keywords_and_nested_sections(keywords_and_nested_sections):
     assert tokens == ref_dict
     # dump to JSON
     getkw_json = StringIO()
-    json.dump(tokens, getkw_json)
+    json.dump(tokens, getkw_json, indent=4)
     del tokens
 
     # load from JSON

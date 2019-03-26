@@ -126,7 +126,7 @@ def parse(
         Defaults to ``None``, which means writing to ``<infile>_fr.json``.
     grammar : str
         Which grammar to use. Defaults to ``standard``.
-    write_ir_out : bool
+    dump_ir : bool
         Whether to write out the intermediate representation to file (JSON format).
         False by default. If true the filename if ``<infile>_ir.json``
 
@@ -135,12 +135,11 @@ def parse(
     The validated input as a dictionary.
     """
 
-    stem = infile.rsplit(".", 1)[0] if isinstance(infile, str) else infile.stem
-
     infile = path_resolver(infile)
+
     ir_file = None  # type: Optional[Path]
     if dump_ir:
-        ir_file = path_resolver(stem + "_ir.json")
+        ir_file = path_resolver(Path(infile).stem + "_ir.json")
 
     ir = lex(infile=infile, ir_file=ir_file, grammar=grammar)
 

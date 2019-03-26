@@ -75,7 +75,7 @@ def lex_from_str(
     if ir_file is not None:
         ir_file = path_resolver(ir_file)
         with ir_file.open("w") as out:
-            json.dump(ir, out, cls=ComplexEncoder)
+            json.dump(ir, out, cls=ComplexEncoder, indent=4)
 
     return ir
 
