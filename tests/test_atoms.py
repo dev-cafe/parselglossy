@@ -66,8 +66,9 @@ def test_atoms_float(a):
 
 @given(a=st.text(alphabet=(printable), min_size=1))
 @example(a="foo_BAR")
+@example(a="!")
 def test_atoms_unquoted_str(a):
-    tokens = atoms.unquoted_str_t.parseString("{:s}".format(a)).asList()
+    tokens = atoms.unquoted_str_t.parseString(a).asList()
     assert tokens[0] == a
 
 

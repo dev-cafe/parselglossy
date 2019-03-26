@@ -31,7 +31,7 @@
 
 import json
 from pathlib import Path
-from typing import IO, Any, Union
+from typing import IO, Any, Optional, Union
 
 from . import getkw
 from ..exceptions import ParselglossyError
@@ -39,7 +39,10 @@ from ..utils import ComplexEncoder, JSONDict, path_resolver
 
 
 def lex_from_str(
-    *, in_str: IO[Any], grammar: str = "standard", ir_file: Union[str, Path] = None
+    *,
+    in_str: IO[Any],
+    grammar: str = "standard",
+    ir_file: Optional[Union[str, Path]] = None
 ) -> JSONDict:
     """Run grammar of choice on input string.
 

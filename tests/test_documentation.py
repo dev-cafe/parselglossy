@@ -29,6 +29,7 @@
 from pathlib import Path
 
 import pytest
+
 from parselglossy.documentation import documentation_generator
 
 
@@ -70,8 +71,7 @@ def template():
 
 
 def test_documentation(template):
-    here = Path(__file__).parent
-    doc_ref = here / Path("documentation/input.rst")
+    doc_ref = Path(__file__).parent / Path("ref/input.rst")
     with doc_ref.open("r") as ref:
         stuff = ref.read().rstrip("\n")
 
