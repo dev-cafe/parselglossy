@@ -79,10 +79,8 @@ def _lex(infile: str, outfile: str, grammar: str) -> None:
         Which grammar to use.
     """
 
-    click.echo(outfile)
     if outfile is None:
         outfile = default_outfile(fname=infile, suffix="_ir.json")
-    click.echo(outfile)
 
     api.lex(infile=infile, grammar=grammar, ir_file=outfile)
 

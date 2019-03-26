@@ -62,10 +62,8 @@ def lex(
     """
 
     infile = path_resolver(infile)
-    print("ir_file", ir_file)
     if ir_file is not None:
         ir_file = path_resolver(ir_file)
-    print("ir_file", ir_file)
 
     with infile.open("r") as f:
         ir = lexer.lex_from_str(in_str=f.read(), grammar=grammar, ir_file=ir_file)

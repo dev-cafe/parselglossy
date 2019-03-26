@@ -145,10 +145,10 @@ def test_list_quoted_str(a, quoting):
 def test_list_complex(a):
     scalar = (
         atoms.quoted_str_t
-        ^ atoms.unquoted_str_t
         ^ atoms.complex_t
         ^ atoms.float_t
         ^ atoms.int_t
+        ^ atoms.unquoted_str_t
         ^ atoms.bool_t
     )
     list_t = atoms.make_list_t(scalar)

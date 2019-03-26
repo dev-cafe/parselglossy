@@ -64,119 +64,114 @@ def test_cli_switches(switch, expected):
             "standard_ir.json",
             "tests/ref/standard_ir.json",
         ),
-       # (
-       #     [
-       #         "lex",
-       #         "tests/cli/getkw.inp",
-       #         "--outfile",
-       #         "lex_ir.json",
-       #         "--grammar",
-       #         "getkw",
-       #     ],
-       #     "lex_ir.json",
-       #     "tests/ref/getkw_ir.json",
-       # ),
-       # (
-       #     [
-       #         "validate",
-       #         "tests/ref/scf_ir.json",
-       #         "--template",
-       #         "tests/validation/overall/template.yml",
-       #     ],
-       #     "scf_ir_fr.json",
-       #     "tests/ref/scf_fr.json",
-       # ),
-       # (
-       #     [
-       #         "validate",
-       #         "tests/ref/scf_ir.json",
-       #         "--template",
-       #         "tests/validation/overall/template.yml",
-       #         "--outfile",
-       #         "scf_fr.json",
-       #     ],
-       #     "scf_fr.json",
-       #     "tests/ref/scf_fr.json",
-       # ),
-       # (
-       #     [
-       #         "parse",
-       #         "tests/cli/scf.inp",
-       #         "--template",
-       #         "tests/validation/overall/template.yml",
-       #     ],
-       #     "scf_fr.json",
-       #     "tests/ref/scf_fr.json",
-       # ),
-       # (
-       #     [
-       #         "parse",
-       #         "tests/cli/scf.inp",
-       #         "--template",
-       #         "tests/validation/overall/template.yml",
-       #         "--outfile",
-       #         "scf_fr.json",
-       #     ],
-       #     "scf_fr.json",
-       #     "tests/ref/scf_fr.json",
-       # ),
-       # (
-       #     [
-       #         "parse",
-       #         "tests/cli/scf.inp",
-       #         "--template",
-       #         "tests/validation/overall/template.yml",
-       #         "--grammar",
-       #         "standard",
-       #         "--dump-ir",
-       #     ],
-       #     "scf_fr.json",
-       #     "tests/ref/scf_fr.json",
-       # ),
-       # (["doc", "tests/cli/docs_template.yml"], "input.rst", "tests/ref/input.rst"),
-       # (
-       #     ["doc", "tests/cli/docs_template.yml", "--outfile", "input.rst"],
-       #     "input.rst",
-       #     "tests/ref/input.rst",
-       # ),
-       # (
-       #     [
-       #         "doc",
-       #         "tests/cli/docs_template.yml",
-       #         "--outfile",
-       #         "input.rst",
-       #         "--header",
-       #         "Dwigt Rortugal's guide to input parameters",
-       #     ],
-       #     "input.rst",
-       #     "tests/ref/dwigt.rst",
-       # ),
+        (
+            [
+                "lex",
+                "tests/cli/getkw.inp",
+                "--outfile",
+                "lex_ir.json",
+                "--grammar",
+                "getkw",
+            ],
+            "lex_ir.json",
+            "tests/ref/getkw_ir.json",
+        ),
+        (
+            [
+                "validate",
+                "tests/ref/scf_ir.json",
+                "--template",
+                "tests/validation/overall/template.yml",
+            ],
+            "scf_ir_fr.json",
+            "tests/ref/scf_fr.json",
+        ),
+        (
+            [
+                "validate",
+                "tests/ref/scf_ir.json",
+                "--template",
+                "tests/validation/overall/template.yml",
+                "--outfile",
+                "scf_fr.json",
+            ],
+            "scf_fr.json",
+            "tests/ref/scf_fr.json",
+        ),
+        (
+            [
+                "parse",
+                "tests/cli/scf.inp",
+                "--template",
+                "tests/validation/overall/template.yml",
+            ],
+            "scf_fr.json",
+            "tests/ref/scf_fr.json",
+        ),
+        (
+            [
+                "parse",
+                "tests/cli/scf.inp",
+                "--template",
+                "tests/validation/overall/template.yml",
+                "--outfile",
+                "scf_fr.json",
+            ],
+            "scf_fr.json",
+            "tests/ref/scf_fr.json",
+        ),
+        (
+            [
+                "parse",
+                "tests/cli/scf.inp",
+                "--template",
+                "tests/validation/overall/template.yml",
+                "--grammar",
+                "standard",
+                "--dump-ir",
+            ],
+            "scf_fr.json",
+            "tests/ref/scf_fr.json",
+        ),
+        (["doc", "tests/cli/docs_template.yml"], "input.rst", "tests/ref/input.rst"),
+        (
+            ["doc", "tests/cli/docs_template.yml", "--outfile", "input.rst"],
+            "input.rst",
+            "tests/ref/input.rst",
+        ),
+        (
+            [
+                "doc",
+                "tests/cli/docs_template.yml",
+                "--outfile",
+                "input.rst",
+                "--header",
+                "Dwigt Rortugal's guide to input parameters",
+            ],
+            "input.rst",
+            "tests/ref/dwigt.rst",
+        ),
     ],
     ids=[
         "lex-default",
-       # "lex-getkw-w-outfile",
-       # "validate-default",
-       # "validate-w-outfile",
-       # "parse-default",
-       # "parse-w-outfile",
-       # "parse-w-dumpir",
-       # "doc-default",
-       # "doc-w-outfile",
-       # "doc-w-header",
+        "lex-getkw-w-outfile",
+        "validate-default",
+        "validate-w-outfile",
+        "parse-default",
+        "parse-w-outfile",
+        "parse-w-dumpir",
+        "doc-default",
+        "doc-w-outfile",
+        "doc-w-header",
     ],
 )
 def test_cli_commands(command, out, reference):
-    print("cwd", Path.cwd())
     runner = CliRunner()
     result = runner.invoke(cli.cli, command)
     assert result.exit_code == 0
 
-    print(result.output)
-
     # Check dumped file matches with reference
     dumped = Path(out).resolve()
-    print("dumped", dumped)
-    print("dumped.exists()", dumped.exists())
     ref = Path(reference)
     with ref.open("r") as ref, dumped.open("r") as o:
         assert o.read() == ref.read()

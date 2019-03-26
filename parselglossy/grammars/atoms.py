@@ -143,4 +143,4 @@ def make_list_t(
     )
 
 
-list_t = make_list_t(quoted_str_t ^ unquoted_str_t ^ float_t ^ int_t ^ bool_t)
+list_t = make_list_t(quoted_str_t ^ float_t ^ int_t ^ unquoted_str_t ^ bool_t)
