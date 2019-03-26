@@ -16,6 +16,10 @@ parselglossy Documentation
 
    -- **1 Corinthians** 14:18
 
+   Parse it on!
+
+   -- Bobson Dugnutt, **Private communication**
+
 
 Generic input parsing library, speaking in tongues.
 

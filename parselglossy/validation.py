@@ -81,7 +81,7 @@ def validate_from_dicts(
     if fr_file is not None:
         fr_file = path_resolver(fr_file)
         with fr_file.open("w") as out:
-            json.dump(fr, out, cls=ComplexEncoder)
+            json.dump(fr, out, cls=ComplexEncoder, indent=4)
 
     return fr
 

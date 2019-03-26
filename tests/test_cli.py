@@ -31,6 +31,7 @@
 # -*- coding: utf-8 -*-
 """Tests for `parselglossy` package."""
 
+import json
 import re
 from pathlib import Path
 
@@ -38,6 +39,7 @@ import pytest
 from click.testing import CliRunner
 
 from parselglossy import __version__, cli
+from parselglossy.utils import as_complex
 
 
 @pytest.mark.parametrize(
@@ -173,8 +175,14 @@ def test_cli_commands(command, out, reference):
     # Check dumped file matches with reference
     dumped = Path(out).resolve()
     ref = Path(reference)
-    with ref.open("r") as ref, dumped.open("r") as o:
-        assert o.read() == ref.read()
+    if command[0] == "doc":
+        with ref.open("r") as ref, dumped.open("r") as o:
+            assert o.read() == ref.read()
+    else:
+        with ref.open("r") as ref, dumped.open("r") as o:
+            assert json.loads(o.read(), object_hook=as_complex) == json.loads(
+                ref.read(), object_hook=as_complex
+            )
 
     # Clean up file
     dumped.unlink()
