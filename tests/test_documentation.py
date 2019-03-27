@@ -71,7 +71,7 @@ def template():
 
 
 def test_documentation(template):
-    doc_ref = Path(__file__).parent / Path("ref/input.rst")
+    doc_ref = Path(__file__).parent / Path("ref/simple.rst")
     with doc_ref.open("r") as ref:
         stuff = ref.read().rstrip("\n")
 

@@ -16,7 +16,7 @@ Dwigt Rortugal's guide to input parameters
 - Predicates, if present, are the functions run to validate user input.
 
 :red:`Keywords`
- :title: Title of the calculation.
+ :title: Title of the calculation. I had to write an extremely long documentation string for this one, as it is extremely important to let you know that this keyword will define the title of the calculation and, not having a default, you will be required to set it! 
 
   **Type** ``str``
 
@@ -70,7 +70,7 @@ Dwigt Rortugal's guide to input parameters
       
         **Default** ``True``
       
- :fooffa: nothing really
+ :fooffa: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec luctus elit ut posuere dictum. Proin ipsum libero, maximus vitae placerat a, bibendum viverra ante. 
 
   :red:`Keywords`
    :dwigt: An unusual name

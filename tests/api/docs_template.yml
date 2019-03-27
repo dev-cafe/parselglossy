@@ -1,5 +1,9 @@
 keywords:
-- docstring: Title of the calculation.
+- docstring: |
+    Title of the calculation. I had to write an extremely long documentation
+    string for this one, as it is extremely important to let you know that this
+    keyword will define the title of the calculation and, not having a default,
+    you will be required to set it!
   name: title
   type: str
 - docstring: Some integer
@@ -39,7 +43,10 @@ sections:
       type: bool
       docstring: A cool bool
       default: True
-- docstring: nothing really
+- docstring: |
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec luctus elit
+    ut posuere dictum. Proin ipsum libero, maximus vitae placerat a, bibendum
+    viverra ante.
   name: fooffa
   keywords:
   - name: dwigt
