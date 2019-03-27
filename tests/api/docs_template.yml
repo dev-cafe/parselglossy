@@ -1,20 +1,60 @@
 keywords:
-- docstring: Title of the calculation.
+- docstring: |
+    Title of the calculation. I had to write an extremely long documentation
+    string for this one, as it is extremely important to let you know that this
+    keyword will define the title of the calculation and, not having a default,
+    you will be required to set it!
   name: title
   type: str
+- docstring: Some integer
+  name: an_integer
+  type: int
+  default: 15
+- docstring: A list of floats
+  name: float_list
+  type: List[float]
+  default: [1.0, 2.0, 3.0]
+  predicates:
+    - "len(value) < 10"
+    - "max(value) < user['foo']['fooffa]['another_float']"
 sections:
 - docstring: brilliant
+  name: foo
   keywords:
   - default: Wham! Bang! Pow! Let's Rock Out!
     docstring: Title of the calculation.
     name: tragic
     type: str
-  name: foo
+  - name: a_float
+    type: float
+    docstring: A floating point number
+    predicates:
+      - "value < 35.0"
+      - "value in user['float_list']"
   sections:
   - docstring: A ba-bar section
+    name: Bar
     keywords:
     - default: Bobson Dugnutt
       docstring: Title of the calculation.
       name: amazing
       type: str
-    name: Bar
+    - name: coolio
+      type: bool
+      docstring: A cool bool
+      default: True
+- docstring: |
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec luctus elit
+    ut posuere dictum. Proin ipsum libero, maximus vitae placerat a, bibendum
+    viverra ante.
+  name: fooffa
+  keywords:
+  - name: dwigt
+    docstring: An unusual name
+    type: str
+    predicates:
+      - "len(value) < 80"
+  - name: another_float
+    type: float
+    docstring: Another floating point number
+    default: "user['foo']['a_float'] * 2"
