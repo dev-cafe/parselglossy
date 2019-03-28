@@ -149,22 +149,16 @@ A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed (including an entry in ``HISTORY.rst``).
 Then run:
 
-1. Bump the version using the ``bumpversion`` executable::
+1. Bump the version by editing ``__version__`` in ``parselglossy/__init__.py``.
+   For this follow `PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_.
 
-   $ bumpversion patch --no-tag --no-commit # possible: major / minor / patch
+2. Stage and commit the change to a branch::
 
-2. Make sure that the files touched by ``bumpversion`` all look correct. Then add them and commit::
-
-   $ git add setup.py  setup.cfg parselglossy/__init__.py
+   $ git add parselglossy/__init__.py
    $ git commit -sm "Bump version: x.y.z -> X.Y.Z"
 
-3. Tag the release::
+3. Submit a pull request targetting either the ``master`` branch or a
+   release branch.
 
-   $ git tag -a vX.Y.Z -m "Version X.Y.Z release" -s # -s is to GPG-sign the tag
-
-4. Push latest commits and the tag. Remember to disengage branch protection for the ``master`` branch::
-
-   $ git push
-   $ git push --tags
-
-Travis will then deploy to PyPI if tests pass for the Python 3.6 lane.
+4. Once the pull request is accepted, create a release via the GitHub web user interface.
+   Travis will then deploy to PyPI if tests pass for the Python 3.6 lane.
