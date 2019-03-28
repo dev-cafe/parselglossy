@@ -3,12 +3,19 @@
 """The setup script."""
 
 from setuptools import find_packages, setup
+from pathlib import Path
 
 with open("README.rst") as readme_file:
     readme = readme_file.read()
 
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
+
+# extract __version__ from __init__.py
+_version = {}
+with Path("parselglossy/__init__.py").open("r") as f:
+    exec(f.read(), _version)
+version=_version['__version__']
 
 requirements = ["Click>=6.0", "pyparsing>=2.2", "pyyaml>=3.13"]
 
@@ -41,6 +48,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/dev-cafe/parselglossy",
-    version="0.2.0",
+    version=version,
     zip_safe=False,
 )

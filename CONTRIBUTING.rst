@@ -149,13 +149,12 @@ A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed (including an entry in ``HISTORY.rst``).
 Then run:
 
-1. Bump the version using the ``bumpversion`` executable::
+1. Bump the version by editing ``__version__`` in ``parselglossy/__init__.py``.
+   For this follow `PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_.
 
-   $ bumpversion patch --no-tag --no-commit # possible: major / minor / patch
+2. Stage and commit the change::
 
-2. Make sure that the files touched by ``bumpversion`` all look correct. Then add them and commit::
-
-   $ git add setup.py  setup.cfg parselglossy/__init__.py
+   $ git add parselglossy/__init__.py
    $ git commit -sm "Bump version: x.y.z -> X.Y.Z"
 
 3. Tag the release::

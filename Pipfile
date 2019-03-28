@@ -4,7 +4,6 @@ verify_ssl = true
 
 [dev-packages]
 Sphinx = "*"
-bumpversion = "*"
 codecov = "*"
 coverage = "*"
 flake8 = "*"
