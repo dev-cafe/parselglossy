@@ -23,8 +23,8 @@ setup_requirements = []
 test_requirements = []
 
 setup(
-    author="Roberto Di Remigio",
-    author_email="roberto.diremigio@gmail.com",
+    author=_init_fields['__author__'],
+    author_email=_init_fields['__email__'],
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
