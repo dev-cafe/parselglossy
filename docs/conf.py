@@ -42,7 +42,6 @@ html_theme_options = {
     # Set the name of the project to appear in the sidebar
     "project_nav_name": "parselglossy"
 }
-html_static_path = ["_static"]
 
 
 def run_apidoc(_):
