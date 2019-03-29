@@ -8,7 +8,7 @@ from sphinx.ext.apidoc import main
 
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
-from parselglossy import __version__ as psversion  # isort:skip
+from parselglossy import __version__ as _version  # isort:skip
 
 # -- General configuration ---------------------------------------------
 
@@ -20,9 +20,9 @@ project = u"parselglossy"
 copyright = u"2018, dev-cafe"
 author = u"Roberto Di Remigio, Radovan Bast"
 # The short X.Y version.
-version = psversion
+version = _version
 # The full version, including alpha/beta/rc tags.
-release = psversion
+release = _version
 language = None
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 pygments_style = "sphinx"
