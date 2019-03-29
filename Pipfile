@@ -3,20 +3,15 @@ url = "https://pypi.python.org/simple"
 verify_ssl = true
 
 [dev-packages]
-Sphinx = "*"
 codecov = "*"
 coverage = "*"
 flake8 = "*"
-guzzle-sphinx-theme = "*"
 hypothesis = "*"
 ipython = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-mypy = "*"
 pytest-flake8 = "*"
-twine = "*"
-watchdog = "*"
-wheel = "*"
 
 [packages]
 click = "*"
