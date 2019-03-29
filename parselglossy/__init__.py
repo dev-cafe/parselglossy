@@ -31,7 +31,7 @@
 
 __author__ = """Roberto Di Remigio, Radovan Bast"""
 __email__ = "roberto.diremigio@gmail.com"
-__version__ = "0.2.0"
+__version__ = "0.3.0-alpha2"
 __copyright__ = "Copyright 2019, dev-cafe"
 __credits__ = [
     "Jonas Juselius",

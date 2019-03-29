@@ -2,8 +2,16 @@
 History
 =======
 
-Unreleased
-----------
+Unreleased_
+-----------
+
+0.3.0-alpha2_ (2019-03-29)
+--------------------------
+
+* Update ``CONTRIBUTING.rst``.
+
+0.3.0-alpha1_ (2019-03-28)
+--------------------------
 
 * Dropped support for Python 3.4.
 * Renamed the ``section`` and ``keyword`` fields in the template to ``name``.
@@ -31,7 +39,9 @@ Unreleased
 * First release on PyPI.
 
 
-.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.2.0...HEAD
+.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.3.0-alpha2...HEAD
+.. _0.3.0-alpha2: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0-alpha2
+.. _0.3.0-alpha1: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0-alpha1
 .. _0.2.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.2.0
 .. _0.1.0: https://pypi.org/project/parselglossy/0.1.0/
 .. _Getkw: https://github.com/dev-cafe/libgetkw

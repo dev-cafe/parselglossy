@@ -157,8 +157,14 @@ Then run:
    $ git add parselglossy/__init__.py
    $ git commit -sm "Bump version: x.y.z -> X.Y.Z"
 
-3. Submit a pull request targetting either the ``master`` branch or a
+3. Submit a pull request targeting either the ``master`` branch or a
    release branch.
 
-4. Once the pull request is accepted, create a release via the GitHub web user interface.
-   Travis will then deploy to PyPI if tests pass for the Python 3.6 lane.
+4. Once the pull request is accepted, create and push a tag::
+
+   $ git tag -a vX.Y.Z -m "Version X.Y.Z release" -s # -s is to GPG-sign the tag
+
+  Travis will then automatically deploy to PyPI if tests pass for the Python 3.6 lane.
+
+5. If everything worked out, write a minimal summary of the release *via* the
+   GitHub web user interface.
