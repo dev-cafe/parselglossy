@@ -11,11 +11,10 @@ with open("README.rst") as readme_file:
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
-# extract __version__ from __init__.py
-_version = {}
+# extract fields such as __version__ from __init__.py
+_init_fields = {}
 with Path("parselglossy/__init__.py").open("r") as f:
-    exec(f.read(), _version)
-version=_version['__version__']
+    exec(f.read(), _init_fields)
 
 requirements = ["Click>=6.0", "pyparsing>=2.2", "pyyaml>=3.13"]
 
@@ -48,6 +47,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/dev-cafe/parselglossy",
-    version=version,
+    version=_init_fields['__version__'],
     zip_safe=False,
 )
