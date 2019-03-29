@@ -23,13 +23,15 @@ script:
 after_success:
   - pipenv run codecov
 
+# Generated 2019-03-29 by @robertodr with `travis setup pypi`
 deploy:
   provider: pypi
-  distributions: sdist bdist_wheel
   user: robertodr
+  server: https://testpypi.python.org/pypi # Remove for deployment to official PyPi repo
   password:
-    secure: ZWSXGsf6P/SkH/dxxYVCtTsGnVBMVvNbYpwS4D2jE3XImnUXsDWzuqCwBUA28Z1ndKLIjvo0xXrXJSSoPJ6hRu8k5EO+Km+5jYxp0pez3huz3NG9w63YUnNZP37gQo+w/CX7R81koEQoV2eYcmz7cVaAIXOdwoGVJjPpCeK7XYwfQWy3KJeOcS2gshSpR13SPe2s9I++UPB0lRY1+Z1XckDHxh5TJqBMYfEc/I4VGHM0RtcvDJQa38PMQQs4jpZA9uwwbo4WFJ0bifJXIkRygqGBoPMV87V1WGd4FGN/b1oNSYgUJwzeVnr3BGFp0VI2oR++DMmECnPS+ssG1p7Zjh8hslC5aRdA0JhyEFB9cRzOIk93rGhJ8EPx8rlt80VUt6WTaL/HyHmAT45IToHU0CndcpcOedmW0QsRqpn+FI02cYZT/xmCCVHh1vBBr7V8DMxQKjPxQIluvC6JAH6RxtTG/J6z28XMmIqzEU6Xh9DMpyeO0ddGccNxTspGqnIyr/ZnnfnWJTbEV0dq62uBd8AC4NgjefNi7QaPmxL58Ctlc2mlAyY0khA2h1r5XVY4lTsRvEChtr8WaB+kSH5xTmRTcKfigM3lIwea4S0xYYMNpyJQnZRNALQvTmwCuwRI2ehg+RJOIElZj3UhMg9AOi65FaJ2VIee8n1HiQHVkjw=
+    secure: hV0LaHjzcknyCJnX4o43TGF6k1dWlzdQOmon2RDIWDOWidEenSgEqigaRvmmbSTMAUj+EcYBhVZDMjwP/HFonrNdts2dKQ4wo/Xvkz/VeYmD6FHdLLQfk0RxcwBtHvpKxBwbI3SrEI/vKBmtkA5COxJAyGX3svyHw2xzDu3PRUFxvs+Y2D1qp7BRjGTBmRnKcV4lkOtUG0r+QE+yyJQHUa6GMwZRVwPxxeVOWnps2/0s0jNAjXIZLfuww+HTFVUzpf8ZXeRH5q0ENiAtAppDQLVrnFSzFalqJ7/wvX6ajnLcQaXniC2bR412We0eKRA6B1W9Mshqgkppv/HkL0T1oHBFrhDRvx2wlGWBv453B2TJNnfm3c2J4It8BwXyCaQ69HYKvfTYDB/KqnQq89cNplsNO+Cu7tvMURBqH4iLy+UwfYvay6bWG5dkhwIroznv5FU8RRKr4cVAhVsquG9AdbHzIksPi6btGdP47ICQl6r5weSNifZAJO3ku47jHQzWgaqtglEIH1hp2vZ9JKbkWGqnk3yeG2rhHWmhl+kfNOTDXFIdWR2TfjtbjJAC3uJAVtz+c5iYOtwZOGee8XdRlyIzzwGVxs20EG3lKy8tgyLznoIKbuQUzvQZBG62cWX3z9dQ8Rqq14BuPJ+/HU70VYxEpAfgEsoWJsBwdW1xFek=
   on:
     tags: true
+    distributions: sdist bdist_wheel
     repo: dev-cafe/parselglossy
     python: 3.6
