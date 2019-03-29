@@ -11,11 +11,10 @@ with open("README.rst") as readme_file:
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
-# extract __version__ from __init__.py
-_version = {}
+# extract fields such as __version__ from __init__.py
+_init_fields = {}
 with Path("parselglossy/__init__.py").open("r") as f:
-    exec(f.read(), _version)
-version=_version['__version__']
+    exec(f.read(), _init_fields)
 
 requirements = [
     "click>=6.0",
@@ -28,8 +27,8 @@ setup_requirements = []
 test_requirements = []
 
 setup(
-    author="Roberto Di Remigio",
-    author_email="roberto.diremigio@gmail.com",
+    author=_init_fields['__author__'],
+    author_email=_init_fields['__email__'],
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
@@ -52,6 +51,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/dev-cafe/parselglossy",
-    version=version,
+    version=_init_fields['__version__'],
     zip_safe=False,
 )
