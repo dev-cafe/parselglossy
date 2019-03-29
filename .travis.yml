@@ -27,7 +27,7 @@ after_success:
 deploy:
   provider: pypi
   user: robertodr
-  server: https://testpypi.python.org/pypi # Remove for deployment to official PyPi repo
+  server: https://test.pypi.org/legacy/ # Remove for deployment to official PyPi repo
   password:
     secure: hV0LaHjzcknyCJnX4o43TGF6k1dWlzdQOmon2RDIWDOWidEenSgEqigaRvmmbSTMAUj+EcYBhVZDMjwP/HFonrNdts2dKQ4wo/Xvkz/VeYmD6FHdLLQfk0RxcwBtHvpKxBwbI3SrEI/vKBmtkA5COxJAyGX3svyHw2xzDu3PRUFxvs+Y2D1qp7BRjGTBmRnKcV4lkOtUG0r+QE+yyJQHUa6GMwZRVwPxxeVOWnps2/0s0jNAjXIZLfuww+HTFVUzpf8ZXeRH5q0ENiAtAppDQLVrnFSzFalqJ7/wvX6ajnLcQaXniC2bR412We0eKRA6B1W9Mshqgkppv/HkL0T1oHBFrhDRvx2wlGWBv453B2TJNnfm3c2J4It8BwXyCaQ69HYKvfTYDB/KqnQq89cNplsNO+Cu7tvMURBqH4iLy+UwfYvay6bWG5dkhwIroznv5FU8RRKr4cVAhVsquG9AdbHzIksPi6btGdP47ICQl6r5weSNifZAJO3ku47jHQzWgaqtglEIH1hp2vZ9JKbkWGqnk3yeG2rhHWmhl+kfNOTDXFIdWR2TfjtbjJAC3uJAVtz+c5iYOtwZOGee8XdRlyIzzwGVxs20EG3lKy8tgyLznoIKbuQUzvQZBG62cWX3z9dQ8Rqq14BuPJ+/HU70VYxEpAfgEsoWJsBwdW1xFek=
   on:
