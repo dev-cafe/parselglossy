@@ -9,6 +9,7 @@ from sphinx.ext.apidoc import main
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
 
 from parselglossy import __version__ as _version  # isort:skip
+from parselglossy import __author__ as _author  # isort:skip
 
 # -- General configuration ---------------------------------------------
 
@@ -18,7 +19,7 @@ source_suffix = ".rst"
 master_doc = "index"
 project = u"parselglossy"
 copyright = u"2018, dev-cafe"
-author = u"Roberto Di Remigio, Radovan Bast"
+author = _author
 # The short X.Y version.
 version = _version
 # The full version, including alpha/beta/rc tags.
