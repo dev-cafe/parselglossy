@@ -17,7 +17,11 @@ with Path("parselglossy/__init__.py").open("r") as f:
     exec(f.read(), _version)
 version=_version['__version__']
 
-requirements = ["Click>=6.0", "pyparsing>=2.2", "pyyaml>=3.13"]
+requirements = [
+    "click>=6.0",
+    "pyparsing>=2.2",
+    "pyyaml>=3.13",
+]
 
 setup_requirements = []
 
