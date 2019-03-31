@@ -5,6 +5,12 @@ History
 Unreleased_
 -----------
 
+0.3.0_ (2019-03-31)
+-------------------
+
+* Fix Travis automatic deployment to PyPI.
+* Fix build of API docs on ReadTheDocs.
+
 0.3.0-alpha2_ (2019-03-29)
 --------------------------
 
@@ -39,7 +45,8 @@ Unreleased_
 * First release on PyPI.
 
 
-.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.3.0-alpha6...HEAD
+.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.3.0...HEAD
+.. _0.3.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0
 .. _0.3.0-alpha2: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0-alpha2
 .. _0.3.0-alpha1: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0-alpha1
 .. _0.2.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.2.0
