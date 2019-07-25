@@ -16,7 +16,7 @@ install:
   - pipenv install --dev -e .
 
 script:
-  - pipenv run py.test --cov=parselglossy tests/ --doctest-module
+  - pipenv run py.test --cov=parselglossy tests/
   - pipenv run py.test --flake8 parselglossy
   - pipenv run py.test --mypy parselglossy
 
