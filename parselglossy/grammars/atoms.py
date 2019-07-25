@@ -57,12 +57,13 @@ bool_t.setParseAction(lambda token: to_bool(token[0]))
 
 int_t = pp.pyparsing_common.signed_integer
 
+# we need to adapt this one for Fortran floating point numbers
 float_t = pp.pyparsing_common.sci_real
 
 quoted_str_t = pp.quotedString.setParseAction(pp.removeQuotes)
 unquoted_str_t = pp.Word(pp.alphas + "_", pp.alphanums + "_")
-"""An unquoted string starts with alphabetic characters and underscores,
-followed by alphanumeric characters and underscores."""
+"""An unquoted string starts with alphabetic characters or underscores,
+followed by alphanumeric characters or underscores."""
 
 I_unit = functools.reduce(
     lambda x, y: x ^ y, map(pp.CaselessLiteral, ["*j", "*i"])
