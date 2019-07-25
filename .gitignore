@@ -119,3 +119,6 @@ GTAGS
 
 # Validated input files produced during testing
 validated*.json
+
+# Other generated intermediate files
+scf_ir.json
