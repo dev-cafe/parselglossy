@@ -32,7 +32,7 @@
 """Tests for `parselglossy` package."""
 
 import pytest
-from hypothesis import example, given
+from hypothesis import example, given, settings
 from hypothesis import strategies as st
 from pyparsing import ParseBaseException
 
@@ -142,6 +142,7 @@ def test_list_quoted_str(a, quoting):
 
 
 @given(a=list_of_complex_numbers())
+@settings(deadline=400.0)
 def test_list_complex(a):
     scalar = (
         atoms.quoted_str_t
