@@ -11,7 +11,7 @@ jobs:
         python.version: '3.7'
     maxParallel: 2
   steps:
-  - template: .ci/azure-steps.yml
+  - template: devtools/azure/steps.yml
 
 - job: 'macOS'
   pool:
@@ -24,4 +24,4 @@ jobs:
         python.version: '3.7'
     maxParallel: 2
   steps:
-  - template: .ci/azure-steps.yml
+  - template: devtools/azure/steps.yml

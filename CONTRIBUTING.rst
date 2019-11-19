@@ -87,10 +87,9 @@ Ready to contribute? Here's how to set up `parselglossy` for local development.
    the code. We use Black_ and its default code style. Black_ is beta software
    and requires Python 3.6+, but it can easily be installed in your virtual
    environment.
-   The code ships with custom Git pre-commit hooks. You can enable them with::
+   The code ships with Git pre-commit hooks. You can install `pre-commit <https://github.com/pre-commit/pre-commit>`_ and enable them with::
 
-    $ cd .git/hooks
-    $ cp --symbolic-link ../../.githooks/* .
+    $ pre-commit install --install-hooks
 
 7. Commit your changes and push your branch to GitHub::
 

@@ -7,9 +7,9 @@ steps:
 - script: |
     pip install --upgrade pip
     pip install -U pipenv
-    pipenv install --dev -e .
+    pipenv install --dev
   displayName: 'Install dependencies'
 
 - script: |
-    pipenv run py.test -svvv tests/ --doctest-modules
+    pipenv run python -m pytest tests/ --doctest-modules
   displayName: 'Running tests'
