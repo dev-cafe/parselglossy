@@ -2,6 +2,3 @@
 *.npy binary
 *.zip binary
 *.png diff=exif
-
-parselglossy/*.py licensefile=.githooks/LICENSE-Python
-tests/*.py licensefile=.githooks/LICENSE-Python

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -31,16 +32,16 @@
 
 import json
 from pathlib import Path
-from typing import IO, Any, Optional, Union
+from typing import Optional, Union
 
-from . import getkw
 from ..exceptions import ParselglossyError
 from ..utils import ComplexEncoder, JSONDict, path_resolver
+from . import getkw
 
 
 def lex_from_str(
     *,
-    in_str: IO[Any],
+    in_str: Union[str, Path],
     grammar: str = "standard",
     ir_file: Optional[Union[str, Path]] = None
 ) -> JSONDict:
@@ -48,7 +49,7 @@ def lex_from_str(
 
     Parameters
     ----------
-    in_str : IO[Any]
+    in_str : Union[str, Path]
          The string to be parsed.
     grammar : str
          Grammar to be used. Defaults to "standard".
