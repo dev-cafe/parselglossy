@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -48,7 +49,7 @@ def lex(
 
     Parameters
     ----------
-    in_str : IO[Any]
+    infile : Union[str, Path]
         The string to be parsed.
     grammar : str
         Grammar to be used.

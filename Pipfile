@@ -3,17 +3,24 @@ url = "https://pypi.python.org/simple"
 verify_ssl = true
 
 [dev-packages]
+black = "*"
 codecov = "*"
 coverage = "*"
 flake8 = "*"
 hypothesis = "*"
 ipython = "*"
+isort = "*"
+mypy = "*"
 pytest = "*"
+pytest-black = "*"
 pytest-cov = "*"
-pytest-mypy = "*"
 pytest-flake8 = "*"
+pytest-mypy = "*"
 
 [packages]
 click = "*"
 pyparsing = "*"
 pyyaml = "*"
+
+[pipenv]
+allow_prereleases = true
