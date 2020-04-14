@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -86,13 +87,15 @@ def location_in_dict(*, address: Tuple, dict_name: str = "user") -> str:
     return reduce(lambda x, y: x + "['{}']".format(y), address, "user")
 
 
-def path_resolver(f: Union[str, Path]) -> Path:
+def path_resolver(f: Union[str, Path], *, touch: bool = True) -> Path:
     """Resolve a path.
 
     Parameters
     ----------
     f : Union[str, Path]
         File whose path needs to be resolved.
+    touch : bool
+        Create file is not already existent. Default: True
 
     Returns
     -------
@@ -106,7 +109,7 @@ def path_resolver(f: Union[str, Path]) -> Path:
 
     path = Path(f) if isinstance(f, str) else f
 
-    if not path.exists():
+    if not path.exists() and touch:
         path.touch()
 
     return path.resolve()

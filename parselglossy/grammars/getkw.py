@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -31,19 +32,15 @@
 
 from typing import Any
 
-import pyparsing as pp
+from .atoms import (bool_t, complex_t, data_t, float_t, fortranStyleComment, int_t, make_list_t, quoted_str_t,
+                    unquoted_str_t)
 
-from .atoms import (
-    bool_t,
-    complex_t,
-    data_t,
-    float_t,
-    fortranStyleComment,
-    int_t,
-    make_list_t,
-    quoted_str_t,
-    unquoted_str_t,
-)
+try:
+    import pyparsing as pp
+except ImportError:
+    # Import local copy
+    import .pyparsing as pp
+
 
 
 def grammar(*, has_complex: bool = False) -> Any:

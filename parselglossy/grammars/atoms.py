@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -32,9 +33,14 @@
 import functools
 from typing import Any, List, Union
 
-import pyparsing as pp
-
 from ..utils import falsey, truthy
+
+try:
+    import pyparsing as pp
+except ImportError:
+    # Import local copy
+    import .pyparsing as pp
+
 
 
 def to_bool(x):
