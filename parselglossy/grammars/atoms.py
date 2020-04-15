@@ -39,8 +39,7 @@ try:
     import pyparsing as pp
 except ImportError:
     # Import local copy
-    import .pyparsing as pp
-
+    from . import pyparsing as pp
 
 
 def to_bool(x):
