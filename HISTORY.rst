@@ -5,6 +5,9 @@ History
 Unreleased_
 -----------
 
+* Switch to `poetry <https://python-poetry.org/>`_ to manage dependencies,
+  virtual environment, and packaging.
+
 0.3.0_ (2019-03-31)
 -------------------
 
