@@ -27,7 +27,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Getkw grammar generation."""
 
 from typing import Any

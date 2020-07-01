@@ -27,7 +27,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Top-level functions for parselglossy."""
 
 import json
