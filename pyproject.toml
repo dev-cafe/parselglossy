@@ -5,6 +5,9 @@ force_grid_wrap = 0
 use_parentheses = true
 line_length = 88
 
+[tool.black]
+exclude = 'pyparsing.py'
+
 [tool.poetry]
 name = "parselglossy"
 version = "0.3.0"

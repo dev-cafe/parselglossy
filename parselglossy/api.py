@@ -82,7 +82,8 @@ def generate(
     # Ensure we can overwrite, by doing a chmod uga+rw
     Path(res).chmod(0o666)
     # b. Copy the grammar.
-    # By default this is our standard grammar, but could be one file provided by the user.
+    # By default this is our standard grammar, but could be one file provided
+    # by the user.
 
     # Generate api.py
     with (where_ / "api.py").open("w") as f:
