@@ -44,7 +44,7 @@ from custom_strategies import (
     list_of_unquoted_str,
     unquoted_str,
 )
-from parselglossy.grammars import atoms
+from parselglossy.grammars import atoms, lexer
 from parselglossy.utils import falsey, printable, truthy
 
 

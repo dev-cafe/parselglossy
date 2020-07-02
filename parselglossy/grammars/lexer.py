@@ -39,6 +39,52 @@ from ..utils import ComplexEncoder, JSONDict, path_resolver
 from . import getkw
 
 
+def flatten_list(nested_list):
+    """Flattens a nested list into a flat list.
+
+    Parameters
+    ----------
+    nested_list : Nested list
+
+    Returns
+    -------
+    Flattened list
+    """
+    if nested_list == []:
+        return nested_list
+    if isinstance(nested_list[0], list):
+        return flatten_list(nested_list[0]) + flatten_list(nested_list[1:])
+    return nested_list[:1] + flatten_list(nested_list[1:])
+
+
+def dict_to_list(d):
+    """Converts a nested dictionary to a nested list.
+
+    Parameters
+    ----------
+    d : Nested dictionary
+
+    Returns
+    -------
+    Nested list
+    """
+    nested_list = []
+    for k, v in d.items():
+        if isinstance(v, dict):
+            nested_list.append([k, dict_to_list(v)])
+        else:
+            nested_list.append([k, v])
+    return nested_list
+
+
+def parse_string_to_dict(lexer, s):
+    tokens_dict = lexer.parseString(s).asDict()
+    tokens_list = lexer.parseString(s).asList()
+    if flatten_list(tokens_list) != flatten_list(dict_to_list(tokens_dict)):
+        raise ParselglossyError("A keyword is repeaded. Please check your input.")
+    return tokens_dict
+
+
 def lex_from_str(
     *,
     in_str: Union[str, Path],
@@ -71,7 +117,7 @@ def lex_from_str(
     except KeyError:
         raise ParselglossyError("Grammar {} not available.".format(grammar))
 
-    ir = lexer.parseString(in_str).asDict()
+    ir = parse_string_to_dict(lexer, in_str)
 
     if ir_file is not None:
         ir_file = path_resolver(ir_file)
