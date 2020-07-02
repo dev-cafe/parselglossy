@@ -122,7 +122,7 @@ def lex_from_str(
          The string to be parsed.
     grammar : str
          Grammar to be used. Defaults to "standard".
-    ir_file : Union[str, Path]
+    ir_file : Optional[Union[str, Path]]
          File to write intermediate representation to (JSON format).
          None by default, which means file is not written out.
 

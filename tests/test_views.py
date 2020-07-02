@@ -38,7 +38,7 @@ from pathlib import Path
 import pytest
 
 from parselglossy import views
-from parselglossy.utils import read_yaml_file
+from parselglossy.yaml_utils import read_yaml_file
 
 types = {
     "scf": {

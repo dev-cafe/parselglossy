@@ -27,30 +27,15 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Common utilities."""
 
 import json
 from functools import reduce
 from pathlib import Path
-from string import ascii_letters, digits
+from shutil import copy
 from typing import Any, Dict, Tuple, Union
 
-import yaml
-
 JSONDict = Dict[str, Any]
-
-truthy = ["TRUE", "ON", "YES", "Y"]
-"""List[str]: List of true-like values."""
-falsey = ["FALSE", "OFF", "NO", "N"]
-"""List[str]: List of false-like values."""
-
-printable = ascii_letters + digits + r"!#$%&*+-./:;<>?@^_|~"
-"""str: Custom printable character set.
-
-The printable character set is the standard set in `string.printable` minus
-"\'(),=[\\]`{} and all whitespace characters.
-"""
 
 
 class ComplexEncoder(json.JSONEncoder):
@@ -136,22 +121,9 @@ def default_outfile(*, fname: Union[str, Path], suffix: str) -> str:
     return base.rsplit(".", 1)[0] + suffix
 
 
-def read_yaml_file(file_name: Path) -> JSONDict:
-    """Reads a YAML file and returns it as a dictionary.
-
-    Parameters
-    ----------
-    file_name: Path
-        Path object for the YAML file.
-
-    Returns
-    -------
-    d: JSONDict
-        A dictionary with the contents of the YAML file.
-    """
-    with file_name.open("r") as f:
-        try:
-            d = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print(e)
-    return d
+def copier(src: Path, dest: Path) -> None:
+    """Copy file, ensuring it can be overwritten."""
+    # copy file
+    _ = copy(src, dest, follow_symlinks=True)
+    # Ensure we can overwrite, by doing a chmod uga+rw
+    Path(_).chmod(0o666)

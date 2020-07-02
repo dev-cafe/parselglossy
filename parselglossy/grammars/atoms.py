@@ -32,8 +32,6 @@
 import functools
 from typing import Any, List, Union
 
-from ..utils import falsey, truthy
-
 try:
     import pyparsing as pp
 except ImportError:
@@ -41,13 +39,20 @@ except ImportError:
     from . import pyparsing as pp
 
 
+TRUTHY = ["TRUE", "ON", "YES", "Y"]
+"""List[str]: List of true-like values."""
+
+FALSEY = ["FALSE", "OFF", "NO", "N"]
+"""List[str]: List of false-like values."""
+
+
 def to_bool(x):
     defined = False
     if x is None:
         defined = False
-    elif x.upper() in falsey:
+    elif x.upper() in FALSEY:
         defined = False
-    elif x.upper() in truthy:
+    elif x.upper() in TRUTHY:
         defined = True
     else:
         defined = False
@@ -55,7 +60,7 @@ def to_bool(x):
     return defined
 
 
-bool_t = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, truthy + falsey))
+bool_t = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, TRUTHY + FALSEY))
 bool_t.setName("bool")
 bool_t.setParseAction(lambda token: to_bool(token[0]))
 
