@@ -36,7 +36,7 @@ import math
 from io import StringIO
 
 import pytest
-from parselglossy.grammars import getkw
+from parselglossy.grammars import getkw, lexer
 
 # fmt: off
 reference = {
@@ -87,7 +87,7 @@ def keywords():
 def test_keyword(keywords):
     """Test an input made only of keywords."""
     grammar = getkw.grammar()
-    tokens = grammar.parseString(keywords).asDict()
+    tokens = lexer.parse_string_to_dict(grammar, keywords)
 
     assert tokens == reference
     # dump to JSON
@@ -115,7 +115,7 @@ def test_section(name):
     """Test an input made of one section, tagged or untagged."""
     ref_dict = {name: dict(reference)}
     grammar = getkw.grammar()
-    tokens = grammar.parseString(section(name)).asDict()
+    tokens = lexer.parse_string_to_dict(grammar, section(name))
 
     assert tokens == ref_dict
     # dump to JSON
@@ -147,7 +147,7 @@ def test_flat_sections(flat_sections):
     """Test an input made of two unnested sections, tagged or untagged."""
     ref_dict = {"topsect": dict(reference), "foo<bar>": dict(reference)}
     grammar = getkw.grammar()
-    tokens = grammar.parseString(flat_sections).asDict()
+    tokens = lexer.parse_string_to_dict(grammar, flat_sections)
 
     assert tokens == ref_dict
     # dump to JSON
@@ -180,7 +180,7 @@ def test_nested_sections(nested_sections):
     ref_dict = {"topsect": dict(reference)}
     ref_dict["topsect"]["foo<bar>"] = dict(reference)
     grammar = getkw.grammar()
-    tokens = grammar.parseString(nested_sections).asDict()
+    tokens = lexer.parse_string_to_dict(grammar, nested_sections)
 
     assert tokens == ref_dict
     # dump to JSON
@@ -231,7 +231,7 @@ def test_keywords_and_section(name):
     ref_dict = dict(reference)
     ref_dict[name] = dict(reference)
     grammar = getkw.grammar()
-    tokens = grammar.parseString(keywords_and_section(name)).asDict()
+    tokens = lexer.parse_string_to_dict(grammar, keywords_and_section(name))
 
     assert tokens == ref_dict
     # dump to JSON
@@ -285,7 +285,7 @@ def test_keywords_and_flat_sections(keywords_and_flat_sections):
     ref_dict["topsect"] = dict(reference)
     ref_dict["foo<bar>"] = dict(reference)
     grammar = getkw.grammar()
-    tokens = grammar.parseString(keywords_and_flat_sections).asDict()
+    tokens = lexer.parse_string_to_dict(grammar, keywords_and_flat_sections)
 
     assert tokens == ref_dict
     # dump to JSON
@@ -339,7 +339,7 @@ def test_keywords_and_nested_sections(keywords_and_nested_sections):
     ref_dict["topsect"] = dict(reference)
     ref_dict["topsect"]["foo<bar>"] = dict(reference)
     grammar = getkw.grammar()
-    tokens = grammar.parseString(keywords_and_nested_sections).asDict()
+    tokens = lexer.parse_string_to_dict(grammar, keywords_and_nested_sections)
 
     assert tokens == ref_dict
     # dump to JSON
@@ -370,6 +370,6 @@ def test_data_only_section(data_only_section):
         "molecule": {"coords": "H  0.0000  0.0000 -0.7000\nH  0.0000  0.0000  0.7000\n"}
     }
     grammar = getkw.grammar()
-    tokens = grammar.parseString(data_only_section).asDict()
+    tokens = lexer.parse_string_to_dict(grammar, data_only_section)
 
     assert tokens == ref

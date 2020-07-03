@@ -32,11 +32,81 @@
 
 import json
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, List, Any
 
 from ..exceptions import ParselglossyError
 from ..utils import ComplexEncoder, JSONDict, path_resolver
 from . import getkw
+
+
+def flatten_list(nested_list: List[Any]) -> List[Any]:
+    """Flattens a nested list into a flat list.
+
+    Parameters
+    ----------
+    nested_list : List[Any]
+         Nested list
+
+    Returns
+    -------
+    List[Any]
+         Flattened list
+    """
+    if nested_list == []:
+        return nested_list
+    if isinstance(nested_list[0], list):
+        return flatten_list(nested_list[0]) + flatten_list(nested_list[1:])
+    return nested_list[:1] + flatten_list(nested_list[1:])
+
+
+def dict_to_list(d: JSONDict) -> List[Any]:
+    """Converts a nested dictionary to a nested list.
+
+    Parameters
+    ----------
+    d : JSONDict
+         Nested dictionary
+
+    Returns
+    -------
+    list: List[Any]
+         Flattened list
+    """
+    nested_list = []
+    for k, v in d.items():
+        if isinstance(v, dict):
+            nested_list.append([k, dict_to_list(v)])
+        else:
+            nested_list.append([k, v])
+    return nested_list
+
+
+def parse_string_to_dict(lexer, s: Union[str, Path]) -> JSONDict:
+    """Helper function around parseString(s).asDict()
+    that checks whether some keywords or sections were accidentally
+    repeated and shadowing earlier keywords/sections.
+
+    Parameters
+    ----------
+    lexer : JSONDict
+         Nested dictionary
+    s : Union[str, Path]
+         String to parse
+
+    Returns
+    -------
+    tokes_dict: JSONDict
+         Dictionary of tokens
+
+    Raises
+    ------
+    :exc:`ParselglossyError`
+    """
+    tokens_dict = lexer.parseString(s).asDict()
+    tokens_list = lexer.parseString(s).asList()
+    if flatten_list(tokens_list) != flatten_list(dict_to_list(tokens_dict)):
+        raise ParselglossyError("A keyword is repeated. Please check your input.")
+    return tokens_dict
 
 
 def lex_from_str(
@@ -71,7 +141,7 @@ def lex_from_str(
     except KeyError:
         raise ParselglossyError("Grammar {} not available.".format(grammar))
 
-    ir = lexer.parseString(in_str).asDict()
+    ir = parse_string_to_dict(lexer, in_str)
 
     if ir_file is not None:
         ir_file = path_resolver(ir_file)
