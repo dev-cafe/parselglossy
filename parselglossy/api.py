@@ -51,7 +51,8 @@ def generate(
     grammar: Union[str, Path, List[Path]] = "standard",
     tokenize: Optional[str] = None,
     docfile: str = "input.rst",
-) -> None:
+    doc_header: str = "Input parameters",
+) -> Path:
     """Generate parser for client.
 
     Parameters
@@ -73,6 +74,14 @@ def generate(
     docfile : str
         The name of the documentation file for the input.
         Defaults to `input.rst`.
+    doc_header : str
+        Header for the documentation page.
+        Defaults to ``Input parameters``.
+
+    Returns
+    -------
+    parser_dir : Path
+        Location of generated parser Python module
 
     Notes
     -----
@@ -134,24 +143,19 @@ def generate(
     if isinstance(grammar, str):
         if grammar not in ["standard", "getkw"]:
             raise ParselglossyError(f"Grammar {grammar} not available.")
-        # pyparsing.py
-        copier(ppfile, where_ / "plumbing")
-        # copy atoms.py
-        copier(
-            Path(__file__).parent.absolute() / "grammars/atoms.py", where_ / "plumbing",
-        )
-        # copy getkw.py
-        copier(
+        for x in [
+            ppfile,
+            Path(__file__).parent.absolute() / "grammars/atoms.py",
             Path(__file__).parent.absolute() / "grammars/getkw.py",
-            where_ / "plumbing/grammar.py",
-        )
-        # extract `parse_string_to_dict` and write it into `grammar.py`
+        ]:
+            copier(x, where_ / "plumbing")
+        # extract `parse_string_to_dict` and write it into `getkw.py`
         fun = generation.get_parse_string_to_dict()
-        with (where_ / "plumbing/grammar.py").open("a") as buf:
+        with (where_ / "plumbing/getkw.py").open("a") as buf:
             buf.write(fun)
-        lexer_str = f"""from . import grammar
-    lexer = grammar.grammar(has_complex={grammar == 'standard'})
-    ir = grammar.parse_string_to_dict(lexer, in_str)"""
+        lexer_str = f"""from . import getkw
+    lexer = getkw.grammar(has_complex={grammar == 'standard'})
+    ir = getkw.parse_string_to_dict(lexer, in_str)"""
     elif isinstance(grammar, Path):
         copier(grammar.resolve(), where_ / "plumbing/grammar.py")
     elif isinstance(grammar, list):
@@ -178,10 +182,12 @@ def generate(
         f.write(generation.CLI_PY)
     # Generate documentation
     (where_ / "docs").mkdir(parents=True, exist_ok=True)
-    docs = documentation_generator(stencil, header="Input parameters")
+    docs = documentation_generator(stencil, header=doc_header)
     outfile = path_resolver(where_ / f"docs/{docfile}")
     with outfile.open("w") as o:
         o.write(docs)
+
+    return where_
 
 
 def lex(
