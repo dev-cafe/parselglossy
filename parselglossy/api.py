@@ -47,13 +47,36 @@ def generate(
     template: Union[str, Path],
     *,
     where: Union[str, Path] = Path.cwd() / "input_parser",
-    grammar: Union[str, Path] = "standard",
+    grammar: Union[str, List[Path]] = "standard",
     docfile: str = "input.rst",
 ) -> None:
     """Generate parser for client.
 
     Parameters
     ----------
+    template : Union[str, Path]
+        Which validation template to use.
+    where : Union[str, Path]
+        Where to generate the parsing module. Default to `input_parser` folder
+        under current working directory.
+    grammar : Union[str, Path]
+        The file containing the grammar to use to tokenize user input.
+        Defaults to `standard`, *i.e.* use one of the grammars packaged with the library.
+    docfile : str
+        The name of the documentation file for the input.
+        Defaults to `input.rst`.
+
+    Notes
+    -----
+    This function will generate a Python module for parsing inputs as defined
+    by the template and grammar provided as parameters.
+
+    The user can provide a grammar as (a list of) external file(s).
+    The function performing tokenization **must return** an object of
+    ``Dict[str, Any]`` type: a, potentially recursive, dictionary of keys and
+    values.
+    It is the responsibility of the user to satisfy any dependencies of the
+    parsing grammar they provided.
 
     Raises
     ------
