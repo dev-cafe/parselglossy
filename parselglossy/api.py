@@ -40,7 +40,7 @@ from .grammars import lexer
 from .utils import JSONDict, as_complex, path_resolver, copier
 from .yaml_utils import read_yaml_file
 from .validation import is_template_valid, validate_from_dicts
-from . import generator
+from . import generation
 
 
 def generate(
@@ -65,16 +65,16 @@ def generate(
     (where_ / "plumbing").mkdir(parents=True, exist_ok=True)
     # Generate __init__.py
     with (where_ / "__init__.py").open("w") as f:
-        f.write(generator.INIT_PY)
+        f.write(generation.INIT_PY)
     # Generate README.md
     with (where_ / "README.md").open("w") as f:
-        f.write(generator.README)
+        f.write(generation.README)
     # Copy files
     # a. pyparsing.py
     copier(ppfile, where_ / "plumbing")
     # b. copy exceptions.py, types.py, utils.py, validation.py,
     # validation_plumbing.py, views.py file
-    for f in [
+    for fname in [
         "exceptions",
         "types",
         "utils",
@@ -82,7 +82,7 @@ def generate(
         "validation_plumbing",
         "views",
     ]:
-        copier(Path(__file__).parent.absolute() / f"{f}.py", where_ / "plumbing")
+        copier(Path(__file__).parent.absolute() / f"{fname}.py", where_ / "plumbing")
     # c. Copy the grammar.
     # By default this is our standard grammar, but could be one file provided
     # by the user. The file is called "grammar.py"
@@ -91,12 +91,11 @@ def generate(
             raise ParselglossyError(f"Grammar {grammar} not available.")
         # copy atoms.py
         copier(
-            Path(__file__).parent.absolute() / f"grammars/atoms.py",
-            where_ / "plumbing",
+            Path(__file__).parent.absolute() / "grammars/atoms.py", where_ / "plumbing",
         )
         # copy getkw.py
         copier(
-            Path(__file__).parent.absolute() / f"grammars/getkw.py",
+            Path(__file__).parent.absolute() / "grammars/getkw.py",
             where_ / "plumbing/grammar.py",
         )
         if grammar == "standard":
@@ -111,7 +110,7 @@ def generate(
     # our own.
     # TODO Document the above fact!
     with (where_ / "plumbing/lexer.py").open("w") as f:
-        f.write(generator.lexer_py(lexer_str))
+        f.write(generation.lexer_py(lexer_str))
 
     # Generate api.py
     template_ = path_resolver(template, touch=False)
@@ -121,10 +120,10 @@ def generate(
     is_template_valid(stencil)
 
     with (where_ / "api.py").open("w") as f:
-        f.write(generator.api_py(stencil))
+        f.write(generation.api_py(stencil))
     # Generate cli.py (uses argparse)
     with (where_ / "cli.py").open("w") as f:
-        f.write(generator.CLI_PY)
+        f.write(generation.CLI_PY)
     # Generate documentation
     (where_ / "docs").mkdir(parents=True, exist_ok=True)
     docs = documentation_generator(stencil, header="Input parameters")
