@@ -31,7 +31,7 @@
 
 import json
 from pathlib import Path
-from typing import Optional, Union
+from typing import List, Optional, Union
 from pyparsing import __file__ as ppfile
 
 from .exceptions import ParselglossyError
@@ -47,7 +47,7 @@ def generate(
     template: Union[str, Path],
     *,
     where: Union[str, Path] = Path.cwd() / "input_parser",
-    grammar: Union[str, List[Path]] = "standard",
+    grammar: Union[str, Path, List[Path]] = "standard",
     docfile: str = "input.rst",
 ) -> None:
     """Generate parser for client.
@@ -59,9 +59,10 @@ def generate(
     where : Union[str, Path]
         Where to generate the parsing module. Default to `input_parser` folder
         under current working directory.
-    grammar : Union[str, Path]
+    grammar : Union[str, Path, List[Path]]
         The file containing the grammar to use to tokenize user input.
-        Defaults to `standard`, *i.e.* use one of the grammars packaged with the library.
+        Defaults to `standard`, *i.e.* use one of the grammars packaged with
+        the library.
     docfile : str
         The name of the documentation file for the input.
         Defaults to `input.rst`.
@@ -125,9 +126,17 @@ def generate(
             lexer_str = "grammar.grammar(has_complex=True)"
         else:
             lexer_str = "grammar.grammar(has_complex=False)"
-    else:
+    elif isinstance(grammar, Path):
         copier(grammar.resolve(), where_ / "plumbing/grammar.py")
         lexer_str = "grammar.grammar()"
+    elif isinstance(grammar, list):
+        for _ in grammar:
+            copier(_.resolve(), where_ / "plumbing")
+            lexer_str = "grammar.grammar()"
+    else:
+        raise ParselglossyError("Type not recognized for grammar")
+
+
     # d. generate lexer.py
     # NOTE I am assuming the grammar defined outside defines the same API as
     # our own.
