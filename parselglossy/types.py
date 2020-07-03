@@ -27,8 +27,9 @@
 #
 
 import re
-from typing import Dict  # noqa: F401; noqa: F401
 from typing import Any, Callable, List, Optional, Tuple, Union
+
+from typing import Dict  # noqa: F401; noqa: F401
 
 RunCallable = Callable[[Any, str], Tuple[str, Any]]
 

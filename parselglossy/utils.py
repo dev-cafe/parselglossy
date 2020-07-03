@@ -33,7 +33,7 @@ import json
 from functools import reduce
 from pathlib import Path
 from shutil import copy
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 JSONDict = Dict[str, Any]
 
@@ -127,3 +127,45 @@ def copier(src: Path, dest: Path) -> None:
     _ = copy(src, dest, follow_symlinks=True)
     # Ensure we can overwrite, by doing a chmod uga+rw
     Path(_).chmod(0o666)
+
+
+def flatten_list(nested_list: List[Any]) -> List[Any]:
+    """Flattens a nested list into a flat list.
+
+    Parameters
+    ----------
+    nested_list : List[Any]
+         Nested list
+
+    Returns
+    -------
+    List[Any]
+         Flattened list
+    """
+    if nested_list == []:
+        return nested_list
+    if isinstance(nested_list[0], list):
+        return flatten_list(nested_list[0]) + flatten_list(nested_list[1:])
+    return nested_list[:1] + flatten_list(nested_list[1:])
+
+
+def dict_to_list(d: JSONDict) -> List[Any]:
+    """Converts a nested dictionary to a nested list.
+
+    Parameters
+    ----------
+    d : JSONDict
+         Nested dictionary
+
+    Returns
+    -------
+    list: List[Any]
+         Flattened list
+    """
+    nested_list = []
+    for k, v in d.items():
+        if isinstance(v, dict):
+            nested_list.append([k, dict_to_list(v)])
+        else:
+            nested_list.append([k, v])
+    return nested_list

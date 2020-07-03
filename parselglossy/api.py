@@ -32,15 +32,16 @@
 import json
 from pathlib import Path
 from typing import List, Optional, Union
+
 from pyparsing import __file__ as ppfile
 
-from .exceptions import ParselglossyError
-from .documentation import documentation_generator
-from .grammars import lexer
-from .utils import JSONDict, as_complex, path_resolver, copier
-from .yaml_utils import read_yaml_file
-from .validation import is_template_valid, validate_from_dicts
 from . import generation
+from .documentation import documentation_generator
+from .exceptions import ParselglossyError
+from .grammars import lexer
+from .utils import JSONDict, as_complex, copier, path_resolver
+from .validation import is_template_valid, validate_from_dicts
+from .yaml_utils import read_yaml_file
 
 
 def generate(
@@ -48,6 +49,7 @@ def generate(
     *,
     where: Union[str, Path] = Path.cwd() / "input_parser",
     grammar: Union[str, Path, List[Path]] = "standard",
+    tokenize: Optional[str] = None,
     docfile: str = "input.rst",
 ) -> None:
     """Generate parser for client.
@@ -63,6 +65,11 @@ def generate(
         The file containing the grammar to use to tokenize user input.
         Defaults to `standard`, *i.e.* use one of the grammars packaged with
         the library.
+    tokenize : Optional[str]
+        The commands to perform lexing of the input with a custom grammar. The
+        result of these commands must be a variable named `ir` of type
+        `Dict[str, Any]`.
+        Defaults to `None`.
     docfile : str
         The name of the documentation file for the input.
         Defaults to `input.rst`.
@@ -73,17 +80,33 @@ def generate(
     by the template and grammar provided as parameters.
 
     The user can provide a grammar as (a list of) external file(s).
-    The function performing tokenization **must return** an object of
+    There are a few constraints:
+       - The function performing tokenization **must return** an object of
     ``Dict[str, Any]`` type: a, potentially recursive, dictionary of keys and
     values.
-    It is the responsibility of the user to satisfy any dependencies of the
-    parsing grammar they provided.
+       - Commands to perform tokenization are passed *via* the `tokenize` input
+         parameters. This is a string that will copied *verbatim* in the
+         generated code, relevant `import` statements have to be included in
+         this string!
+       - The result of the commands in `tokenize` must be a variable named
+         `ir`.
+       - It is the responsibility of the user to satisfy any dependencies of
+         the parsing grammar they provided.
 
     Raises
     ------
     :exc:`ParselglossyError`
     """
     where_ = path_resolver(where, touch=False)
+
+    # validate grammar options
+    if isinstance(grammar, (Path, list)):
+        if tokenize is None:
+            raise ParselglossyError(
+                "You need to set custom lexing commands when using a custom grammar."
+            )
+        else:
+            lexer_str = tokenize
 
     # Create plumbing subfolder
     (where_ / "plumbing").mkdir(parents=True, exist_ok=True)
@@ -94,8 +117,6 @@ def generate(
     with (where_ / "README.md").open("w") as f:
         f.write(generation.README)
     # Copy files
-    # a. pyparsing.py
-    copier(ppfile, where_ / "plumbing")
     # b. copy exceptions.py, types.py, utils.py, validation.py,
     # validation_plumbing.py, views.py file
     for fname in [
@@ -113,6 +134,8 @@ def generate(
     if isinstance(grammar, str):
         if grammar not in ["standard", "getkw"]:
             raise ParselglossyError(f"Grammar {grammar} not available.")
+        # pyparsing.py
+        copier(ppfile, where_ / "plumbing")
         # copy atoms.py
         copier(
             Path(__file__).parent.absolute() / "grammars/atoms.py", where_ / "plumbing",
@@ -122,25 +145,22 @@ def generate(
             Path(__file__).parent.absolute() / "grammars/getkw.py",
             where_ / "plumbing/grammar.py",
         )
-        if grammar == "standard":
-            lexer_str = "grammar.grammar(has_complex=True)"
-        else:
-            lexer_str = "grammar.grammar(has_complex=False)"
+        # extract `parse_string_to_dict` and write it into `grammar.py`
+        fun = generation.get_parse_string_to_dict()
+        with (where_ / "plumbing/grammar.py").open("a") as buf:
+            buf.write(fun)
+        lexer_str = f"""from . import grammar
+    lexer = grammar.grammar(has_complex={grammar == 'standard'})
+    ir = grammar.parse_string_to_dict(lexer, in_str)"""
     elif isinstance(grammar, Path):
         copier(grammar.resolve(), where_ / "plumbing/grammar.py")
-        lexer_str = "grammar.grammar()"
     elif isinstance(grammar, list):
         for _ in grammar:
             copier(_.resolve(), where_ / "plumbing")
-            lexer_str = "grammar.grammar()"
     else:
         raise ParselglossyError("Type not recognized for grammar")
 
-
     # d. generate lexer.py
-    # NOTE I am assuming the grammar defined outside defines the same API as
-    # our own.
-    # TODO Document the above fact!
     with (where_ / "plumbing/lexer.py").open("w") as f:
         f.write(generation.lexer_py(lexer_str))
 

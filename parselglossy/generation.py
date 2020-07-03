@@ -1,6 +1,8 @@
 """Constants used by the generator."""
 
 from datetime import date
+from pathlib import Path
+from re import DOTALL, search
 
 INIT_PY = f"""# -*- coding: utf-8 -*-
 
@@ -54,6 +56,25 @@ def cli():
 """str: Content of generated cli.py"""
 
 
+def get_parse_string_to_dict() -> str:
+    with (Path(__file__).parent.absolute() / "grammars/lexer.py").open("r") as buf:
+        m = search(
+            r"\# ->->-> SNIP <-<-<-\n(.*)\n\# -<-<-< SNAP >->->-", buf.read(), DOTALL,
+        )
+    if m is not None:
+        return f"""\n
+from pathlib import Path
+from typing import Union
+
+from .exceptions import ParselglossyError
+from .utils import JSONDict, flatten_list, dict_to_list
+
+
+{m.group(1)}"""
+    else:
+        raise RuntimeError("Nothing extracted from lexer.py!")
+
+
 def lexer_py(lexer_str: str) -> str:
     return f"""# -*- coding: utf-8 -*-
 
@@ -65,7 +86,6 @@ from pathlib import Path
 from typing import Optional, Union
 
 from .utils import ComplexEncoder, JSONDict, path_resolver
-from . import grammar
 
 
 def lex_from_str(*,
@@ -87,9 +107,7 @@ def lex_from_str(*,
     The contents of the input string as a dictionary.
     \"\"\"
 
-    lexer = {lexer_str}
-
-    ir = lexer.parseString(in_str).asDict()
+    {lexer_str}
 
     if ir_file is not None:
         ir_file = path_resolver(ir_file)
