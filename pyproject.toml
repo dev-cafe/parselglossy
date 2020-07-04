@@ -25,6 +25,7 @@ python = "^3.6"
 click = "^7.0"
 pyparsing = "^2.4"
 pyyaml = "^5.2"
+networkx = "^2.4"
 
 [tool.poetry.dev-dependencies]
 black = "^19.3b0"
