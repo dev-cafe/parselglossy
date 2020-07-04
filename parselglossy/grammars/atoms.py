@@ -36,7 +36,7 @@ try:
     import pyparsing as pp
 except ImportError:
     # Import local copy
-    from . import pyparsing as pp
+    from . import pyparsing as pp  # type: ignore
 
 
 TRUTHY = ["TRUE", "ON", "YES", "Y"]

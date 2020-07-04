@@ -47,7 +47,7 @@ try:
     import pyparsing as pp
 except ImportError:
     # Import local copy
-    from . import pyparsing as pp
+    from . import pyparsing as pp  # type: ignore
 
 
 def grammar(*, has_complex: bool = False) -> Any:
