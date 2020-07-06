@@ -31,6 +31,8 @@
 # -*- coding: utf-8 -*-
 """Tests for `parselglossy` package."""
 
+from string import ascii_letters, digits
+
 import pytest
 from hypothesis import example, given
 from hypothesis import strategies as st
@@ -44,11 +46,18 @@ from custom_strategies import (
     list_of_unquoted_str,
     unquoted_str,
 )
-from parselglossy.grammars import atoms, lexer
-from parselglossy.utils import falsey, printable, truthy
+from parselglossy.grammars import atoms
 
 
-@given(a=st.sampled_from(truthy + falsey))
+PRINTABLE = ascii_letters + digits + r"!#$%&*+-./:;<>?@^_|~"
+"""str: Custom printable character set.
+
+The printable character set is the standard set in `string.printable` minus
+"\'(),=[\\]`{} and all whitespace characters.
+"""
+
+
+@given(a=st.sampled_from(atoms.TRUTHY + atoms.FALSEY))
 def test_atom_bool(a):
     tokens = atoms.bool_t.parseString("{:s}".format(a)).asList()
     assert tokens[0] == atoms.to_bool(a)
@@ -77,7 +86,7 @@ def test_atoms_unquoted_str(a):
 @pytest.mark.parametrize(
     "quoting", ["'{:s}'", '"{:s}"'], ids=["single_quotes", "double_quotes"]
 )
-@given(a=st.text(alphabet=(printable + " "), min_size=1))
+@given(a=st.text(alphabet=(PRINTABLE + " "), min_size=1))
 @example(a="Bobson Dugnutt")
 @example(a="Glenallen    Mixon   ")
 @example(a="    Todd Bonzalez   ")
@@ -134,7 +143,7 @@ def test_list_unquoted_str(a):
 @pytest.mark.parametrize(
     "quoting", ["'{:s}'", '"{:s}"'], ids=["single_quotes", "double_quotes"]
 )
-@given(a=st.lists(st.text(alphabet=(printable)), min_size=1))
+@given(a=st.lists(st.text(alphabet=(PRINTABLE)), min_size=1))
 def test_list_quoted_str(a, quoting):
     example = "[" + ", ".join([quoting.format(x) for x in a]) + "]"
     tokens = atoms.list_t.parseString(example).asList()

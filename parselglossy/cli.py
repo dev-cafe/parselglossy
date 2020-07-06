@@ -29,6 +29,8 @@
 # -*- coding: utf-8 -*-
 """Console script for parselglossy."""
 
+from pathlib import Path
+from typing import Union, List
 
 import click
 
@@ -243,7 +245,106 @@ def _doc(template: str, outfile: str, header: str):
     api.document(template=template, outfile=outfile, header=header)
 
 
+@click.command(name="generate")
+@click.option(
+    "--template",
+    type=click.Path(exists=False, dir_okay=False, resolve_path=True),
+    metavar="<template>",
+    help="which validation template to use",
+)
+@click.option(
+    "--target",
+    type=click.Path(exists=False, dir_okay=True, resolve_path=True),
+    default="input_parser",
+    show_default=True,
+    metavar="<target>",
+    help="name of the generated Python module",
+)
+@click.option(
+    "--grammar",
+    "-g",
+    default=["standard"],
+    multiple=True,
+    show_default=True,
+    metavar="<grammar>",
+    help="which grammar to use, specify multiple times for multiple external files",
+)
+@click.option(
+    "--tokenize",
+    type=str,
+    default=None,
+    metavar="<tokenize>",
+    help="tokenizing commands for the custom grammar",
+)
+@click.option(
+    "--docfile",
+    type=str,
+    default="input.rst",
+    show_default=True,
+    metavar="<header>",
+    help="name for the generated documentation file",
+)
+@click.option(
+    "--doc-header",
+    type=str,
+    default="Input parameters",
+    show_default=True,
+    metavar="<header>",
+    help="header for the documentation page",
+)
+def _generate(
+    template: str,
+    target: str,
+    grammar: Union[str, List[str]],
+    tokenize: str,
+    docfile: str,
+    doc_header: str,
+):
+    """Generate parser Python module and documentation from a grammar and a
+    validation template.
+
+    \b
+    Parameters
+    ----------
+    template : str
+        Which validation template to use.
+    target : str
+        Name of the generated Python moduel.
+        Defaults to ``input_parameters`` in the current working directory.
+    grammar : str
+        Which grammar to use, can be a list of files.
+        Defaults to ``standard``.
+    tokenize : str
+        Tokenizing commands to run with the custom grammar.
+        Defaults to ``None``.
+    docfile : str
+        The name of the documentation file for the input.
+        Defaults to `input.rst`.
+    doc_header : str
+        Header for the documentation page.
+        Defaults to ``Input parameters``.
+    """
+
+    if not docfile:
+        docfile = "input.rst"
+
+    if "standard" in grammar or "getkw" in grammar:
+        grammar_ = grammar[0]
+    else:
+        grammar_ = [Path(_).resolve() for _ in grammar]  # type: ignore
+
+    api.generate(
+        template=template,
+        where=target,
+        grammar=grammar_,
+        tokenize=tokenize,
+        docfile=docfile,
+        doc_header=doc_header,
+    )
+
+
 cli.add_command(_doc)
+cli.add_command(_generate)
 cli.add_command(_lex)
-cli.add_command(_validate)
 cli.add_command(_parse)
+cli.add_command(_validate)

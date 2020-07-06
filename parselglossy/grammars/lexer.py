@@ -27,60 +27,18 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Top-level functions for parselglossy."""
 
 import json
 from pathlib import Path
-from typing import Optional, Union, List, Any
+from typing import Optional, Union
 
 from ..exceptions import ParselglossyError
-from ..utils import ComplexEncoder, JSONDict, path_resolver
+from ..utils import ComplexEncoder, JSONDict, path_resolver, flatten_list, dict_to_list
 from . import getkw
 
 
-def flatten_list(nested_list: List[Any]) -> List[Any]:
-    """Flattens a nested list into a flat list.
-
-    Parameters
-    ----------
-    nested_list : List[Any]
-         Nested list
-
-    Returns
-    -------
-    List[Any]
-         Flattened list
-    """
-    if nested_list == []:
-        return nested_list
-    if isinstance(nested_list[0], list):
-        return flatten_list(nested_list[0]) + flatten_list(nested_list[1:])
-    return nested_list[:1] + flatten_list(nested_list[1:])
-
-
-def dict_to_list(d: JSONDict) -> List[Any]:
-    """Converts a nested dictionary to a nested list.
-
-    Parameters
-    ----------
-    d : JSONDict
-         Nested dictionary
-
-    Returns
-    -------
-    list: List[Any]
-         Flattened list
-    """
-    nested_list = []
-    for k, v in d.items():
-        if isinstance(v, dict):
-            nested_list.append([k, dict_to_list(v)])
-        else:
-            nested_list.append([k, v])
-    return nested_list
-
-
+# ->->-> SNIP <-<-<-
 def parse_string_to_dict(lexer, s: Union[str, Path]) -> JSONDict:
     """Helper function around parseString(s).asDict()
     that checks whether some keywords or sections were accidentally
@@ -109,6 +67,9 @@ def parse_string_to_dict(lexer, s: Union[str, Path]) -> JSONDict:
     return tokens_dict
 
 
+# -<-<-< SNAP >->->-
+
+
 def lex_from_str(
     *,
     in_str: Union[str, Path],
@@ -123,7 +84,7 @@ def lex_from_str(
          The string to be parsed.
     grammar : str
          Grammar to be used. Defaults to "standard".
-    ir_file : Union[str, Path]
+    ir_file : Optional[Union[str, Path]]
          File to write intermediate representation to (JSON format).
          None by default, which means file is not written out.
 

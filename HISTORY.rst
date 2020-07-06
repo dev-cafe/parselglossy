@@ -7,6 +7,8 @@ Unreleased_
 
 * Switch to `poetry <https://python-poetry.org/>`_ to manage dependencies,
   virtual environment, and packaging.
+* ``parselglossy`` can now *generate* an input parsing Python module which only
+  depends on a standard Python distribution.
 
 0.3.0_ (2019-03-31)
 -------------------

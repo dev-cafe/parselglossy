@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -26,12 +27,9 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Getkw grammar generation."""
 
 from typing import Any
-
-import pyparsing as pp
 
 from .atoms import (
     bool_t,
@@ -44,6 +42,12 @@ from .atoms import (
     quoted_str_t,
     unquoted_str_t,
 )
+
+try:
+    import pyparsing as pp
+except ImportError:
+    # Import local copy
+    from . import pyparsing as pp  # type: ignore
 
 
 def grammar(*, has_complex: bool = False) -> Any:

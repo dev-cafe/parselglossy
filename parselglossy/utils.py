@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -26,30 +27,15 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Common utilities."""
 
 import json
 from functools import reduce
 from pathlib import Path
-from string import ascii_letters, digits
-from typing import Any, Dict, Tuple, Union
-
-import yaml
+from shutil import copy
+from typing import Any, Dict, List, Tuple, Union
 
 JSONDict = Dict[str, Any]
-
-truthy = ["TRUE", "ON", "YES", "Y"]
-"""List[str]: List of true-like values."""
-falsey = ["FALSE", "OFF", "NO", "N"]
-"""List[str]: List of false-like values."""
-
-printable = ascii_letters + digits + r"!#$%&*+-./:;<>?@^_|~"
-"""str: Custom printable character set.
-
-The printable character set is the standard set in `string.printable` minus
-"\'(),=[\\]`{} and all whitespace characters.
-"""
 
 
 class ComplexEncoder(json.JSONEncoder):
@@ -86,13 +72,15 @@ def location_in_dict(*, address: Tuple, dict_name: str = "user") -> str:
     return reduce(lambda x, y: x + "['{}']".format(y), address, "user")
 
 
-def path_resolver(f: Union[str, Path]) -> Path:
+def path_resolver(f: Union[str, Path], *, touch: bool = True) -> Path:
     """Resolve a path.
 
     Parameters
     ----------
     f : Union[str, Path]
         File whose path needs to be resolved.
+    touch : bool
+        Create file is not already existent. Default: True
 
     Returns
     -------
@@ -106,7 +94,7 @@ def path_resolver(f: Union[str, Path]) -> Path:
 
     path = Path(f) if isinstance(f, str) else f
 
-    if not path.exists():
+    if not path.exists() and touch:
         path.touch()
 
     return path.resolve()
@@ -133,22 +121,51 @@ def default_outfile(*, fname: Union[str, Path], suffix: str) -> str:
     return base.rsplit(".", 1)[0] + suffix
 
 
-def read_yaml_file(file_name: Path) -> JSONDict:
-    """Reads a YAML file and returns it as a dictionary.
+def copier(src: Path, dest: Path) -> None:
+    """Copy file, ensuring it can be overwritten."""
+    # copy file
+    _ = copy(src, dest, follow_symlinks=True)
+    # Ensure we can overwrite, by doing a chmod uga+rw
+    Path(_).chmod(0o666)
+
+
+def flatten_list(nested_list: List[Any]) -> List[Any]:
+    """Flattens a nested list into a flat list.
 
     Parameters
     ----------
-    file_name: Path
-        Path object for the YAML file.
+    nested_list : List[Any]
+         Nested list
 
     Returns
     -------
-    d: JSONDict
-        A dictionary with the contents of the YAML file.
+    List[Any]
+         Flattened list
     """
-    with file_name.open("r") as f:
-        try:
-            d = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            print(e)
-    return d
+    if nested_list == []:
+        return nested_list
+    if isinstance(nested_list[0], list):
+        return flatten_list(nested_list[0]) + flatten_list(nested_list[1:])
+    return nested_list[:1] + flatten_list(nested_list[1:])
+
+
+def dict_to_list(d: JSONDict) -> List[Any]:
+    """Converts a nested dictionary to a nested list.
+
+    Parameters
+    ----------
+    d : JSONDict
+         Nested dictionary
+
+    Returns
+    -------
+    list: List[Any]
+         Flattened list
+    """
+    nested_list = []
+    for k, v in d.items():
+        if isinstance(v, dict):
+            nested_list.append([k, dict_to_list(v)])
+        else:
+            nested_list.append([k, v])
+    return nested_list

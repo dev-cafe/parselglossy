@@ -33,6 +33,7 @@
 
 import json
 from pathlib import Path
+from shutil import rmtree
 
 import pytest
 
@@ -198,3 +199,56 @@ def test_api_document(args, out, reference):
 
         # Clean up .rst file
         dumped.unlink()
+
+
+@pytest.mark.parametrize(
+    "args,inp,references",
+    [
+        (
+            {
+                "template": "tests/validation/overall/template.yml",
+                "docfile": "foo.rst",
+                "grammar": "standard",
+            },
+            "tests/api/scf.inp",
+            ("tests/ref/scf_fr.json", "tests/ref/generated_input.rst"),
+        ),
+        (
+            {
+                "template": "tests/validation/overall/template.yml",
+                "docfile": "babar.rst",
+                "grammar": [
+                    Path(__file__).parents[1].absolute()
+                    / f"parselglossy/grammars/{x}.py"
+                    for x in ["atoms", "getkw"]
+                ],
+                "tokenize": "from . import getkw; lexer = getkw.grammar(has_complex=True); ir = lexer.parseString(in_str).asDict()",
+            },
+            "tests/api/scf.inp",
+            ("tests/ref/scf_fr.json", "tests/ref/generated_input.rst"),
+        ),
+    ],
+    ids=["generate-default", "generated-custom-grammar"],
+)
+def test_api_generate(args, inp, references):
+    # generate parser
+    parser_dir = api.generate(**args)
+
+    # use generated parser to parse inp
+    from input_parser import api as generated_api
+
+    fr = generated_api.parse(inp)
+
+    # Check final representation matches with reference
+    ref_json = Path(references[0]).resolve()
+    with ref_json.open("r") as ref:
+        assert fr == json.loads(ref.read(), object_hook=as_complex)
+
+    # Check generated documentation agrees with reference
+    ref_rst = Path(references[1]).resolve()
+    dumped = parser_dir / f"docs/{args['docfile']}"
+    with ref_rst.open("r") as ref, dumped.open("r") as o:
+        assert o.read() == ref.read()
+
+    # clean up generated parser
+    rmtree(parser_dir)
