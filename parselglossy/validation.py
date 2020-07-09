@@ -103,6 +103,8 @@ def _keywords_default_dependencies(
         if "default" in keyword.keys():
             default = keyword["default"]
             if type(default).__name__ == "str":
+                # FIXME: this regex is not perfect since it does not search for the "user"
+                # part, can be improved
                 _to = re.findall(r'\[[\'"](.*?)[\'"]\]', default)
                 if len(_to) > 0:
                     _from = parent_sections + [keyword["name"]]
