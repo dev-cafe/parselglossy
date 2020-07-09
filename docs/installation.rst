@@ -40,11 +40,13 @@ Or download the `tarball`_:
 
     $ curl  -OL https://github.com/dev-cafe/parselglossy/tarball/master
 
-Once you have a copy of the source, you can install it with:
+Once you have a copy of the source, you can install it using `Flit <https://flit.readthedocs.io/en/latest/index.html/>`_:
 
 .. code-block:: console
 
-    $ python setup.py install
+    $ virtualenv venv
+    $ pip install --upgrade flit
+    $ flit install --symlink 
 
 
 .. _Github repo: https://github.com/dev-cafe/parselglossy
