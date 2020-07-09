@@ -5,8 +5,8 @@ History
 Unreleased_
 -----------
 
-* Switch to `poetry <https://python-poetry.org/>`_ to manage dependencies,
-  virtual environment, and packaging.
+* Switch to `Flit <https://flit.readthedocs.io/en/latest/index.html/>`_ to manage packaging.
+  We recommend a good old virtualenv+pip for dependencies and virtual environment.
 * ``parselglossy`` can now *generate* an input parsing Python module which only
   depends on a standard Python distribution.
 
