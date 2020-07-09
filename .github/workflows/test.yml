@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip flit
-        flit install --symlink --extras=dev,test
+        flit install --symlink --extras=dev,test --deps=production
     - name: Test with pytest
       run: |
         python -m pytest --cov=parselglossy --cov-report=xml --doctest-modules tests/
