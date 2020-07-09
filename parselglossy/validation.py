@@ -30,8 +30,10 @@
 """Validation facilities."""
 
 import json
+import re
+import networkx as nx
 from pathlib import Path
-from typing import Union
+from typing import Union, List, Any
 
 from .exceptions import ParselglossyError, collate_errors
 from .utils import ComplexEncoder, JSONDict, path_resolver
@@ -86,6 +88,66 @@ def validate_from_dicts(
     return fr
 
 
+def _keywords_default_dependencies(
+    keywords: JSONDict, parent_sections: List[str]
+) -> List[Any]:
+    """Collects a list of of tuples (keyword, default dependency) within one section.
+
+    Both the keyword and the default dependency are lists.
+
+    One such a tuple could look like this:
+    (['main section', 'subsection', 'keyword'], ['main section', 'another keyword'])
+    """
+    dependencies = []
+    for keyword in keywords:
+        if "default" in keyword.keys():
+            default = keyword["default"]
+            if type(default).__name__ == "str":
+                _to = re.findall(r'\[[\'"](.*?)[\'"]\]', default)
+                if len(_to) > 0:
+                    _from = parent_sections + [keyword["name"]]
+                    dependencies.append((_from, _to))
+    return dependencies
+
+
+def _sections_default_dependencies(
+    section: JSONDict, parent_sections: List[str]
+) -> List[Any]:
+    """Collects a list of of tuples (keyword, default dependency).
+
+    Both the keyword and the default dependency are lists.
+
+    One such a tuple could look like this:
+    (['main section', 'subsection', 'keyword'], ['main section', 'another keyword'])
+    """
+    dependencies = []
+    for k, v in section.items():
+        if k == "keywords":
+            dependencies += _keywords_default_dependencies(v, parent_sections)
+        if k == "sections":
+            for section in v:
+                dependencies += _sections_default_dependencies(
+                    section, parent_sections + [section["name"]]
+                )
+    return dependencies
+
+
+def _check_cyclic_defaults(template: JSONDict) -> List[Any]:
+    dependencies = _sections_default_dependencies(template, [])
+    # for nx we need to translate from tuples of lists to tuples of tuples
+    dependencies_hashable = [
+        (tuple(_from), tuple(_to)) for (_from, _to) in dependencies
+    ]
+    G = nx.DiGraph(dependencies_hashable)
+    try:
+        cycle = nx.find_cycle(G, orientation="ignore")
+        # the error message will probably look cryptic, needs improvement
+        errors = [f"Cyclic rependency of defaults: {cycle}"]
+    except nx.exception.NetworkXNoCycle:
+        errors = []
+    return errors
+
+
 def is_template_valid(template: JSONDict) -> None:
     """Checks a template ``dict`` is well-formed.
 
@@ -118,6 +180,7 @@ def is_template_valid(template: JSONDict) -> None:
     """
 
     errors = _rec_is_template_valid(template)
+    errors += _check_cyclic_defaults(template)
 
     if errors:
         msg = collate_errors(when="checking the template", errors=errors)
