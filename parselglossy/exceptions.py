@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -26,7 +27,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Error-handling facilities."""
 
 from collections import namedtuple
@@ -53,7 +53,8 @@ class Error(namedtuple("Error", ["address", "message"])):
 
     Notes
     -----
-    As we need to support Python < 3.6, we cannot use the defaults field of namedtuple.
+    As we need to support Python 3.6, we cannot use the defaults field of
+    ``namedtuple`` or ``dataclass``.
     """
 
     __slots__ = ()

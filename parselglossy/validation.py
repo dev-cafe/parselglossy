@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -26,7 +27,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Validation facilities."""
 
 import json
@@ -36,10 +36,10 @@ from typing import Union
 from .exceptions import ParselglossyError, collate_errors
 from .utils import ComplexEncoder, JSONDict, path_resolver
 from .validation_plumbing import (
-    rec_check_predicates,
-    rec_fix_defaults,
-    rec_is_template_valid,
-    rec_merge_ours,
+    _rec_check_predicates,
+    _rec_fix_defaults,
+    _rec_is_template_valid,
+    _rec_merge_ours,
 )
 from .views import view_by_default, view_by_predicates, view_by_type
 
@@ -87,7 +87,22 @@ def validate_from_dicts(
 
 
 def is_template_valid(template: JSONDict) -> None:
-    """Checks a template `dict` is well-formed.
+    """Checks a template ``dict`` is well-formed.
+
+    A template ``dict`` is well-formed if:
+
+    * All keywords have:
+
+      - An allowed type.
+      - A non-empty docstring.
+      - A default callable that is valid Python, if present.
+      - Predicates that are valid Python, if present.
+
+      Note that the latter two criteria can only be checked later on.
+
+    * No sections are nested under keywords.
+
+    * All sections have a non-empty docstring.
 
     Parameters
     ----------
@@ -102,7 +117,7 @@ def is_template_valid(template: JSONDict) -> None:
     This is porcelain over the recursive :func:`rec_is_template_valid`.
     """
 
-    errors = rec_is_template_valid(template)
+    errors = _rec_is_template_valid(template)
 
     if errors:
         msg = collate_errors(when="checking the template", errors=errors)
@@ -127,9 +142,15 @@ def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> JSONDict:
 
     Notes
     -----
+    The ``theirs`` dictionary is supposed to be the view by defaults of the
+    validation specification, whereas ``ours`` is the dictionary from user
+    input. The recursive merge action will generate a complete, but not
+    validated, input dictionary by using default values where these are not
+    overridden by user input, hence the naming "ours" for the merge strategy.
+
     This is porcelain over the recursive function :func:`rec_merge_ours`.
     """
-    outgoing, errors = rec_merge_ours(theirs=theirs, ours=ours)
+    outgoing, errors = _rec_merge_ours(theirs=theirs, ours=ours)
 
     if errors:
         msg = collate_errors(when="merging", errors=errors)
@@ -139,13 +160,15 @@ def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> JSONDict:
 
 
 def fix_defaults(incoming: JSONDict, *, types: JSONDict) -> JSONDict:
-    """Fixes defaults from a merge input ``dict``.
+    """Fix default values and perform type checking.
 
     Parameters
     ----------
     incoming: JSONDict
-        The input `dict`. This is supposed to be the one obtained by merging
-        user and template `dict`-s.
+        The input ``dict``. This is supposed to be the one obtained by merging
+        user and template ``dict``-s.
+    types: JSONDict
+        Types of all keywords in the input. Generated from :func:`view_by_types`.
 
     Returns
     -------
@@ -158,10 +181,35 @@ def fix_defaults(incoming: JSONDict, *, types: JSONDict) -> JSONDict:
 
     Notes
     -----
+    Since we allow callables to appear as defaults, we need to run them
+    to determine the actual default values.
+
+    This operation must be done with some care, to avoid false negatives or
+    ambiguous type checks. For example:
+
+    * If the type is ``str`` and the default a callable, the type will
+      match, but the default will make no sense.
+    * If the type is numerical, *e.g.* ``int``, the type will not match.
+
+    However, by design the callables **must** refer to some other field in the
+    input tree, hence they **must** contain the reserved token "user". This
+    allows us to disambiguate a callable as default from a value as default.
+
+    The final strategy adopted is then:
+
+    1. Perform type checking with :func:`type_matches`. If successful, we
+    coerce the type.
+    2. If types did not match, we further check whether the value is a string,
+    containing the reserved token "value". This means the default value is
+    actually a callable. We run the callable, which internally coerces the type
+    of the result to the expected one.
+    3. If even this check was unsuccessful, types really were unmatched. We
+    report the error and move on.
+
     This is porcelain over recursive function :func:`rec_fix_defaults`.
     """
 
-    outgoing, errors = rec_fix_defaults(incoming, types=types)
+    outgoing, errors = _rec_fix_defaults(incoming, types=types)
 
     if errors:
         msg = collate_errors(when="fixing defaults", errors=errors)
@@ -176,7 +224,7 @@ def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> None:
     Parameters
     ----------
     incoming : JSONDict
-        The input `dict`. This is supposed to be the result of :func:`fix_defaults`.
+        The input ``dict``. This is supposed to be the result of :func:`fix_defaults`.
     predicates : JSONDict
         A view-by-predicates of the template ``dict``.
 
@@ -189,7 +237,7 @@ def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> None:
     This is porcelain over recursive function :func:`rec_check_predicates`.
     """
 
-    errors = rec_check_predicates(incoming, predicates=predicates)
+    errors = _rec_check_predicates(incoming, predicates=predicates)
 
     if errors:
         msg = collate_errors(when="checking predicates", errors=errors)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -26,7 +27,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Documentation generation."""
 
 from typing import List  # noqa: F401
@@ -66,7 +66,7 @@ def documentation_generator(
         "- Predicates, if present, are the functions run to validate user input.\n"
     )
 
-    docs = rec_documentation_generator(template=template)
+    docs = _rec_documentation_generator(template=template)
 
     documentation = (
         header_fmt.format(comment=comment, markup=("=" * len(header)), header=header)
@@ -76,7 +76,7 @@ def documentation_generator(
     return documentation
 
 
-def document_keyword(keyword: JSONDict) -> str:
+def _document_keyword(keyword: JSONDict) -> str:
     kw_fmt = """
  :{0:s}: {1:s}
 
@@ -106,7 +106,7 @@ def document_keyword(keyword: JSONDict) -> str:
     return doc
 
 
-def rec_documentation_generator(template, *, level: int = 0) -> str:
+def _rec_documentation_generator(template, *, level: int = 0) -> str:
     """Generates documentation from a valid template.
 
     Parameters
@@ -123,25 +123,25 @@ def rec_documentation_generator(template, *, level: int = 0) -> str:
 
     keywords = template["keywords"] if "keywords" in template.keys() else []
     if keywords:
-        docs.append(indent("\n:red:`Keywords`", level))
+        docs.append(_indent("\n:red:`Keywords`", level))
 
     for k in keywords:
-        doc = document_keyword(k)
-        docs.extend(indent(doc, level))
+        doc = _document_keyword(k)
+        docs.extend(_indent(doc, level))
 
     sections = template["sections"] if "sections" in template.keys() else []
     if sections:
-        docs.append(indent("\n:red:`Sections`", level))
+        docs.append(_indent("\n:red:`Sections`", level))
         fmt = r"""
  :{0:s}: {1:s}
 """
         for s in sections:
             doc = fmt.format(s["name"], s["docstring"].replace("\n", " "))
-            doc += rec_documentation_generator(s, level=level + 1)
-            docs.extend(indent(doc, level))
+            doc += _rec_documentation_generator(s, level=level + 1)
+            docs.extend(_indent(doc, level))
 
     return "".join(docs)
 
 
-def indent(in_str: str, level: int = 0) -> str:
+def _indent(in_str: str, level: int = 0) -> str:
     return in_str.replace("\n", "\n" + ("  " * level))

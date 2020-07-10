@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -26,7 +27,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Plumbing functions powering our validation facilities."""
 
 from typing import Any, List, Optional, Tuple
@@ -36,10 +36,10 @@ from .types import allowed_types, type_fixers, type_matches
 from .utils import JSONDict, location_in_dict
 
 
-def rec_is_template_valid(template: JSONDict, *, address: Tuple = ()) -> List[Error]:
-    """Checks a template `dict` is well-formed.
+def _rec_is_template_valid(template: JSONDict, *, address: Tuple = ()) -> List[Error]:
+    """Checks a template ``dict`` is well-formed.
 
-    A template `dict` is well-formed if:
+    A template ``dict`` is well-formed if:
 
     * All keywords have:
 
@@ -73,23 +73,23 @@ def rec_is_template_valid(template: JSONDict, *, address: Tuple = ()) -> List[Er
 
     sections = template["sections"] if "sections" in template.keys() else []
     for s in sections:
-        if undocumented(s):
+        if _undocumented(s):
             errors.append(
                 Error(
                     (address + (s["name"],)),
                     "Sections must have a non-empty docstring.",
                 )
             )
-        errs = rec_is_template_valid(s, address=(address + (s["name"],)))
+        errs = _rec_is_template_valid(s, address=(address + (s["name"],)))
         errors.extend(errs)
 
     return errors
 
 
-def rec_merge_ours(
+def _rec_merge_ours(
     *, theirs: JSONDict, ours: JSONDict, address: Tuple = ()
 ) -> Tuple[JSONDict, List[Error]]:
-    """Recursively merge two `dict`-s with "ours" strategy.
+    """Recursively merge two ``dict``-s with "ours" strategy.
 
     Parameters
     ----------
@@ -104,11 +104,11 @@ def rec_merge_ours(
 
     Notes
     -----
-    The `theirs` dictionary is supposed to be the view by defaults of the
-    validation specification, whereas `ours` is the dictionary from user input.
-    The recursive merge action will generate a complete, but not validated,
-    input dictionary by using default values where these are not overridden by
-    user input, hence the naming "ours" for the merge strategy.
+    The ``theirs`` dictionary is supposed to be the view by defaults of the
+    validation specification, whereas ``ours`` is the dictionary from user
+    input. The recursive merge action will generate a complete, but not
+    validated, input dictionary by using default values where these are not
+    overridden by user input, hence the naming "ours" for the merge strategy.
     """
     outgoing = {}
     errors = []
@@ -131,7 +131,7 @@ def rec_merge_ours(
         elif not isinstance(v, dict):
             outgoing[k] = ours[k]
         else:
-            outgoing[k], errs = rec_merge_ours(
+            outgoing[k], errs = _rec_merge_ours(
                 theirs=v, ours=ours[k], address=(address + (k,))
             )
             errors.extend(errs)
@@ -139,14 +139,14 @@ def rec_merge_ours(
     return outgoing, errors
 
 
-def rec_fix_defaults(
+def _rec_fix_defaults(
     incoming: JSONDict,
     *,
     types: JSONDict,
     start_dict: JSONDict = None,
     address: Tuple = ()
 ) -> Tuple[JSONDict, List[Error]]:
-    """Fix default value and perform type checking.
+    """Fix default values and perform type checking.
 
     Parameters
     ----------
@@ -233,7 +233,7 @@ def rec_fix_defaults(
             if msg != "":
                 errors.append(Error(address + (k,), msg))
         else:
-            outgoing[k], errs = rec_fix_defaults(
+            outgoing[k], errs = _rec_fix_defaults(
                 incoming=v,
                 types=types[k],
                 start_dict=start_dict,
@@ -244,7 +244,7 @@ def rec_fix_defaults(
     return outgoing, errors
 
 
-def rec_check_predicates(
+def _rec_check_predicates(
     incoming: JSONDict,
     *,
     predicates: JSONDict,
@@ -284,7 +284,7 @@ def rec_check_predicates(
                     if not success:
                         errors.append(Error((address + (k,)), msg))
             else:
-                errs = rec_check_predicates(
+                errs = _rec_check_predicates(
                     incoming=v,
                     predicates=predicates[k],
                     start_dict=start_dict,
@@ -392,13 +392,13 @@ def run_callable(f: str, d: JSONDict, *, t: str) -> Tuple[str, Optional[Any]]:
     return msg, result
 
 
-def undocumented(x: JSONDict) -> bool:
+def _undocumented(x: JSONDict) -> bool:
     return (
         True if "docstring" not in x.keys() or x["docstring"].strip() == "" else False
     )
 
 
-def untyped(x: JSONDict) -> bool:
+def _untyped(x: JSONDict) -> bool:
     return True if "type" not in x.keys() or x["type"] not in allowed_types else False
 
 
@@ -436,10 +436,10 @@ def check_keyword(keyword: JSONDict, *, address: Tuple = ()) -> List[Error]:
             Error((address + (k,)), "Sections cannot be nested under keywords.")
         )
 
-    if untyped(keyword):
+    if _untyped(keyword):
         errors.append(Error((address + (k,)), "Keywords must have a valid type."))
 
-    if undocumented(keyword):
+    if _undocumented(keyword):
         errors.append(
             Error((address + (k,)), "Keywords must have a non-empty docstring.")
         )

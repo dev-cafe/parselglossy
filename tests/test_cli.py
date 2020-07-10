@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
@@ -28,14 +29,13 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Tests for `parselglossy` package."""
 
 import json
 import re
+import subprocess
 from pathlib import Path
 from shutil import rmtree
-import subprocess
 
 import pytest
 from click.testing import CliRunner
@@ -56,138 +56,8 @@ from parselglossy.utils import as_complex
 def test_cli_switches(switch, expected):
     runner = CliRunner()
     result = runner.invoke(cli.cli, switch)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, f"{result.output}"
     assert re.search(expected, result.output, re.M) is not None
-
-
-@pytest.mark.parametrize(
-    "command,out,reference",
-    [
-        (
-            ["lex", "tests/cli/standard.inp"],
-            "standard_ir.json",
-            "tests/ref/standard_ir.json",
-        ),
-        (
-            [
-                "lex",
-                "tests/cli/getkw.inp",
-                "--outfile",
-                "lex_ir.json",
-                "--grammar",
-                "getkw",
-            ],
-            "lex_ir.json",
-            "tests/ref/getkw_ir.json",
-        ),
-        (
-            [
-                "validate",
-                "tests/ref/scf_ir.json",
-                "--template",
-                "tests/validation/overall/template.yml",
-            ],
-            "scf_ir_fr.json",
-            "tests/ref/scf_fr.json",
-        ),
-        (
-            [
-                "validate",
-                "tests/ref/scf_ir.json",
-                "--template",
-                "tests/validation/overall/template.yml",
-                "--outfile",
-                "scf_fr.json",
-            ],
-            "scf_fr.json",
-            "tests/ref/scf_fr.json",
-        ),
-        (
-            [
-                "parse",
-                "tests/cli/scf.inp",
-                "--template",
-                "tests/validation/overall/template.yml",
-            ],
-            "scf_fr.json",
-            "tests/ref/scf_fr.json",
-        ),
-        (
-            [
-                "parse",
-                "tests/cli/scf.inp",
-                "--template",
-                "tests/validation/overall/template.yml",
-                "--outfile",
-                "scf_fr.json",
-            ],
-            "scf_fr.json",
-            "tests/ref/scf_fr.json",
-        ),
-        (
-            [
-                "parse",
-                "tests/cli/scf.inp",
-                "--template",
-                "tests/validation/overall/template.yml",
-                "--grammar",
-                "standard",
-                "--dump-ir",
-            ],
-            "scf_fr.json",
-            "tests/ref/scf_fr.json",
-        ),
-        (["doc", "tests/cli/docs_template.yml"], "input.rst", "tests/ref/input.rst"),
-        (
-            ["doc", "tests/cli/docs_template.yml", "--outfile", "input.rst"],
-            "input.rst",
-            "tests/ref/input.rst",
-        ),
-        (
-            [
-                "doc",
-                "tests/cli/docs_template.yml",
-                "--outfile",
-                "input.rst",
-                "--header",
-                "Dwigt Rortugal's guide to input parameters",
-            ],
-            "input.rst",
-            "tests/ref/dwigt.rst",
-        ),
-    ],
-    ids=[
-        "lex-default",
-        "lex-getkw-w-outfile",
-        "validate-default",
-        "validate-w-outfile",
-        "parse-default",
-        "parse-w-outfile",
-        "parse-w-dumpir",
-        "doc-default",
-        "doc-w-outfile",
-        "doc-w-header",
-    ],
-)
-def test_cli_commands(command, out, reference):
-    runner = CliRunner()
-    result = runner.invoke(cli.cli, command)
-    assert result.exit_code == 0
-
-    # Check dumped file matches with reference
-    dumped = Path(out).resolve()
-    ref = Path(reference)
-    if command[0] == "doc":
-        with ref.open("r") as ref, dumped.open("r") as o:
-            assert o.read() == ref.read()
-    else:
-        with ref.open("r") as ref, dumped.open("r") as o:
-            assert json.loads(o.read(), object_hook=as_complex) == json.loads(
-                ref.read(), object_hook=as_complex
-            )
-
-    # Clean up file
-    dumped.unlink()
 
 
 @pytest.mark.parametrize(
@@ -233,7 +103,7 @@ def test_cli_commands(command, out, reference):
 def test_cli_generate(command, inp, references):
     runner = CliRunner()
     result = runner.invoke(cli.cli, command)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, f"{result.output}"
 
     parser_dir = Path.cwd() / f"{command[4]}"
 
