@@ -60,28 +60,27 @@ def generate(
     template : Union[str, Path]
         Which validation template to use.
     where : Union[str, Path]
-        Where to generate the parsing module. Default to `input_parser` folder
+        Where to generate the parsing module. Default to ``input_parser`` folder
         under current working directory.
     grammar : Union[str, Path, List[Path]]
         The file containing the grammar to use to tokenize user input.
-        Defaults to `standard`, *i.e.* use one of the grammars packaged with
-        the library.
+        Defaults to ``standard``, *i.e.* use one of the grammars packaged with
+        the library, based on ``pyparsing``.
     tokenize : Optional[str]
         The commands to perform lexing of the input with a custom grammar. The
-        result of these commands must be a variable named `ir` of type
-        `Dict[str, Any]`.
-        Defaults to `None`.
+        result of these commands must be a variable named ``ir`` of type
+        ``Dict[str, Any]``.
+        Defaults to ``None``.
     docfile : str
         The name of the documentation file for the input.
-        Defaults to `input.rst`.
+        Defaults to ``input.rst``.
     doc_header : str
         Header for the documentation page.
         Defaults to ``Input parameters``.
 
     Returns
     -------
-    parser_dir : Path
-        Location of generated parser Python module
+    Location of generated parser Python module as a ``Path`` object.
 
     Notes
     -----
@@ -90,22 +89,24 @@ def generate(
 
     The user can provide a grammar as (a list of) external file(s).
     There are a few constraints:
-       - The function performing tokenization **must return** an object of
-    ``Dict[str, Any]`` type: a, potentially recursive, dictionary of keys and
-    values.
-       - Commands to perform tokenization are passed *via* the `tokenize` input
-         parameters. This is a string that will copied *verbatim* in the
-         generated code, relevant `import` statements have to be included in
-         this string!
-       - The result of the commands in `tokenize` must be a variable named
-         `ir`.
-       - It is the responsibility of the user to satisfy any dependencies of
-         the parsing grammar they provided.
+
+    * The function performing tokenization **must return** an object of
+      ``Dict[str, Any]`` type: a, potentially recursive, dictionary of keys and
+      values.
+    * Commands to perform tokenization are passed *via* the ``tokenize`` input
+      parameters. This is a string that will copied *verbatim* in the
+      generated code, relevant ``import`` statements have to be included in
+      this string!
+    * The result of the commands in ``tokenize`` must be a variable named
+      ``ir``.
+    * It is the responsibility of the user to satisfy any dependencies of
+      the parsing grammar they provided.
 
     Raises
     ------
     :exc:`ParselglossyError`
     """
+
     where_ = path_resolver(where, touch=False)
 
     # validate grammar options
