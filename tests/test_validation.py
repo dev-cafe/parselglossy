@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -35,7 +36,7 @@ from typing import List
 import pytest
 
 from parselglossy.exceptions import ParselglossyError
-from parselglossy.utils import ComplexEncoder, as_complex
+from parselglossy.utils import as_complex
 from parselglossy.validation import validate_from_dicts
 from read_in import read_in
 
@@ -81,6 +82,16 @@ template_errors_data = [
         "template_errors",
         "input.yml",
         "template_invalid_predicate.yml",
+        pytest.raises(ParselglossyError),
+        [
+            r"- At user\['some_section'\]\['a_short_string'\]:\s+NameError name 'undefined' is not defined in closure '0 < len\(value\) <= undefined'\."
+        ],
+        None,
+    ),
+    (
+        "template_errors",
+        "input.yml",
+        "template_w_cycles.yml",
         pytest.raises(ParselglossyError),
         [
             r"- At user\['some_section'\]\['a_short_string'\]:\s+NameError name 'undefined' is not defined in closure '0 < len\(value\) <= undefined'\."
