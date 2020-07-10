@@ -22,12 +22,12 @@ sections:
           Some short string.
       - name: some_number
         type: int
-        default: "user['another_number']"
+        default: "user['some_section']['another_number']"
         docstring: |
           Some number which defaults to the value of another_number.
       - name: another_number
         type: int
-        default: "user['some_number']"
+        default: "user['some_section']['some_number']"
         docstring: |
           Another number which defaults to the value of some_number.
       - name: some_feature

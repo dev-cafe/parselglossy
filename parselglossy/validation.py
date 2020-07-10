@@ -31,9 +31,10 @@
 
 import json
 import re
-import networkx as nx
 from pathlib import Path
-from typing import Union, List, Any
+from typing import Any, List, Union
+
+import networkx as nx
 
 from .exceptions import ParselglossyError, collate_errors
 from .utils import ComplexEncoder, JSONDict, path_resolver
@@ -113,7 +114,7 @@ def _keywords_default_dependencies(
 
 
 def _sections_default_dependencies(
-    section: JSONDict, parent_sections: List[str]
+    section: JSONDict, parent_sections: List[str] = []
 ) -> List[Any]:
     """Collects a list of of tuples (keyword, default dependency).
 
@@ -135,7 +136,7 @@ def _sections_default_dependencies(
 
 
 def _check_cyclic_defaults(template: JSONDict) -> List[Any]:
-    dependencies = _sections_default_dependencies(template, [])
+    dependencies = _sections_default_dependencies(template)
     # for nx we need to translate from tuples of lists to tuples of tuples
     dependencies_hashable = [
         (tuple(_from), tuple(_to)) for (_from, _to) in dependencies
