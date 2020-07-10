@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -26,7 +27,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Tests for `parselglossy` package.
 
 Tests checking predicates.
@@ -117,7 +117,7 @@ def multiple_errors_predicates():
 
 
 testdata = [
-    (valid_predicates(), does_not_raise(), [""]),
+    (valid_predicates(), None, [""]),
     (
         failing_predicates(),
         pytest.raises(ParselglossyError),
@@ -178,7 +178,10 @@ testdata = [
     ],
 )
 def test_check_predicates(user, predicates, raises, error_message):
-    with raises as e:
+    if raises is None:
+        ctx = does_not_raise()
+    else:
+        ctx = pytest.raises(ParselglossyError, match="|".join(error_message))
+
+    with ctx:
         check_predicates(incoming=user, predicates=predicates)
-        # Check error message is correct
-        assert re.match("|".join(error_message), str(e)) is not None

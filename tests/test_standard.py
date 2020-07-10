@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
@@ -28,7 +29,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Tests for `parselglossy` package."""
 
 import json
@@ -36,9 +36,10 @@ import math
 from io import StringIO
 
 import pytest
+
+from parselglossy.exceptions import ParselglossyError
 from parselglossy.grammars import getkw, lexer
 from parselglossy.utils import ComplexEncoder, as_complex
-from parselglossy.exceptions import ParselglossyError
 
 # fmt: off
 reference = {
@@ -116,9 +117,11 @@ bool_array = [on, true, yes, False, True, false]
 str_array = [foo, bar, "lorem", "IpSuM"]
 str_array = [oops, repeated, "lorem", "IpSuM"]
 """
-    with pytest.raises(ParselglossyError) as e:
-        tokens = lexer.parse_string_to_dict(grammar, keywords)
-    assert "A keyword is repeated. Please check your input." in str(e.value)
+    with pytest.raises(
+        ParselglossyError, match="A keyword is repeated. Please check your input."
+    ):
+        _ = lexer.parse_string_to_dict(grammar, keywords)
+
     keywords = """
 int_array = [42]
 bool_array = [on, true, yes, False, True, false]
@@ -134,9 +137,10 @@ Something {
   }
 }
 """
-    with pytest.raises(ParselglossyError) as e:
-        tokens = lexer.parse_string_to_dict(grammar, keywords)
-    assert "A keyword is repeated. Please check your input." in str(e.value)
+    with pytest.raises(
+        ParselglossyError, match="A keyword is repeated. Please check your input."
+    ):
+        _ = lexer.parse_string_to_dict(grammar, keywords)
 
 
 def section(name):
