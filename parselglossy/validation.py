@@ -100,14 +100,14 @@ def _keywords_default_dependencies(
     """
     dependencies = []
     for keyword in keywords:
-        if "default" in keyword.keys():
-            default = keyword["default"]
+        if "default" in keyword.keys():  # type: ignore
+            default = keyword["default"]  # type: ignore
             if type(default).__name__ == "str":
-                # FIXME: this regex is not perfect since it does not search for the "user"
-                # part, can be improved
+                # FIXME: this regex is not perfect since it does not search for
+                # the "user" part, can be improved
                 _to = re.findall(r'\[[\'"](.*?)[\'"]\]', default)
                 if len(_to) > 0:
-                    _from = parent_sections + [keyword["name"]]
+                    _from = parent_sections + [keyword["name"]]  # type: ignore
                     dependencies.append((_from, _to))
     return dependencies
 
