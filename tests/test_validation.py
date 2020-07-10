@@ -94,7 +94,9 @@ template_errors_data = [
         "template_w_cycles.yml",
         ParselglossyError,
         None,
-        [r"FOO",],
+        [
+            r"Error(?:s)? occurred when checking the template:\s+- Found cyclic dependency of defaults:"
+        ],
     ),
 ]
 

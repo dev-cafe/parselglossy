@@ -44,10 +44,12 @@ def read_yaml_file(file_name: Path) -> JSONDict:
 
     Returns
     -------
-    A dictionary with the contents of the YAML file.
+    d: JSONDict
+        A dictionary with the contents of the YAML file.
     """
     with file_name.open("r") as f:
         try:
-            return yaml.safe_load(f)
+            d = yaml.safe_load(f)
         except yaml.YAMLError as e:
             print(e)
+    return d

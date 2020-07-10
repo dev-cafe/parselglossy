@@ -29,11 +29,15 @@
 
 """Plumbing functions powering our validation facilities."""
 
+import re
 from typing import Any, List, Optional, Tuple
+
+import networkx as nx
 
 from .exceptions import Error
 from .types import allowed_types, type_fixers, type_matches
 from .utils import JSONDict, location_in_dict
+from .views import view_by_default
 
 
 def _rec_is_template_valid(template: JSONDict, *, address: Tuple = ()) -> List[Error]:
@@ -84,6 +88,80 @@ def _rec_is_template_valid(template: JSONDict, *, address: Tuple = ()) -> List[E
         errors.extend(errs)
 
     return errors
+
+
+def _check_cyclic_defaults(template: JSONDict) -> Optional[str]:
+    """Check for cyclic dependencies between defaulting actions."""
+    stencil = view_by_default(template)
+    dependencies = _sections_default_dependencies(stencil)
+    # for nx we need to translate from tuples of lists to tuples of tuples
+    dependencies_hashable = [
+        (tuple(_from), tuple(_to)) for (_from, _to) in dependencies
+    ]
+    G = nx.DiGraph(dependencies_hashable)
+    try:
+        cycle = nx.find_cycle(G, orientation="ignore")
+        # the error message will probably look cryptic, needs improvement
+        errors = f"- Found cyclic dependency of defaults:\n{_cycle_to_error(cycle)}"
+    except nx.exception.NetworkXNoCycle:
+        errors = None  # type: ignore
+    return errors
+
+
+def _cycle_to_error(cycle: List[Any]) -> str:
+    def build_section_info(x):
+        return "user" + "".join([f"['{y}']" for y in x])
+
+    err = ""
+    for n in cycle:
+        from_k = n[0][-1]
+        to_k = n[1][-1]
+        if len(n) > 1:
+            from_s = build_section_info(n[0][:-1])
+            to_s = build_section_info(n[1][:-1])
+            err += f"  * keyword '{from_k}' in section {from_s} defaults to keyword '{to_k}' in section {to_s}\n"  # noqa: E501
+        else:
+            err += f"  * keyword '{from_k}' defaults to keyword '{to_k}'\n"
+
+    return err
+
+
+def _sections_default_dependencies(
+    section: JSONDict, parent_sections: List[str] = []
+) -> List[Any]:
+    """Collects a list of of tuples (keyword, default dependency).
+
+    Both the keyword and the default dependency are lists.
+
+    One such a tuple could look like this:
+    (['main section', 'subsection', 'keyword'], ['main section', 'another keyword'])
+    """
+    dependencies = []
+    for k, v in section.items():
+        if not isinstance(v, dict):
+            dependencies += _keywords_default_dependencies(k, v, parent_sections)
+        else:
+            dependencies += _sections_default_dependencies(v, parent_sections + [k])
+    return dependencies
+
+
+def _keywords_default_dependencies(
+    keyword: str, default: str, parent_sections: List[str]
+) -> List[Any]:
+    """Collects a list of of tuples (keyword, default dependency) within one section.
+
+    Both the keyword and the default dependency are lists.
+
+    One such a tuple could look like this:
+    (['main section', 'subsection', 'keyword'], ['main section', 'another keyword'])
+    """
+    dependencies = []
+    if isinstance(default, str) and "user" in default:
+        _to = re.findall(r'\[[\'"](.*?)[\'"]\]', default)
+        if len(_to) > 0:
+            _from = parent_sections + [keyword]
+            dependencies.append((_from, _to))
+    return dependencies
 
 
 def _rec_merge_ours(
@@ -144,7 +222,7 @@ def _rec_fix_defaults(
     *,
     types: JSONDict,
     start_dict: JSONDict = None,
-    address: Tuple = ()
+    address: Tuple = (),
 ) -> Tuple[JSONDict, List[Error]]:
     """Fix default values and perform type checking.
 
@@ -214,7 +292,7 @@ def _rec_fix_defaults(
                 outgoing[k] = type_fixers[t](v)
             else:
                 # Types did not match :/
-                if type(v).__name__ == "str" and "user" in v:
+                if isinstance(v, str) and "user" in v:
                     # BUT! It's actually a string and it's a callable
                     # We assume that if it contains the reserved tokens "value"
                     # or "user" we're trying to perform some sort of defaulting
@@ -249,7 +327,7 @@ def _rec_check_predicates(
     *,
     predicates: JSONDict,
     start_dict: JSONDict = None,
-    address: Tuple = ()
+    address: Tuple = (),
 ) -> List[Error]:
     """Run predicates on input tree with fixed defaults.
 

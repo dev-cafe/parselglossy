@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -109,6 +110,58 @@ nested_sections_with_malformed_keyword = {
     ]
 }
 
+cycles = {
+    "keywords": [
+        {"docstring": "Title of the calculation.\n", "name": "title", "type": "str"},
+        {
+            "default": 1.2,
+            "docstring": "Some float.\n",
+            "name": "some_float",
+            "type": "float",
+        },
+    ],
+    "sections": [
+        {
+            "docstring": "Section docs",
+            "keywords": [
+                {
+                    "docstring": "Some short string.\n",
+                    "name": "a_short_string",
+                    "predicates": ["0 < len(value) <= 5"],
+                    "type": "str",
+                },
+                {
+                    "default": "user['some_section']['another_number']",
+                    "docstring": "Some number which defaults to the "
+                    "value of another_number.\n",
+                    "name": "some_number",
+                    "type": "int",
+                },
+                {
+                    "default": "user['some_section']['some_number']",
+                    "docstring": "Another number which defaults to "
+                    "the value of some_number.\n",
+                    "name": "another_number",
+                    "type": "int",
+                },
+                {
+                    "default": False,
+                    "docstring": "Some feature.\n",
+                    "name": "some_feature",
+                    "type": "bool",
+                },
+                {
+                    "docstring": "A list of floats.\n",
+                    "name": "some_list",
+                    "type": "List[float]",
+                },
+            ],
+            "name": "some_section",
+        }
+    ],
+}
+
+
 error_preamble = r"Error(?:s)? occurred when checking the template:\n"
 check_template_data = [
     (valid, does_not_raise()),
@@ -198,6 +251,13 @@ check_template_data = [
             ),
         ),
     ),
+    (
+        cycles,
+        pytest.raises(
+            ParselglossyError,
+            match=(error_preamble + r"- Found cyclic dependency of defaults:"),
+        ),
+    ),
 ]
 
 
@@ -214,6 +274,7 @@ check_template_data = [
         "section_no_docstring",
         "nested_no_docstring",
         "nested_bad_keyword",
+        "cycles",
     ],
 )
 def test_check_template(template, raises):
