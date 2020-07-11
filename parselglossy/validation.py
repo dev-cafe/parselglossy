@@ -119,12 +119,10 @@ def is_template_valid(template: JSONDict) -> None:
     """
 
     errors = _rec_is_template_valid(template)
-    cycles = _check_cyclic_defaults(template)
+    errors.extend(_check_cyclic_defaults(template))
 
     if errors:
         msg = collate_errors(when="checking the template", errors=errors)
-        if cycles is not None:
-            msg += cycles
         raise ParselglossyError(msg)
 
 

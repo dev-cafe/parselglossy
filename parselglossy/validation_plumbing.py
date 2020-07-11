@@ -90,7 +90,7 @@ def _rec_is_template_valid(template: JSONDict, *, address: Tuple = ()) -> List[E
     return errors
 
 
-def _check_cyclic_defaults(template: JSONDict) -> Optional[str]:
+def _check_cyclic_defaults(template: JSONDict) -> List[Error]:
     """Check for cyclic dependencies between defaulting actions."""
     stencil = view_by_default(template)
     dependencies = _sections_default_dependencies(stencil)
@@ -99,31 +99,16 @@ def _check_cyclic_defaults(template: JSONDict) -> Optional[str]:
         (tuple(_from), tuple(_to)) for (_from, _to) in dependencies
     ]
     G = nx.DiGraph(dependencies_hashable)
-    try:
-        cycle = nx.find_cycle(G, orientation="ignore")
-        # the error message will probably look cryptic, needs improvement
-        errors = f"- Found cyclic dependency of defaults:\n{_cycle_to_error(cycle)}"
-    except nx.exception.NetworkXNoCycle:
-        errors = None  # type: ignore
+    cycles = nx.simple_cycles(G)
+    errors = []
+    for c in cycles:
+        errors.append(
+            Error(
+                c[0],
+                f"Keyword depends cyclically on keyword {location_in_dict(address=c[1])}",  # noqa: E501
+            )
+        )
     return errors
-
-
-def _cycle_to_error(cycle: List[Any]) -> str:
-    def build_section_info(x):
-        return "user" + "".join([f"['{y}']" for y in x])
-
-    err = ""
-    for n in cycle:
-        from_k = n[0][-1]
-        to_k = n[1][-1]
-        if len(n) > 1:
-            from_s = build_section_info(n[0][:-1])
-            to_s = build_section_info(n[1][:-1])
-            err += f"  * keyword '{from_k}' in section {from_s} defaults to keyword '{to_k}' in section {to_s}\n"  # noqa: E501
-        else:
-            err += f"  * keyword '{from_k}' defaults to keyword '{to_k}'\n"
-
-    return err
 
 
 def _sections_default_dependencies(

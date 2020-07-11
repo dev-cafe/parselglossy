@@ -157,7 +157,27 @@ cycles = {
                 },
             ],
             "name": "some_section",
-        }
+        },
+        {
+            "docstring": "Section docs",
+            "keywords": [
+                {
+                    "default": "user['another_section']['another_number']",
+                    "docstring": "Some number which defaults to the "
+                    "value of another_number.\n",
+                    "name": "some_number",
+                    "type": "int",
+                },
+                {
+                    "default": "user['another_section']['some_number']",
+                    "docstring": "Another number which defaults to "
+                    "the value of some_number.\n",
+                    "name": "another_number",
+                    "type": "int",
+                },
+            ],
+            "name": "another_section",
+        },
     ],
 }
 
@@ -255,7 +275,11 @@ check_template_data = [
         cycles,
         pytest.raises(
             ParselglossyError,
-            match=(error_preamble + r"- Found cyclic dependency of defaults:"),
+            match=(
+                error_preamble
+                + r"- At user\['another_section'\]\['some_number'\]:\s+Keyword depends cyclically on keyword user\['another_section'\]\['another_number'\]\n"
+                + r"- At user\['some_section'\]\['some_number'\]:\s+Keyword depends cyclically on keyword user\['some_section'\]\['another_number'\]"
+            ),
         ),
     ),
 ]

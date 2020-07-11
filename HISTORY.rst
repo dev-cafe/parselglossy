@@ -5,10 +5,41 @@ History
 Unreleased_
 -----------
 
-* Switch to `Flit <https://flit.readthedocs.io/en/latest/index.html/>`_ to manage packaging.
-  We recommend a good old virtualenv+pip for dependencies and virtual environment.
+* ``parselglossy`` can now *detect* cyclic dependencies between keywords'
+  defaulting actions at validation time.
+  A validation specification like the following:
+
+  .. code-block:: yaml
+
+     - name: some_number
+       type: int
+       default: "user['another_number']"
+       docstring: |
+         Some number which defaults to the value of another_number.
+     - name: another_number
+       type: int
+       default: "user['some_number']"
+       docstring: |
+         Another number which defaults to the value of some_number.
+
+  will be flagged as invalid due to the cyclic dependency between keywords.
+  See PR `#96 <https://github.com/dev-cafe/parselglossy/pull/96>`_.
 * ``parselglossy`` can now *generate* an input parsing Python module which only
   depends on a standard Python distribution.
+  See PR `#84 <https://github.com/dev-cafe/parselglossy/pull/84>`_.
+* Switch to `Flit <https://flit.readthedocs.io/en/latest/index.html/>`_ to manage packaging.
+  We recommend a good old virtualenv+pip for dependencies and virtual environment. See PRs
+  `#87 <https://github.com/dev-cafe/parselglossy/pull/87>`_,
+  `#88 <https://github.com/dev-cafe/parselglossy/pull/88>`_,
+  `#93 <https://github.com/dev-cafe/parselglossy/pull/93>`_,
+  `#95 <https://github.com/dev-cafe/parselglossy/pull/95>`_.
+* **BREAKING** ``parselglossy`` provides only a minimal CLI for generating an input parser.
+  The full-fledged parsing functionality is, for the moment, retained in the API.
+  See PR `#97 <https://github.com/dev-cafe/parselglossy/pull/97>`_.
+* Input parsers generated with ``parselglossy`` will now raise an exception when
+  keywords have been repeated in an input file.
+  See PR `#89 <https://github.com/dev-cafe/parselglossy/pull/89>`_.
+* Dropped support for Python 3.5
 
 0.3.0_ (2019-03-31)
 -------------------
