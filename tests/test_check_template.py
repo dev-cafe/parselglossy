@@ -278,7 +278,7 @@ check_template_data = [
             match=(
                 error_preamble
                 + r"- At user\['another_section'\]\['some_number'\]:\s+Keyword depends cyclically on keyword user\['another_section'\]\['another_number'\]\n"
-                + r"- At user\['some_section'\]\['some_number'\]:\s+Keyword depends cyclically on keyword user\['some_section'\]\['another_number'\]"
+                r"- At user\['some_section'\]\['some_number'\]:\s+Keyword depends cyclically on keyword user\['some_section'\]\['another_number'\]"
             ),
         ),
     ),
