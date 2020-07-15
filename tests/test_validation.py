@@ -95,7 +95,7 @@ template_errors_data = [
         ParselglossyError,
         None,
         [
-            r"Error(?:s)? occurred when checking the template:\s+- At user\['some_section'\]\['some_number'\]:\s+Keyword depends cyclically on keyword user\['some_section'\]\['another_number'\]"
+            r"Error(?:s)? occurred when checking the template:\s+- At user\['(some|another)_section'\]\['(some|another)_number'\]:\s+Keyword depends cyclically on keyword user\['(some|another)_section'\]\['(some|another)_number'\]"
         ],
     ),
 ]

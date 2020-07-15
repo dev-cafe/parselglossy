@@ -111,25 +111,10 @@ nested_sections_with_malformed_keyword = {
 }
 
 cycles = {
-    "keywords": [
-        {"docstring": "Title of the calculation.\n", "name": "title", "type": "str"},
-        {
-            "default": 1.2,
-            "docstring": "Some float.\n",
-            "name": "some_float",
-            "type": "float",
-        },
-    ],
     "sections": [
         {
             "docstring": "Section docs",
             "keywords": [
-                {
-                    "docstring": "Some short string.\n",
-                    "name": "a_short_string",
-                    "predicates": ["0 < len(value) <= 5"],
-                    "type": "str",
-                },
                 {
                     "default": "user['some_section']['another_number']",
                     "docstring": "Some number which defaults to the "
@@ -143,17 +128,6 @@ cycles = {
                     "the value of some_number.\n",
                     "name": "another_number",
                     "type": "int",
-                },
-                {
-                    "default": False,
-                    "docstring": "Some feature.\n",
-                    "name": "some_feature",
-                    "type": "bool",
-                },
-                {
-                    "docstring": "A list of floats.\n",
-                    "name": "some_list",
-                    "type": "List[float]",
                 },
             ],
             "name": "some_section",
@@ -277,8 +251,8 @@ check_template_data = [
             ParselglossyError,
             match=(
                 error_preamble
-                + r"- At user\['another_section'\]\['some_number'\]:\s+Keyword depends cyclically on keyword user\['another_section'\]\['another_number'\]\n"
-                r"- At user\['some_section'\]\['some_number'\]:\s+Keyword depends cyclically on keyword user\['some_section'\]\['another_number'\]"
+                + r"- At user\['(some|another)_section'\]\['(some|another)_number'\]:\s+Keyword depends cyclically on keyword user\['(some|another)_section'\]\['(some|another)_number'\]\n"
+                r"- At user\['(some|another)_section'\]\['(some|another)_number'\]:\s+Keyword depends cyclically on keyword user\['(some|another)_section'\]\['(some|another)_number'\]"
             ),
         ),
     ),
