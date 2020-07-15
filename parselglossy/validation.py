@@ -36,6 +36,7 @@ from typing import Union
 from .exceptions import ParselglossyError, collate_errors
 from .utils import ComplexEncoder, JSONDict, path_resolver
 from .validation_plumbing import (
+    _check_cyclic_defaults,
     _rec_check_predicates,
     _rec_fix_defaults,
     _rec_is_template_valid,
@@ -118,6 +119,7 @@ def is_template_valid(template: JSONDict) -> None:
     """
 
     errors = _rec_is_template_valid(template)
+    errors.extend(_check_cyclic_defaults(template))
 
     if errors:
         msg = collate_errors(when="checking the template", errors=errors)

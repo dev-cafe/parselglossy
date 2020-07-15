@@ -1,0 +1,41 @@
+# This example shows cyclic dependencies between
+# ['some_section']['another_number'] and ['some_section']['some_number']
+keywords:
+  - name: title
+    type: str
+    docstring: |
+      Title of the calculation.
+  - name: some_float
+    type: float
+    default: 1.2
+    docstring: |
+      Some float.
+sections:
+  - name: some_section
+    docstring: "Section docs"
+    keywords:
+      - name: a_short_string
+        type: str
+        predicates:
+          - '0 < len(value) <= 5'
+        docstring: |
+          Some short string.
+      - name: some_number
+        type: int
+        default: "user['some_section']['another_number']"
+        docstring: |
+          Some number which defaults to the value of another_number.
+      - name: another_number
+        type: int
+        default: "user['some_section']['some_number']"
+        docstring: |
+          Another number which defaults to the value of some_number.
+      - name: some_feature
+        type: bool
+        default: false
+        docstring: |
+          Some feature.
+      - name: some_list
+        type: List[float]
+        docstring: |
+          A list of floats.

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
 # Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
@@ -109,6 +110,52 @@ nested_sections_with_malformed_keyword = {
     ]
 }
 
+cycles = {
+    "sections": [
+        {
+            "docstring": "Section docs",
+            "keywords": [
+                {
+                    "default": "user['some_section']['another_number']",
+                    "docstring": "Some number which defaults to the "
+                    "value of another_number.\n",
+                    "name": "some_number",
+                    "type": "int",
+                },
+                {
+                    "default": "user['some_section']['some_number']",
+                    "docstring": "Another number which defaults to "
+                    "the value of some_number.\n",
+                    "name": "another_number",
+                    "type": "int",
+                },
+            ],
+            "name": "some_section",
+        },
+        {
+            "docstring": "Section docs",
+            "keywords": [
+                {
+                    "default": "user['another_section']['another_number']",
+                    "docstring": "Some number which defaults to the "
+                    "value of another_number.\n",
+                    "name": "some_number",
+                    "type": "int",
+                },
+                {
+                    "default": "user['another_section']['some_number']",
+                    "docstring": "Another number which defaults to "
+                    "the value of some_number.\n",
+                    "name": "another_number",
+                    "type": "int",
+                },
+            ],
+            "name": "another_section",
+        },
+    ],
+}
+
+
 error_preamble = r"Error(?:s)? occurred when checking the template:\n"
 check_template_data = [
     (valid, does_not_raise()),
@@ -198,6 +245,17 @@ check_template_data = [
             ),
         ),
     ),
+    (
+        cycles,
+        pytest.raises(
+            ParselglossyError,
+            match=(
+                error_preamble
+                + r"- At user\['(some|another)_section'\]\['(some|another)_number'\]:\s+Keyword depends cyclically on keyword user\['(some|another)_section'\]\['(some|another)_number'\]\n"
+                r"- At user\['(some|another)_section'\]\['(some|another)_number'\]:\s+Keyword depends cyclically on keyword user\['(some|another)_section'\]\['(some|another)_number'\]"
+            ),
+        ),
+    ),
 ]
 
 
@@ -214,6 +272,7 @@ check_template_data = [
         "section_no_docstring",
         "nested_no_docstring",
         "nested_bad_keyword",
+        "cycles",
     ],
 )
 def test_check_template(template, raises):
