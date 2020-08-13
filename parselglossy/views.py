@@ -29,7 +29,7 @@
 
 """Tools to extract views of dictionaries."""
 
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable, List, Optional, Type
 
 from .exceptions import ParselglossyError
 from .utils import JSONDict
@@ -63,6 +63,21 @@ def view_by_default(d: JSONDict) -> JSONDict:
        A dictionary with a view by defaults.
     """
     return view_by("default", d)
+
+
+def view_by_default_keywords(keywords: List[JSONDict]) -> JSONDict:
+    """View by defaults only for lists of keywords.
+
+    Parameters
+    ----------
+    keywords: List[JSONDict]
+
+    Returns
+    -------
+    outgoing: JSONDict
+       A dictionary with a view by defaults for the keywords.
+    """
+    return {v["name"]: v["default"] if "default" in v else None for v in keywords}
 
 
 def view_by_docstring(d: JSONDict) -> JSONDict:

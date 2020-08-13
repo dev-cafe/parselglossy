@@ -277,4 +277,4 @@ check_template_data = [
 )
 def test_check_template(template, raises):
     with raises:
-        is_template_valid(template)
+        template = is_template_valid(template)

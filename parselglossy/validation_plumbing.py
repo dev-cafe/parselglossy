@@ -30,6 +30,7 @@
 """Plumbing functions powering our validation facilities."""
 
 import re
+from copy import deepcopy
 from typing import Any, List, Optional, Tuple
 
 import networkx as nx
@@ -37,7 +38,7 @@ import networkx as nx
 from .exceptions import Error
 from .types import allowed_types, type_fixers, type_matches
 from .utils import JSONDict, location_in_dict
-from .views import view_by_default
+from .views import view_by_default, view_by_default_keywords
 
 
 def _rec_is_template_valid(template: JSONDict, *, address: Tuple = ()) -> List[Error]:
@@ -147,6 +148,58 @@ def _keywords_default_dependencies(
             _from = parent_sections + [keyword]
             dependencies.append((_from, _to))
     return dependencies
+
+
+def _reorder_template(template: JSONDict) -> JSONDict:
+    """Reorder template according to direct graph of keyword dependencies
+
+    Parameters
+    ----------
+    template : JSONDict
+
+    Returns
+    -------
+    ordered : JSONDict
+
+    Notes
+    -----
+    This function reorders the template in place.
+
+    Warnings
+    --------
+    We are assuming that there are no dependency cycles in the template. Call
+    this function **after** :func:`_check_cyclic_defaults`.
+    """
+
+    ordered = deepcopy(template)
+    _rec_reoder_template(ordered)
+    return ordered
+
+
+def _rec_reoder_template(template: JSONDict) -> None:
+    """Recursive backend for :func:`_reorder_template`.
+
+    Parameters
+    ----------
+    template : JSONDict
+    """
+    keywords = template["keywords"] if "keywords" in template.keys() else []
+    kw_stencil = view_by_default_keywords(keywords)
+    deps = _sections_default_dependencies(kw_stencil)
+    deps_hashable = [(tuple(_from), tuple(_to)) for (_from, _to) in deps]
+    nodes = reversed([x[-1] for x in nx.DiGraph(deps_hashable)])
+
+    shuffle = []
+    for node in nodes:
+        for x in keywords:
+            if x["name"] == node:
+                shuffle.append(deepcopy(x))
+                keywords.remove(x)
+    keywords.extend(shuffle)
+
+    sections = template["sections"] if "sections" in template.keys() else []
+    for s in sections:
+        _rec_reoder_template(s)
 
 
 def _rec_merge_ours(
@@ -265,7 +318,7 @@ def _rec_fix_defaults(
     errors = []
 
     if start_dict is None:
-        start_dict = incoming
+        start_dict = deepcopy(incoming)
 
     for k, v in incoming.items():
         if not isinstance(v, dict):
@@ -301,6 +354,8 @@ def _rec_fix_defaults(
                 address=(address + (k,)),
             )
             errors.extend(errs)
+        # also update start_dict
+        start_dict[k] = outgoing[k]
 
     return outgoing, errors
 
@@ -374,7 +429,6 @@ def run_predicate(predicate: str, where: str, user: JSONDict) -> Tuple[str, bool
     """
 
     p = predicate.replace("value", where)
-    postfix = f"in closure '{predicate}'."
 
     try:
         msg = ""
@@ -382,16 +436,16 @@ def run_predicate(predicate: str, where: str, user: JSONDict) -> Tuple[str, bool
         if not success:
             msg = f"Predicate '{predicate}' not satisfied."
     except KeyError as e:
-        msg = f"KeyError {e} {postfix}"
+        msg = f"KeyError {e} in closure '{predicate}'."
         success = False
     except SyntaxError as e:
-        msg = f"SyntaxError {e} {postfix}"
+        msg = f"SyntaxError {e} in closure '{predicate}'."
         success = False
     except TypeError as e:
-        msg = f"TypeError {e} {postfix}"
+        msg = f"TypeError {e} in closure '{predicate}'."
         success = False
     except NameError as e:
-        msg = f"NameError {e} {postfix}"
+        msg = f"NameError {e} in closure '{predicate}'."
         success = False
 
     return msg, success

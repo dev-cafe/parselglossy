@@ -41,6 +41,7 @@ from .validation_plumbing import (
     _rec_fix_defaults,
     _rec_is_template_valid,
     _rec_merge_ours,
+    _reorder_template,
 )
 from .views import view_by_default, view_by_predicates, view_by_type
 
@@ -70,7 +71,7 @@ def validate_from_dicts(
     ------
     :exc:`ParselglossyError`
     """
-    is_template_valid(template)
+    template = is_template_valid(template)
     stencil = view_by_default(template)
     types = view_by_type(template)
     predicates = view_by_predicates(template)
@@ -87,7 +88,7 @@ def validate_from_dicts(
     return fr
 
 
-def is_template_valid(template: JSONDict) -> None:
+def is_template_valid(template: JSONDict) -> JSONDict:
     """Checks a template ``dict`` is well-formed.
 
     A template ``dict`` is well-formed if:
@@ -105,9 +106,15 @@ def is_template_valid(template: JSONDict) -> None:
 
     * All sections have a non-empty docstring.
 
+    * Reorders keywords according to their dependencies.
+
     Parameters
     ----------
     template : JSONDict
+
+    Returns
+    -------
+    ordered : JSONDict
 
     Raises
     ------
@@ -115,7 +122,7 @@ def is_template_valid(template: JSONDict) -> None:
 
     Notes
     -----
-    This is porcelain over the recursive :func:`rec_is_template_valid`.
+    This is porcelain over the recursive :func:`_rec_is_template_valid`.
     """
 
     errors = _rec_is_template_valid(template)
@@ -124,6 +131,8 @@ def is_template_valid(template: JSONDict) -> None:
     if errors:
         msg = collate_errors(when="checking the template", errors=errors)
         raise ParselglossyError(msg)
+    else:
+        return _reorder_template(template)
 
 
 def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> JSONDict:
@@ -150,7 +159,7 @@ def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> JSONDict:
     validated, input dictionary by using default values where these are not
     overridden by user input, hence the naming "ours" for the merge strategy.
 
-    This is porcelain over the recursive function :func:`rec_merge_ours`.
+    This is porcelain over the recursive function :func:`_rec_merge_ours`.
     """
     outgoing, errors = _rec_merge_ours(theirs=theirs, ours=ours)
 
@@ -208,7 +217,7 @@ def fix_defaults(incoming: JSONDict, *, types: JSONDict) -> JSONDict:
     3. If even this check was unsuccessful, types really were unmatched. We
     report the error and move on.
 
-    This is porcelain over recursive function :func:`rec_fix_defaults`.
+    This is porcelain over recursive function :func:`_rec_fix_defaults`.
     """
 
     outgoing, errors = _rec_fix_defaults(incoming, types=types)
@@ -236,7 +245,7 @@ def check_predicates(incoming: JSONDict, *, predicates: JSONDict) -> None:
 
     Notes
     -----
-    This is porcelain over recursive function :func:`rec_check_predicates`.
+    This is porcelain over recursive function :func:`_rec_check_predicates`.
     """
 
     errors = _rec_check_predicates(incoming, predicates=predicates)
