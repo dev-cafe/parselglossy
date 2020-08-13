@@ -69,7 +69,7 @@ def location_in_dict(*, address: Tuple, dict_name: str = "user") -> str:
     -------
     where : str
     """
-    return reduce(lambda x, y: x + "['{}']".format(y), address, "user")
+    return reduce(lambda x, y: x + f"['{y}']", address, "user")
 
 
 def path_resolver(f: Union[str, Path], *, touch: bool = True) -> Path:

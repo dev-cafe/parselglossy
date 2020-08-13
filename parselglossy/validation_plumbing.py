@@ -181,7 +181,7 @@ def _rec_merge_ours(
     if difference != set():
         for k in difference:
             what = "section" if isinstance(ours[k], dict) else "keyword"
-            errors.append(Error(message="Found unexpected {}: '{}'.".format(what, k)))
+            errors.append(Error(message=f"Found unexpected {what}: '{k}'."))
 
     for k, v in theirs.items():
         if k not in ours.keys():
@@ -189,7 +189,7 @@ def _rec_merge_ours(
                 outgoing[k] = theirs[k]
             else:
                 outgoing[k] = None
-                msg = "Keyword '{0}' is required but has no value.".format(k)
+                msg = f"Keyword '{k}' is required but has no value."
                 errors.append(Error((address + (k,)), msg))
         elif not isinstance(v, dict):
             outgoing[k] = ours[k]
@@ -288,11 +288,9 @@ def _rec_fix_defaults(
                     actual = (
                         type(v).__name__
                         if type(v) is not list
-                        else "List[{}]".format(", ".join([type(x).__name__ for x in v]))
+                        else f"List[{', '.join([type(x).__name__ for x in v])}]"
                     )
-                    msg = "Actual ({0}) and declared ({1}) types do not match.".format(
-                        actual, t
-                    )
+                    msg = f"Actual ({actual}) and declared ({t}) types do not match."
             if msg != "":
                 errors.append(Error(address + (k,), msg))
         else:
@@ -376,24 +374,24 @@ def run_predicate(predicate: str, where: str, user: JSONDict) -> Tuple[str, bool
     """
 
     p = predicate.replace("value", where)
-    postfix = "in closure '{}'.".format(predicate)
+    postfix = f"in closure '{predicate}'."
 
     try:
         msg = ""
-        success = eval("lambda user: {}".format(p))(user)
+        success = eval(f"lambda user: {p}")(user)
         if not success:
-            msg = "Predicate '{}' not satisfied.".format(predicate)
+            msg = f"Predicate '{predicate}' not satisfied."
     except KeyError as e:
-        msg = "KeyError {} {:s}".format(e, postfix)
+        msg = f"KeyError {e} {postfix}"
         success = False
     except SyntaxError as e:
-        msg = "SyntaxError {} {:s}".format(e, postfix)
+        msg = f"SyntaxError {e} {postfix}"
         success = False
     except TypeError as e:
-        msg = "TypeError {} {:s}".format(e, postfix)
+        msg = f"TypeError {e} {postfix}"
         success = False
     except NameError as e:
-        msg = "NameError {} {:s}".format(e, postfix)
+        msg = f"NameError {e} {postfix}"
         success = False
 
     return msg, success
@@ -432,24 +430,21 @@ def run_callable(f: str, d: JSONDict, *, t: str) -> Tuple[str, Optional[Any]]:
     any point.
     """
 
-    closure = "lambda user: {}"
-    postfix = "in closure '{}'.".format(f)
-
     try:
         msg = ""
-        result = eval(closure.format(f))(d)
+        result = eval(f"lambda user: {f}")(d)
         result = type_fixers[t](result)
     except KeyError as e:
-        msg = "KeyError {} {:s}".format(e, postfix)
+        msg = f"KeyError {e} in closure '{f}'"
         result = None
     except SyntaxError as e:
-        msg = "SyntaxError {} {:s}".format(e, postfix)
+        msg = f"SyntaxError {e}  in closure '{f}'"
         result = None
     except TypeError as e:
-        msg = "TypeError {} {:s}".format(e, postfix)
+        msg = f"TypeError {e}  in closure '{f}'"
         result = None
     except NameError as e:
-        msg = "NameError {} {:s}".format(e, postfix)
+        msg = f"NameError {e} in closure '{f}'"
         result = None
 
     return msg, result
