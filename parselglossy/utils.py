@@ -187,10 +187,14 @@ def nested_get(d: JSONDict, *ks: str) -> Optional[Any]:
     -----
     Adapted from: https://stackoverflow.com/a/40675868/2528668
     """
-    return reduce(lambda x, k: x.get(k, None) if isinstance(x, dict) else None, ks, d)
+
+    def _func(x: JSONDict, k: str) -> Optional[JSONDict]:
+        return x.get(k, None) if isinstance(x, dict) else None
+
+    return reduce(_func, ks, d)  # type: ignore
 
 
-def nested_set(d: JSONDict, ks: Tuple[str], v: Any) -> None:
+def nested_set(d: JSONDict, ks: Tuple[Any, ...], v: Any) -> None:
     """Set value in nested dictionary.
 
     Parameters
