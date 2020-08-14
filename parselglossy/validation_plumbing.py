@@ -346,10 +346,11 @@ def _rec_fix_defaults(
                     msg = f"Actual ({actual}) and declared ({t}) types do not match."
             if msg != "":
                 errors.append(Error(address + (k,), msg))
-            # Update start_dict.
-            # This is so that multiple dependent defaults ("chains") behave
-            # correctly. See #76 on GitHub
-            nested_set(start_dict, address + (k,), outgoing[k])
+            else:
+                # Update start_dict.
+                # This is so that multiple dependent defaults ("chains") behave
+                # correctly. See #76 on GitHub
+                nested_set(start_dict, address + (k,), outgoing[k])
         else:
             outgoing[k], errs = _rec_fix_defaults(
                 incoming=v,
