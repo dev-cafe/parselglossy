@@ -31,7 +31,7 @@ todo_include_todos = False
 
 # -- Options for HTML output -------------------------------------------
 html_title = "parselglossy Documentation"
-html_short_title = "parselglossy {}".format(version)
+html_short_title = f"parselglossy {version}"
 html_show_sourcelink = False
 html_sidebars = {
     "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]

@@ -58,8 +58,8 @@ def documentation_generator(
         " Editing by hand is not recommended.\n"
     )
 
-    header_fmt = (
-        "{comment:s}\n{markup:s}\n{header:s}\n{markup:s}\n\n"
+    header = (
+        f"{comment:s}\n{'=' * len(header):s}\n{header:s}\n{'=' * len(header):s}\n\n"
         "- Keywords without a default value are **required**.\n"
         "- Default values are either explicit or computed from the value of other keywords in the input.\n"  # noqa: E501
         "- Sections where all keywords have a default value can be omitted.\n"
@@ -68,40 +68,30 @@ def documentation_generator(
 
     docs = _rec_documentation_generator(template=template)
 
-    documentation = (
-        header_fmt.format(comment=comment, markup=("=" * len(header)), header=header)
-        + docs
-    )
+    documentation = header + docs
 
     return documentation
 
 
 def _document_keyword(keyword: JSONDict) -> str:
-    kw_fmt = """
- :{0:s}: {1:s}
+    docstring = keyword["docstring"].replace("\n", " ")
+    doc = f"""
+ :{keyword['name']:s}: {docstring:s}
 
-  **Type** ``{2:s}``
+  **Type** ``{keyword['type']:s}``
 """
 
-    doc = kw_fmt.format(
-        keyword["name"], keyword["docstring"].replace("\n", " "), keyword["type"]
-    )
-
     if "default" in keyword.keys():
-        doc += """
-  **Default** ``{}``
-""".format(
-            keyword["default"]
-        )
+        doc += f"""
+  **Default** ``{keyword['default']}``
+"""
 
     if "predicates" in keyword.keys():
-        preds = "\n    ".join(("- ``{}``".format(x) for x in keyword["predicates"]))
-        doc += """
+        preds = "\n    ".join((f"- ``{x}``" for x in keyword["predicates"]))
+        doc += f"""
   **Predicates**
-    {}
-""".format(
-            preds
-        )
+    {preds}
+"""
 
     return doc
 
@@ -132,11 +122,9 @@ def _rec_documentation_generator(template, *, level: int = 0) -> str:
     sections = template["sections"] if "sections" in template.keys() else []
     if sections:
         docs.append(_indent("\n:red:`Sections`", level))
-        fmt = r"""
- :{0:s}: {1:s}
-"""
         for s in sections:
-            doc = fmt.format(s["name"], s["docstring"].replace("\n", " "))
+            docstring = s["docstring"].replace("\n", " ")
+            doc = f"\n :{s['name']:s}: {docstring:s}\n"
             doc += _rec_documentation_generator(s, level=level + 1)
             docs.extend(_indent(doc, level))
 

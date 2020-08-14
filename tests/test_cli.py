@@ -48,7 +48,7 @@ from parselglossy.utils import as_complex
     "switch,expected",
     [
         ([], "Console script for parselglossy"),
-        (["--version"], "parselglossy, version {}".format(__version__)),
+        (["--version"], f"parselglossy, version {__version__}"),
         (["--help"], r"--help\s+Show this message and exit"),
     ],
     ids=["plain", "version", "help"],
