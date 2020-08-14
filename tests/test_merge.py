@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
-# Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
+# Copyright (C) 2020 Roberto Di Remigio, Radovan Bast, and contributors.
 #
 # This file is part of parselglossy.
 #
@@ -26,7 +27,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Tests for `parselglossy` package.
 
 Tests merging of template and user input `dict`-s into an unvalidated input `dict`.

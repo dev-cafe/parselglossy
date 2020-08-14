@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
-# Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
+# Copyright (C) 2020 Roberto Di Remigio, Radovan Bast, and contributors.
 #
 # This file is part of parselglossy.
 #
@@ -27,14 +28,13 @@
 #
 
 
-# -*- coding: utf-8 -*-
 """Facilities for reading in files for testing."""
 
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
-from parselglossy.yaml_utils import read_yaml_file
 from parselglossy.utils import JSONDict
+from parselglossy.yaml_utils import read_yaml_file
 
 
 def read_in(
