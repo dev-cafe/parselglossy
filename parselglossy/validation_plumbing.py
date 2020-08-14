@@ -37,7 +37,7 @@ import networkx as nx
 
 from .exceptions import Error
 from .types import allowed_types, type_fixers, type_matches
-from .utils import JSONDict, location_in_dict
+from .utils import JSONDict, location_in_dict, nested_set
 from .views import view_by_default, view_by_default_keywords
 
 
@@ -314,11 +314,11 @@ def _rec_fix_defaults(
     report the error and move on.
     """
 
-    outgoing = {}
-    errors = []
-
     if start_dict is None:
         start_dict = deepcopy(incoming)
+
+    outgoing = {}
+    errors = []
 
     for k, v in incoming.items():
         if not isinstance(v, dict):
@@ -346,6 +346,10 @@ def _rec_fix_defaults(
                     msg = f"Actual ({actual}) and declared ({t}) types do not match."
             if msg != "":
                 errors.append(Error(address + (k,), msg))
+            # Update start_dict.
+            # This is so that multiple dependent defaults ("chains") behave
+            # correctly. See #76 on GitHub
+            nested_set(start_dict, address + (k,), outgoing[k])
         else:
             outgoing[k], errs = _rec_fix_defaults(
                 incoming=v,
@@ -354,8 +358,6 @@ def _rec_fix_defaults(
                 address=(address + (k,)),
             )
             errors.extend(errs)
-        # also update start_dict
-        start_dict[k] = outgoing[k]
 
     return outgoing, errors
 
