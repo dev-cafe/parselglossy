@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
-# Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
+# Copyright (C) 2020 Roberto Di Remigio, Radovan Bast, and contributors.
 #
 # This file is part of parselglossy.
 #
@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 from ..exceptions import ParselglossyError
-from ..utils import ComplexEncoder, JSONDict, path_resolver, flatten_list, dict_to_list
+from ..utils import ComplexEncoder, JSONDict, dict_to_list, flatten_list, path_resolver
 from . import getkw
 
 

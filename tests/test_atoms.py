@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 #
 # parselglossy -- Generic input parsing library, speaking in tongues
-# Copyright (C) 2019 Roberto Di Remigio, Radovan Bast, and contributors.
+# Copyright (C) 2020 Roberto Di Remigio, Radovan Bast, and contributors.
 #
 # This file is part of parselglossy.
 #
@@ -28,7 +29,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Tests for `parselglossy` package."""
 
 from string import ascii_letters, digits
@@ -47,7 +47,6 @@ from custom_strategies import (
     unquoted_str,
 )
 from parselglossy.grammars import atoms
-
 
 PRINTABLE = ascii_letters + digits + r"!#$%&*+-./:;<>?@^_|~"
 """str: Custom printable character set.
