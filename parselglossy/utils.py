@@ -33,7 +33,7 @@ import json
 from functools import reduce
 from pathlib import Path
 from shutil import copy
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 JSONDict = Dict[str, Any]
 
@@ -69,7 +69,7 @@ def location_in_dict(*, address: Tuple, dict_name: str = "user") -> str:
     -------
     where : str
     """
-    return reduce(lambda x, y: x + "['{}']".format(y), address, "user")
+    return reduce(lambda x, y: x + f"['{y}']", address, "user")
 
 
 def path_resolver(f: Union[str, Path], *, touch: bool = True) -> Path:
@@ -169,3 +169,44 @@ def dict_to_list(d: JSONDict) -> List[Any]:
         else:
             nested_list.append([k, v])
     return nested_list
+
+
+def nested_get(d: JSONDict, *ks: str) -> Optional[Any]:
+    """Get value from a nested dictionary.
+
+    Parameters
+    ----------
+    d : JSONDict
+    ks : str
+
+    Returns
+    -------
+    v : Optional[Any]
+
+    Notes
+    -----
+    Adapted from: https://stackoverflow.com/a/40675868/2528668
+    """
+
+    def _func(x: JSONDict, k: str) -> Optional[JSONDict]:
+        return x.get(k, None) if isinstance(x, dict) else None
+
+    return reduce(_func, ks, d)  # type: ignore
+
+
+def nested_set(d: JSONDict, ks: Tuple[Any, ...], v: Any) -> None:
+    """Set value in nested dictionary.
+
+    Parameters
+    ----------
+    d : JSONDict
+    ks : Tuple[str]
+    v : Any
+
+    Notes
+    -----
+    Adapted from: https://stackoverflow.com/a/13688108/2528668
+    """
+    for k in ks[:-1]:
+        d = d.setdefault(k, {})
+    d[ks[-1]] = v

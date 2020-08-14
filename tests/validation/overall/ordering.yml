@@ -1,0 +1,32 @@
+keywords:
+  - name: flavor
+    type: float
+    docstring: "Foo"
+  - name: color
+    type: float
+    default: "user['charge']"
+    docstring: "Baz"
+  - name: charge
+    type: float
+    default: "user['flavor']"
+    docstring: "Bar"
+  - name: spectator
+    type: str
+    docstring: |
+      A spectator keyword
+sections:
+  - name: adorable_kitten
+    docstring: |
+      A section in our input tree
+    keywords:
+      - name: flavor
+        type: float
+        docstring: "Foo"
+      - name: color
+        type: float
+        default: "1.5 * user['adorable_kitten']['charge']"
+        docstring: "Baz"
+      - name: charge
+        type: float
+        default: "user['adorable_kitten']['flavor']"
+        docstring: "Bar"

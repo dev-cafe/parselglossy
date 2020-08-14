@@ -159,7 +159,7 @@ from typing import Optional, Union
 
 from .plumbing import lexer
 from .plumbing.utils import JSONDict, as_complex, path_resolver, copier
-from .plumbing.validation import is_template_valid, validate_from_dicts
+from .plumbing.validation import validate_from_dicts
 
 
 def lex(

@@ -174,7 +174,7 @@ def generate(
     stencil = read_yaml_file(template_)
 
     # Check if the template is valid
-    is_template_valid(stencil)
+    stencil = is_template_valid(stencil)
 
     with (where_ / "api.py").open("w") as f:
         f.write(generation.api_py(stencil))
@@ -330,7 +330,7 @@ def document(
     template = path_resolver(template)
     stencil = read_yaml_file(template)
 
-    is_template_valid(stencil)
+    stencil = is_template_valid(stencil)
 
     docs = documentation_generator(stencil, header=header)
 

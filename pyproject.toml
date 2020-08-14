@@ -8,6 +8,23 @@ line_length = 88
 [tool.black]
 exclude = 'pyparsing.py'
 
+[tool.pytest.ini_options]
+addopts = "-rws"
+testpaths = [
+    "tests",
+]
+norecursedirs = [
+  "env",
+  ".direnv",
+  "venv",
+  ".env",
+  ".venv",
+  "docs",
+  ".eggs",
+  ".git",
+]
+collect_ignore = ["setup.py"]
+
 [build-system]
 requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"

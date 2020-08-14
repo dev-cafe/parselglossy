@@ -28,7 +28,6 @@
 #
 
 import json
-import re
 from contextlib import ExitStack as does_not_raise
 from pathlib import Path
 from typing import List
@@ -221,6 +220,20 @@ validation_data = (
             "template_all_default.yml",
             None,
             {"foobar": True, "foo": {"bar": False}},
+            [""],
+        ),
+        (
+            "overall",
+            "input_ordering.yml",
+            "ordering.yml",
+            None,
+            {
+                "flavor": 2.0,
+                "color": 2.0,
+                "charge": 2.0,
+                "spectator": "nothing to see",
+                "adorable_kitten": {"flavor": 1.0, "color": 1.5, "charge": 1.0,},
+            },
             [""],
         ),
     ]

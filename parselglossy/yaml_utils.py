@@ -28,18 +28,19 @@
 #
 
 from pathlib import Path
+from typing import Union
 
 import yaml
 
 from .utils import JSONDict
 
 
-def read_yaml_file(file_name: Path) -> JSONDict:
+def read_yaml_file(file_name: Union[str, Path]) -> JSONDict:
     """Reads a YAML file and returns it as a dictionary.
 
     Parameters
     ----------
-    file_name: Path
+    file_name: Union[str, Path]
         Path object for the YAML file.
 
     Returns
@@ -47,6 +48,9 @@ def read_yaml_file(file_name: Path) -> JSONDict:
     d: JSONDict
         A dictionary with the contents of the YAML file.
     """
+
+    file_name = Path(file_name) if isinstance(file_name, str) else file_name
+
     with file_name.open("r") as f:
         try:
             d = yaml.safe_load(f)

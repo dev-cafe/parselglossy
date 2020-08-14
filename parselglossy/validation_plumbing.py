@@ -30,14 +30,15 @@
 """Plumbing functions powering our validation facilities."""
 
 import re
+from copy import deepcopy
 from typing import Any, List, Optional, Tuple
 
 import networkx as nx
 
 from .exceptions import Error
 from .types import allowed_types, type_fixers, type_matches
-from .utils import JSONDict, location_in_dict
-from .views import view_by_default
+from .utils import JSONDict, location_in_dict, nested_set
+from .views import view_by_default, view_by_default_keywords
 
 
 def _rec_is_template_valid(template: JSONDict, *, address: Tuple = ()) -> List[Error]:
@@ -149,6 +150,58 @@ def _keywords_default_dependencies(
     return dependencies
 
 
+def _reorder_template(template: JSONDict) -> JSONDict:
+    """Reorder template according to direct graph of keyword dependencies
+
+    Parameters
+    ----------
+    template : JSONDict
+
+    Returns
+    -------
+    ordered : JSONDict
+
+    Notes
+    -----
+    This function reorders the template in place.
+
+    Warnings
+    --------
+    We are assuming that there are no dependency cycles in the template. Call
+    this function **after** :func:`_check_cyclic_defaults`.
+    """
+
+    ordered = deepcopy(template)
+    _rec_reoder_template(ordered)
+    return ordered
+
+
+def _rec_reoder_template(template: JSONDict) -> None:
+    """Recursive backend for :func:`_reorder_template`.
+
+    Parameters
+    ----------
+    template : JSONDict
+    """
+    keywords = template["keywords"] if "keywords" in template.keys() else []
+    kw_stencil = view_by_default_keywords(keywords)
+    deps = _sections_default_dependencies(kw_stencil)
+    deps_hashable = [(tuple(_from), tuple(_to)) for (_from, _to) in deps]
+    nodes = reversed([x[-1] for x in nx.DiGraph(deps_hashable)])
+
+    shuffle = []
+    for node in nodes:
+        for x in keywords:
+            if x["name"] == node:
+                shuffle.append(deepcopy(x))
+                keywords.remove(x)
+    keywords.extend(shuffle)
+
+    sections = template["sections"] if "sections" in template.keys() else []
+    for s in sections:
+        _rec_reoder_template(s)
+
+
 def _rec_merge_ours(
     *, theirs: JSONDict, ours: JSONDict, address: Tuple = ()
 ) -> Tuple[JSONDict, List[Error]]:
@@ -181,7 +234,7 @@ def _rec_merge_ours(
     if difference != set():
         for k in difference:
             what = "section" if isinstance(ours[k], dict) else "keyword"
-            errors.append(Error(message="Found unexpected {}: '{}'.".format(what, k)))
+            errors.append(Error(message=f"Found unexpected {what}: '{k}'."))
 
     for k, v in theirs.items():
         if k not in ours.keys():
@@ -189,7 +242,7 @@ def _rec_merge_ours(
                 outgoing[k] = theirs[k]
             else:
                 outgoing[k] = None
-                msg = "Keyword '{0}' is required but has no value.".format(k)
+                msg = f"Keyword '{k}' is required but has no value."
                 errors.append(Error((address + (k,)), msg))
         elif not isinstance(v, dict):
             outgoing[k] = ours[k]
@@ -261,11 +314,11 @@ def _rec_fix_defaults(
     report the error and move on.
     """
 
+    if start_dict is None:
+        start_dict = deepcopy(incoming)
+
     outgoing = {}
     errors = []
-
-    if start_dict is None:
-        start_dict = incoming
 
     for k, v in incoming.items():
         if not isinstance(v, dict):
@@ -288,13 +341,16 @@ def _rec_fix_defaults(
                     actual = (
                         type(v).__name__
                         if type(v) is not list
-                        else "List[{}]".format(", ".join([type(x).__name__ for x in v]))
+                        else f"List[{', '.join([type(x).__name__ for x in v])}]"
                     )
-                    msg = "Actual ({0}) and declared ({1}) types do not match.".format(
-                        actual, t
-                    )
+                    msg = f"Actual ({actual}) and declared ({t}) types do not match."
             if msg != "":
                 errors.append(Error(address + (k,), msg))
+            else:
+                # Update start_dict.
+                # This is so that multiple dependent defaults ("chains") behave
+                # correctly. See #76 on GitHub
+                nested_set(start_dict, address + (k,), outgoing[k])
         else:
             outgoing[k], errs = _rec_fix_defaults(
                 incoming=v,
@@ -376,24 +432,23 @@ def run_predicate(predicate: str, where: str, user: JSONDict) -> Tuple[str, bool
     """
 
     p = predicate.replace("value", where)
-    postfix = "in closure '{}'.".format(predicate)
 
     try:
         msg = ""
-        success = eval("lambda user: {}".format(p))(user)
+        success = eval(f"lambda user: {p}")(user)
         if not success:
-            msg = "Predicate '{}' not satisfied.".format(predicate)
+            msg = f"Predicate '{predicate}' not satisfied."
     except KeyError as e:
-        msg = "KeyError {} {:s}".format(e, postfix)
+        msg = f"KeyError {e} in closure '{predicate}'."
         success = False
     except SyntaxError as e:
-        msg = "SyntaxError {} {:s}".format(e, postfix)
+        msg = f"SyntaxError {e} in closure '{predicate}'."
         success = False
     except TypeError as e:
-        msg = "TypeError {} {:s}".format(e, postfix)
+        msg = f"TypeError {e} in closure '{predicate}'."
         success = False
     except NameError as e:
-        msg = "NameError {} {:s}".format(e, postfix)
+        msg = f"NameError {e} in closure '{predicate}'."
         success = False
 
     return msg, success
@@ -432,24 +487,21 @@ def run_callable(f: str, d: JSONDict, *, t: str) -> Tuple[str, Optional[Any]]:
     any point.
     """
 
-    closure = "lambda user: {}"
-    postfix = "in closure '{}'.".format(f)
-
     try:
         msg = ""
-        result = eval(closure.format(f))(d)
+        result = eval(f"lambda user: {f}")(d)
         result = type_fixers[t](result)
     except KeyError as e:
-        msg = "KeyError {} {:s}".format(e, postfix)
+        msg = f"KeyError {e} in closure '{f}'"
         result = None
     except SyntaxError as e:
-        msg = "SyntaxError {} {:s}".format(e, postfix)
+        msg = f"SyntaxError {e}  in closure '{f}'"
         result = None
     except TypeError as e:
-        msg = "TypeError {} {:s}".format(e, postfix)
+        msg = f"TypeError {e}  in closure '{f}'"
         result = None
     except NameError as e:
-        msg = "NameError {} {:s}".format(e, postfix)
+        msg = f"NameError {e} in closure '{f}'"
         result = None
 
     return msg, result
