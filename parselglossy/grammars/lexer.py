@@ -74,7 +74,7 @@ def lex_from_str(
     *,
     in_str: Union[str, Path],
     grammar: str = "standard",
-    ir_file: Optional[Union[str, Path]] = None
+    ir_file: Optional[Union[str, Path]] = None,
 ) -> JSONDict:
     """Run grammar of choice on input string.
 
@@ -100,7 +100,7 @@ def lex_from_str(
     try:
         lexer = dispatch_grammar(grammar)
     except KeyError:
-        raise ParselglossyError("Grammar {} not available.".format(grammar))
+        raise ParselglossyError(f"Grammar {grammar} not available.")
 
     ir = parse_string_to_dict(lexer, in_str)
 

@@ -41,7 +41,7 @@ allowed_scalar_types = ["str", "int", "float", "complex", "bool"]
 
 ListTypes = Union[List[bool], List[str], List[int], List[float], List[complex]]
 
-allowed_list_types = ["List[{}]".format(t) for t in allowed_scalar_types]
+allowed_list_types = [f"List[{t}]" for t in allowed_scalar_types]
 
 AllowedTypes = Union[ScalarTypes, ListTypes]
 
@@ -85,7 +85,7 @@ def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
 
     # first verify whether expected_type is allowed
     if expected_type not in allowed_types:
-        raise ValueError("could not recognize expected_type: {}".format(expected_type))
+        raise ValueError(f"could not recognize expected_type: {expected_type}")
 
     expected_complex = expected_type == "complex" or expected_type == "List[complex]"
 

@@ -58,13 +58,13 @@ The printable character set is the standard set in `string.printable` minus
 
 @given(a=st.sampled_from(atoms.TRUTHY + atoms.FALSEY))
 def test_atom_bool(a):
-    tokens = atoms.bool_t.parseString("{:s}".format(a)).asList()
+    tokens = atoms.bool_t.parseString(f"{a:s}").asList()
     assert tokens[0] == atoms.to_bool(a)
 
 
 @given(a=st.integers())
 def test_atoms_int(a):
-    tokens = atoms.int_t.parseString("{:d}".format(a)).asList()
+    tokens = atoms.int_t.parseString(f"{a:d}").asList()
     assert tokens[0] == a
 
 
@@ -118,12 +118,12 @@ def test_atoms_data(a):
 @pytest.mark.parametrize("a", ["[]", "[       ]", "[\n]"])
 def test_list_empty(a):
     with pytest.raises(ParseBaseException, match=r"^Empty lists not allowed"):
-        tokens = atoms.list_t.parseString("{}".format(a)).asList()
+        _ = atoms.list_t.parseString(f"{a}").asList()
 
 
 @given(a=st.lists(st.integers(), min_size=1))
 def test_list_int(a):
-    tokens = atoms.list_t.parseString("{}".format(a)).asList()
+    tokens = atoms.list_t.parseString(f"{a}").asList()
     assert tokens == a
 
 

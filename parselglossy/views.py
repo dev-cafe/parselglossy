@@ -131,7 +131,7 @@ def view_by(
     *,
     predicate: Callable[[Any, str], bool] = lambda x, y: True,
     missing: Optional[Type[Exception]] = None,
-    transformer: Callable[[Any], Any] = lambda x: x
+    transformer: Callable[[Any], Any] = lambda x: x,
 ) -> JSONDict:
     """Recursive decimation of a template into an input.
 
@@ -159,7 +159,7 @@ def view_by(
     allowed = ["type", "default", "docstring", "predicates"]
     if what not in allowed:
         raise ValueError(
-            "Requested view {:s} not among possible views ({})".format(what, allowed)
+            f"Requested view {what:s} not among possible views ({allowed})"
         )
 
     # Determine whether we have only sections and only keywords

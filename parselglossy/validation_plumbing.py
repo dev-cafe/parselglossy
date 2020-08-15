@@ -492,16 +492,16 @@ def run_callable(f: str, d: JSONDict, *, t: str) -> Tuple[str, Optional[Any]]:
         result = eval(f"lambda user: {f}")(d)
         result = type_fixers[t](result)
     except KeyError as e:
-        msg = f"KeyError {e} in closure '{f}'"
+        msg = f"KeyError {e} in closure '{f}'."
         result = None
     except SyntaxError as e:
-        msg = f"SyntaxError {e}  in closure '{f}'"
+        msg = f"SyntaxError {e} in closure '{f}'."
         result = None
     except TypeError as e:
-        msg = f"TypeError {e}  in closure '{f}'"
+        msg = f"TypeError {e} in closure '{f}'."
         result = None
     except NameError as e:
-        msg = f"NameError {e} in closure '{f}'"
+        msg = f"NameError {e} in closure '{f}'."
         result = None
 
     return msg, result

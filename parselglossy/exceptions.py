@@ -66,9 +66,9 @@ class Error(namedtuple("Error", ["address", "message"])):
         return self.address == other.address and self.message == other.message
 
     def __repr__(self):
-        msg = "{:s}".format(self.message)
+        msg = f"{self.message:s}"
         if self.address != ():
-            msg = "At {:s}:\n  {:s}".format(location_in_dict(address=self.address), msg)
+            msg = f"At {location_in_dict(address=self.address):s}:\n  {msg:s}"
         return "- " + msg
 
 
@@ -93,9 +93,8 @@ def collate_errors(*, when: str, errors: List[Error]) -> str:
                 KeyError 'min_num_iterations' in closure
                 'user['scf']['min_num_iterations'] / 2'
     """
-    preamble = "\nError{more:s} occurred when {when:s}:".format(
-        more="s" if len(errors) > 1 else "", when=when
-    )
-    msgs = [preamble] + ["{}".format(e) for e in errors]
+    plural = "s" if len(errors) > 1 else ""
+    preamble = f"\nError{plural:s} occurred when {when:s}:"
+    msgs = [preamble] + [f"{e}" for e in errors]
 
     return "\n".join(msgs)
