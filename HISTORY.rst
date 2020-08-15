@@ -2,9 +2,12 @@
 History
 =======
 
-Unreleased_
------------
+0.5.0_ (2020-08-15)
+-------------------
 
+* ``parselglossy`` can now *reorder* noncyclic dependencies between keywords'
+  defaulting actions at validation time.
+  See PR `#99 <https://github.com/dev-cafe/parselglossy/pull/99>`_.
 * ``parselglossy`` can now *detect* cyclic dependencies between keywords'
   defaulting actions at validation time.
   A validation specification like the following:
@@ -81,7 +84,8 @@ Unreleased_
 * First release on PyPI.
 
 
-.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.3.0...HEAD
+.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.5.0...HEAD
+.. _0.5.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.5.0
 .. _0.3.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0
 .. _0.3.0-alpha2: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0-alpha2
 .. _0.3.0-alpha1: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0-alpha1
