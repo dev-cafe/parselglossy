@@ -2,8 +2,8 @@
 History
 =======
 
-Unreleased_
------------
+0.6.0_ (2020-08-25)
+-------------------
 
 * Redistribute template validation functions in ``check_template.py``. This
   avoids exposing internal dependencies in the generated parser.
@@ -90,7 +90,8 @@ Unreleased_
 * First release on PyPI.
 
 
-.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.5.0...HEAD
+.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.6.0...HEAD
+.. _0.6.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.6.0
 .. _0.5.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.5.0
 .. _0.3.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0
 .. _0.3.0-alpha2: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0-alpha2
