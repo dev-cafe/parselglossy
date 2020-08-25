@@ -40,7 +40,8 @@ from .documentation import documentation_generator
 from .exceptions import ParselglossyError
 from .grammars import lexer
 from .utils import JSONDict, as_complex, copier, path_resolver
-from .validation import is_template_valid, validate_from_dicts
+from .check_template import is_template_valid
+from .validation import validate_from_dicts
 from .yaml_utils import read_yaml_file
 
 
@@ -255,6 +256,8 @@ def validate(
     if fr_file is not None:
         fr_file = path_resolver(fr_file)
 
+    stencil = is_template_valid(stencil)
+
     return validate_from_dicts(ir=ir, template=stencil, fr_file=fr_file)
 
 
@@ -300,6 +303,8 @@ def parse(
 
     if outfile is not None:
         outfile = path_resolver(outfile)
+
+    stencil = is_template_valid(stencil)
 
     return validate_from_dicts(ir=ir, template=stencil, fr_file=outfile)
 

@@ -36,6 +36,7 @@ import pytest
 
 from parselglossy.exceptions import ParselglossyError
 from parselglossy.utils import as_complex
+from parselglossy.check_template import is_template_valid
 from parselglossy.validation import validate_from_dicts
 from read_in import read_in
 
@@ -266,6 +267,7 @@ def test_validation(
     with ctx:
         # Validate and dump JSON
         dumped = Path("validated.json")
+        template = is_template_valid(template)
         user = validate_from_dicts(ir=user, template=template, fr_file=dumped)
         assert user == valid
 

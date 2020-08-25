@@ -36,12 +36,9 @@ from typing import Union
 from .exceptions import ParselglossyError, collate_errors
 from .utils import ComplexEncoder, JSONDict, path_resolver
 from .validation_plumbing import (
-    _check_cyclic_defaults,
     _rec_check_predicates,
     _rec_fix_defaults,
-    _rec_is_template_valid,
     _rec_merge_ours,
-    _reorder_template,
 )
 from .views import view_by_default, view_by_predicates, view_by_type
 
@@ -53,11 +50,10 @@ def validate_from_dicts(
 
     Parameters
     ----------
-    dumpir : bool
-        Whether to serialize FR to JSON. Location and name of file are
-        determined based on the input file.
     ir : JSONDict
         Intermediate representation of the input file.
+    template : JSONDict
+        A _validated_ template.
     fr_file : Union[str, Path]
          File to write final representation to (JSON format).
          None by default, which means file is not written out.
@@ -71,7 +67,6 @@ def validate_from_dicts(
     ------
     :exc:`ParselglossyError`
     """
-    template = is_template_valid(template)
     stencil = view_by_default(template)
     types = view_by_type(template)
     predicates = view_by_predicates(template)
@@ -86,53 +81,6 @@ def validate_from_dicts(
             json.dump(fr, out, cls=ComplexEncoder, indent=4)
 
     return fr
-
-
-def is_template_valid(template: JSONDict) -> JSONDict:
-    """Checks a template ``dict`` is well-formed.
-
-    A template ``dict`` is well-formed if:
-
-    * All keywords have:
-
-      - An allowed type.
-      - A non-empty docstring.
-      - A default callable that is valid Python, if present.
-      - Predicates that are valid Python, if present.
-
-      Note that the latter two criteria can only be checked later on.
-
-    * No sections are nested under keywords.
-
-    * All sections have a non-empty docstring.
-
-    * Reorders keywords according to their dependencies.
-
-    Parameters
-    ----------
-    template : JSONDict
-
-    Returns
-    -------
-    ordered : JSONDict
-
-    Raises
-    ------
-    :exc:`ParselglossyError`
-
-    Notes
-    -----
-    This is porcelain over the recursive :func:`_rec_is_template_valid`.
-    """
-
-    errors = _rec_is_template_valid(template)
-    errors.extend(_check_cyclic_defaults(template))
-
-    if errors:
-        msg = collate_errors(when="checking the template", errors=errors)
-        raise ParselglossyError(msg)
-    else:
-        return _reorder_template(template)
 
 
 def merge_ours(*, theirs: JSONDict, ours: JSONDict) -> JSONDict:

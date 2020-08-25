@@ -32,6 +32,7 @@
 from datetime import date
 from pathlib import Path
 from re import DOTALL, search
+import pprint
 
 INIT_PY = f"""# -*- coding: utf-8 -*-
 
@@ -214,12 +215,10 @@ def validate(
     with infile.open("r") as f:
         ir = json.load(f, object_hook=as_complex)
 
-    stencil = {stencil}
-
     if fr_file is not None:
         fr_file = path_resolver(fr_file)
 
-    return validate_from_dicts(ir=ir, template=stencil, fr_file=fr_file)
+    return validate_from_dicts(ir=ir, template=stencil(), fr_file=fr_file)
 
 
 def parse(
@@ -253,10 +252,12 @@ def parse(
 
     ir = lex(infile=infile, ir_file=ir_file)
 
-    stencil = {stencil}
-
     if outfile is not None:
         outfile = path_resolver(outfile)
 
-    return validate_from_dicts(ir=ir, template=stencil, fr_file=outfile)
+    return validate_from_dicts(ir=ir, template=stencil(), fr_file=outfile)
+
+
+def stencil() -> JSONDict:
+    return {pprint.pformat(stencil, indent=4)}
 """

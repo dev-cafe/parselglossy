@@ -27,7 +27,6 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
-# -*- coding: utf-8 -*-
 """Tests for `parselglossy` package.
 
 Tests that the template is not malformed.
@@ -39,7 +38,7 @@ from copy import deepcopy
 import pytest
 
 from parselglossy.exceptions import ParselglossyError
-from parselglossy.validation import is_template_valid
+from parselglossy.check_template import is_template_valid
 
 # Well formed keyword and section
 keyword = {"name": "title", "type": "str", "docstring": "Title of the calculation."}

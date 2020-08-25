@@ -2,6 +2,12 @@
 History
 =======
 
+Unreleased_
+-----------
+
+* Redistribute template validation functions in ``check_template.py``. This
+  avoids exposing internal dependencies in the generated parser.
+
 0.5.0_ (2020-08-15)
 -------------------
 
