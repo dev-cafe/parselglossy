@@ -57,6 +57,14 @@ Features
 * TODO
 
 
+Projects using parselglossy
+---------------------------
+
+*  `MRChem <https://mrchem.readthedocs.io/en/latest/>`_
+
+If your project is using parselglossy, please add a link via a pull request.
+
+
 Credits
 -------
 
