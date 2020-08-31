@@ -59,9 +59,9 @@ Features
   correct parsers.  This is achieved by decoupling input reading and validation.
 * **Extensible**. We work with standard Python types and standard JSON format.
   Interfacing and extending to your needs is straightforward.
-* **Simple**. All you need to do is provide an input specification in YAML
-  format: names of keywords/sections, defaults, documentation. All the tedious
-  bits are automatically generated.
+* **Simple**. Just provide an input specification in YAML format: names of
+  keywords/sections, defaults, documentation. The tedious bits are automatically
+  handled for you.
 * **Correct**. ``parselglossy`` gives two correctness guarantees:
 
   1. If the YAML specification is valid, the generated parser will be correct.
