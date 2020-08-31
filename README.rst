@@ -30,7 +30,14 @@ parselglossy
    -- Bobson Dugnutt, **Private communication**
 
 
-Generic input parsing library, speaking in tongues
+Generic input parsing library, speaking in tongues.
+
+``parselglossy`` generates a fully functional Python input parsing module from a
+simple YAML template specification.  The parser has *no dependencies* on
+external Python packages.
+The documentation for all input keywords is also generated in reStructuredText
+format from the YAML specification.
+
 
 .. image:: https://github.com/dev-cafe/parselglossy/raw/master/docs/gfx/parse.jpg
      :alt: Parse all the inputs!
@@ -48,13 +55,6 @@ Requirements
 Features
 --------
 
-``parselglossy`` generates a fully functional Python input parsing module from a
-simple YAML template specification.  The parser has *no dependencies* on
-external Python packages.
-The documentation for all input keywords is also generated in reStructuredText
-format from the YAML specification.
-
-``parselglossy`` is:
 * **Flexible**. It can accommodate different input styles and still generate
   correct parsers.  This is achieved by decoupling input reading and validation.
 * **Extensible**. We work with standard Python types and standard JSON format.
@@ -63,6 +63,7 @@ format from the YAML specification.
   format: names of keywords/sections, defaults, documentation. All the tedious
   bits are automatically generated.
 * **Correct**. ``parselglossy`` gives two correctness guarantees:
+
   1. If the YAML specification is valid, the generated parser will be correct.
   2. If validation completes, the input to your application is well-formed.
 
