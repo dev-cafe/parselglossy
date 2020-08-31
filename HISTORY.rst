@@ -2,8 +2,8 @@
 History
 =======
 
-Unreleased_
------------
+0.7.0_ (2020-08-31)
+-------------------
 
 * The ``validate`` function in the API of the generated input parser now accepts
   a Python ``dict`` as intermediate representation.  This might be useful when
@@ -100,7 +100,8 @@ Unreleased_
 * First release on PyPI.
 
 
-.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.6.0...HEAD
+.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.7.0...HEAD
+.. _0.7.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.7.0
 .. _0.6.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.6.0
 .. _0.5.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.5.0
 .. _0.3.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.3.0
