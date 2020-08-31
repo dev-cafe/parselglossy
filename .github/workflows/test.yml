@@ -21,20 +21,30 @@ jobs:
         python-version: [3.6, 3.7, 3.8]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip flit
-        flit install --symlink --extras=dev,test --deps=production
-    - name: Test with pytest
-      run: |
-        python -m pytest --cov=parselglossy --cov-report=xml --doctest-modules tests/
-        python -m pytest --flake8 parselglossy
-        python -m pytest --black parselglossy
-        python -m pytest --mypy parselglossy
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set Hypothesis profile
+        if: ${{ matrix.os == "macos-latest" }}
+        env:
+          HYPOTHESIS_PROFILE: "macOS"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip flit
+          flit install --symlink --extras=dev,test --deps=production
+      - name: Test with pytest
+        run: |
+          python -m pytest --cov=parselglossy --cov-report=xml --doctest-modules tests/
+      - name: Flake8 lints
+        run: |
+          python -m pytest --flake8 parselglossy
+      - name: Black lints
+        run: |
+          python -m pytest --black parselglossy
+      - name: Mypy lints
+        run: |
+          python -m pytest --mypy parselglossy
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
