@@ -21,12 +21,6 @@ parselglossy
 
 .. epigraph::
 
-   "What d'you mean? You were there – you heard me —"
-
-   "I heard you speaking Parseltongue," said Ron. "Snake language. You could have been saying anything – no wonder Justin panicked, you sounded like you were egging the snake on or something – it was creepy, you know —"
-
-   -- J. K. Rowling **Harry Potter and the Chamber of Secrets**
-
    [...] I speak with tongues more than you all;
 
    -- **1 Corinthians** 14:18
@@ -36,7 +30,14 @@ parselglossy
    -- Bobson Dugnutt, **Private communication**
 
 
-Generic input parsing library, speaking in tongues
+Generic input parsing library, speaking in tongues.
+
+``parselglossy`` generates a fully functional Python input parsing module from a
+simple YAML template specification.  The parser has *no dependencies* on
+external Python packages.
+The documentation for all input keywords is also generated in reStructuredText
+format from the YAML specification.
+
 
 .. image:: https://github.com/dev-cafe/parselglossy/raw/master/docs/gfx/parse.jpg
      :alt: Parse all the inputs!
@@ -54,8 +55,17 @@ Requirements
 Features
 --------
 
-* TODO
+* **Flexible**. It can accommodate different input styles and still generate
+  correct parsers.  This is achieved by decoupling input reading and validation.
+* **Extensible**. We work with standard Python types and standard JSON format.
+  Interfacing and extending to your needs is straightforward.
+* **Simple**. Just provide an input specification in YAML format: names of
+  keywords/sections, defaults, documentation. The tedious bits are automatically
+  handled for you.
+* **Correct**. ``parselglossy`` gives two correctness guarantees:
 
+  1. If the YAML specification is valid, the generated parser will be correct.
+  2. If validation completes, the input to your application is well-formed.
 
 Projects using parselglossy
 ---------------------------
@@ -63,13 +73,3 @@ Projects using parselglossy
 *  `MRChem <https://mrchem.readthedocs.io/en/latest/>`_
 
 If your project is using parselglossy, please add a link via a pull request.
-
-
-Credits
--------
-
-This package was created with Cookiecutter_ and the `elgertam/cookiecutter-pipenv`_ project template, based on `audreyr/cookiecutter-pypackage`_.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`elgertam/cookiecutter-pipenv`: https://github.com/elgertam/cookiecutter-pipenv
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage

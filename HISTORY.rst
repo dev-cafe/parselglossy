@@ -5,6 +5,10 @@ History
 Unreleased_
 -----------
 
+* The ``validate`` function in the API of the generated input parser now accepts
+  a Python ``dict`` as intermediate representation.  This might be useful when
+  wanting to validate input programmatically, *i.e.* avoiding writing
+  intermediate files on disk.
 * Prune ``docstring`` element from template during generation. This reduces the
   lines of code produced when creating the input parser module.
 
