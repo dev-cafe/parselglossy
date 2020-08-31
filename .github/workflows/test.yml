@@ -31,8 +31,6 @@ jobs:
           python -m pip install --upgrade pip flit
           flit install --symlink --extras=dev,test --deps=production
       - name: Test with pytest
-        env:
-          HYPOTHESIS_PROFILE: ${{ "macOS" if runner.os == "macos-latest" else "default" }}
         run: |
           python -m pytest --cov=parselglossy --cov-report=xml --doctest-modules tests/
       - name: Flake8 lints

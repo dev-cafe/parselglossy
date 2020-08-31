@@ -28,10 +28,12 @@
 # parselglossy library, see: <http://parselglossy.readthedocs.io/>
 #
 
+from platform import system
+
 from hypothesis import settings
 
 # Hypothesis settings for macOS
 settings.register_profile("macOS", deadline=None)
 
 # load correct Hypothesis profile from env-var
-settings.load_profile(os.getenv(u'HYPOTHESIS_PROFILE', 'default'))
+settings.load_profile("macOS" if system() == "Darwin" else "default")
