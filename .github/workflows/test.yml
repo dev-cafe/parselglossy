@@ -27,9 +27,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set Hypothesis profile
-        if: ${{ matrix.os == "macos-latest" }}
         env:
-          HYPOTHESIS_PROFILE: "macOS"
+          HYPOTHESIS_PROFILE: ${{ "macOS" if runner.os == "macos-latest" else "default" }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip flit
