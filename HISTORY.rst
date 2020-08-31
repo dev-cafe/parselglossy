@@ -2,6 +2,12 @@
 History
 =======
 
+Unreleased_
+-----------
+
+* Prune ``docstring`` element from template during generation. This reduces the
+  lines of code produced when creating the input parser module.
+
 0.6.0_ (2020-08-25)
 -------------------
 
