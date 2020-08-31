@@ -11,6 +11,10 @@ Unreleased_
 0.6.0_ (2020-08-25)
 -------------------
 
+* The ``validate`` function in the API of the generated input parser now accepts
+  a Python ``dict`` as intermediate representation.  This might be useful when
+  wanting to validate input programmatically, *i.e.* avoiding writing
+  intermediate files on disk.
 * Redistribute template validation functions in ``check_template.py``. This
   avoids exposing internal dependencies in the generated parser.
 
