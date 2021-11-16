@@ -5,9 +5,6 @@ force_grid_wrap = 0
 use_parentheses = true
 line_length = 88
 
-[tool.black]
-exclude = 'pyparsing.py'
-
 [tool.pytest.ini_options]
 addopts = "-rws"
 testpaths = [
@@ -35,7 +32,7 @@ license = "MIT"
 author = "Roberto Di Remigio"
 requires=[
     "click",
-    "pyparsing",
+    "pyparsing~=3.0",
     "pyyaml",
     "networkx",
 ]
@@ -50,6 +47,8 @@ classifiers = [
   "Programming Language :: Python :: 3.6",
   "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
   "Operating System :: OS Independent",
 ]
 
@@ -66,7 +65,7 @@ test = [
     "pytest-sugar",
 ]
 dev = [
-    "black==19.10b0",  # NOTE We pin black to avoid inconsistent formatting (and failing CI)
+    "black==21.10b0",  # NOTE We pin black to avoid inconsistent formatting (and failing CI)
     "flake8",
     "isort",
     "mypy",
