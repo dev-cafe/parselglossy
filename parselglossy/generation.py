@@ -92,7 +92,9 @@ def cli():
 def get_parse_string_to_dict() -> str:
     with (Path(__file__).parent.absolute() / "grammars/lexer.py").open("r") as buf:
         m = search(
-            r"\# ->->-> SNIP <-<-<-\n(.*)\n\# -<-<-< SNAP >->->-", buf.read(), DOTALL,
+            r"\# ->->-> SNIP <-<-<-\n(.*)\n\# -<-<-< SNAP >->->-",
+            buf.read(),
+            DOTALL,
         )
     if m is not None:
         return f"""\n
