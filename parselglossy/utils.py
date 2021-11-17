@@ -126,7 +126,17 @@ def copier(src: Path, dest: Path) -> None:
     # copy file
     _ = copy(src, dest, follow_symlinks=True)
     # Ensure we can overwrite, by doing a chmod uga+rw
-    Path(_).chmod(0o666)
+    Path(_).chmod(0o644)
+
+
+def folder_permissions(folder: Path) -> None:
+    """Recursively set permissions with chmod uga+rw"""
+    folder.chmod(0o755)
+    for x in folder.iterdir():
+        if x.is_dir():
+            folder_permissions(x)
+        else:
+            x.chmod(0o644)
 
 
 def flatten_list(nested_list: List[Any]) -> List[Any]:
