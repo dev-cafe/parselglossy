@@ -21,6 +21,19 @@ norecursedirs = [
   ".git",
 ]
 
+[tool.mypy]
+warn_return_any = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "networkx",
+    "pyparsing",
+    "parselglossy.types",
+]
+ignore_missing_imports = true
+ignore_errors = true
+
 [build-system]
 requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"
