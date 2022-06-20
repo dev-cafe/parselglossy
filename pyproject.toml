@@ -77,7 +77,7 @@ test = [
     "pytest-sugar",
 ]
 dev = [
-    "black==21.10b0",  # NOTE We pin black to avoid inconsistent formatting (and failing CI)
+    "black==22.3.0",  # NOTE We pin black to avoid inconsistent formatting (and failing CI)
     "flake8",
     "isort",
     "mypy",
