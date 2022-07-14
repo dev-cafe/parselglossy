@@ -84,7 +84,7 @@ dev = [
 ]
 doc = [
     "sphinx",
-    "guzzle_sphinx_theme",
+    "furo",
 ]
 
 [tool.flit.scripts]
