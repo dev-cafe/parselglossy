@@ -50,7 +50,7 @@ except ImportError:
     from . import pyparsing as pp  # type: ignore
 
 
-def grammar(*, has_complex: bool = False) -> Any:
+def grammar(*, has_complex: bool = False) -> pp.ParserElement:
     """The Getkw recursive grammar.
 
     Parameters

@@ -29,11 +29,11 @@
 
 """Constants used by the generator."""
 
+import pprint
 from copy import deepcopy
 from datetime import date
 from pathlib import Path
 from re import DOTALL, search
-import pprint
 
 from .utils import JSONDict
 

@@ -60,7 +60,9 @@ def to_bool(x):
     return defined
 
 
-bool_t = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, TRUTHY + FALSEY))
+bool_t = functools.reduce(
+    lambda x, y: x ^ y, map(pp.CaselessLiteral, TRUTHY + FALSEY)  # type: ignore
+)
 bool_t.set_name("bool")
 bool_t.set_parse_action(lambda token: to_bool(token[0]))
 
@@ -74,7 +76,7 @@ unquoted_str_t = pp.Word(pp.alphas + "_", pp.alphanums + "_")
 followed by alphanumeric characters and underscores."""
 
 I_unit = functools.reduce(
-    lambda x, y: x ^ y, map(pp.CaselessLiteral, ["*j", "*i"])
+    lambda x, y: x ^ y, map(pp.CaselessLiteral, ["*j", "*i"])  # type: ignore
 ).suppress()
 complex_t = pp.OneOrMore(pp.pyparsing_common.number) + I_unit
 complex_t.set_parse_action(
@@ -105,7 +107,7 @@ def make_list_t(
     delimiter: str = ",",
     throw_if_empty: bool = True,
     multiline: bool = True
-) -> Any:
+) -> pp.ParserElement:
     """Atom for lists.
 
     Parameters
