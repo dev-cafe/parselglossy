@@ -94,6 +94,8 @@ dev = [
 doc = [
     "sphinx",
     "furo",
+    "sphinx-copybutton",
+    "sphinx-inline-tabs",
 ]
 
 [tool.flit.scripts]
