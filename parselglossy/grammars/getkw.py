@@ -29,8 +29,6 @@
 
 """Getkw grammar generation."""
 
-from typing import Any
-
 from .atoms import (
     bool_t,
     complex_t,
