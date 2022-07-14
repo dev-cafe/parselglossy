@@ -201,7 +201,7 @@ def nested_get(d: JSONDict, *ks: str) -> Optional[Any]:
     def _func(x: JSONDict, k: str) -> Optional[JSONDict]:
         return x.get(k, None) if isinstance(x, dict) else None
 
-    return reduce(_func, ks, d)  # type: ignore
+    return reduce(_func, ks, d)
 
 
 def nested_set(d: JSONDict, ks: Tuple[Any, ...], v: Any) -> None:

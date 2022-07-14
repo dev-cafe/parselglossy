@@ -99,7 +99,7 @@ def _generate(
     tokenize: str,
     docfile: str,
     doc_header: str,
-):
+) -> None:
     """Generate parser Python module and documentation from a grammar and a
     validation template.
 

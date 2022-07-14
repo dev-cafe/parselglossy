@@ -31,7 +31,7 @@
 
 import json
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, List, Any
 
 from ..exceptions import ParselglossyError
 from ..utils import ComplexEncoder, JSONDict, dict_to_list, flatten_list, path_resolver
@@ -46,7 +46,7 @@ def parse_string_to_dict(lexer, s: Union[str, Path]) -> JSONDict:
 
     Parameters
     ----------
-    lexer : JSONDict
+    lexer :
          Nested dictionary
     s : Union[str, Path]
          String to parse
@@ -60,8 +60,8 @@ def parse_string_to_dict(lexer, s: Union[str, Path]) -> JSONDict:
     ------
     :exc:`ParselglossyError`
     """
-    tokens_dict = lexer.parseString(s).asDict()
-    tokens_list = lexer.parseString(s).asList()
+    tokens_dict = lexer.parseString(s).asDict()  # type: JSONDict
+    tokens_list = lexer.parseString(s).asList()  # type: List[Any]
     if flatten_list(tokens_list) != flatten_list(dict_to_list(tokens_dict)):
         raise ParselglossyError("A keyword is repeated. Please check your input.")
     return tokens_dict
