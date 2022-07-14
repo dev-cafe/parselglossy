@@ -95,7 +95,10 @@ def view_by_docstring(d: JSONDict) -> JSONDict:
 
     def docstring_not_empty(x: JSONDict, y: str) -> bool:
         """Check that a docstring is not empty."""
-        return x[y].strip() != ""  # type: ignore[no-any-return]  # mypy thinks we're returning Any...
+        if y in x:
+            return x[y].strip() != ""
+        else:
+            return False
 
     def docstring_rstrip(x: str) -> str:
         """Apply rstrip to a docstring"""
