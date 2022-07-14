@@ -96,7 +96,7 @@ def view_by_docstring(d: JSONDict) -> JSONDict:
     def docstring_not_empty(x: JSONDict, y: str) -> bool:
         """Check that a docstring is not empty."""
         if y in x:
-            return x[y].strip() != ""
+            return x[y].strip() != ""  # type: ignore[no-any-return]
         else:
             return False
 
