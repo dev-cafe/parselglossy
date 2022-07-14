@@ -37,8 +37,8 @@ from copy import deepcopy
 
 import pytest
 
-from parselglossy.exceptions import ParselglossyError
 from parselglossy.check_template import is_template_valid
+from parselglossy.exceptions import ParselglossyError
 
 # Well formed keyword and section
 keyword = {"name": "title", "type": "str", "docstring": "Title of the calculation."}
