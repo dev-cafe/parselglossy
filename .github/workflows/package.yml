@@ -6,25 +6,23 @@ on:
 
 jobs:
   build:
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: [3.6]
-        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
 
     steps:
     - name: Switch branch
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+      
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.9"
+        
     - name: Install Python dependencies
       run: |
         which python
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        
     - name: Flit publish
       run:
         flit publish
