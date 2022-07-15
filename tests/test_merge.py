@@ -35,11 +35,11 @@ Tests merging of template and user input `dict`-s into an unvalidated input `dic
 from typing import Optional
 
 import pytest
+from read_in import read_in
 
 from parselglossy.exceptions import ParselglossyError
 from parselglossy.validation import merge_ours
 from parselglossy.views import view_by_default
-from read_in import read_in
 
 expected_data = [
     (

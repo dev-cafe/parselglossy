@@ -93,9 +93,12 @@ def view_by_docstring(d: JSONDict) -> JSONDict:
        A dictionary with a view by docstrings.
     """
 
-    def docstring_not_empty(x: Any, y: str) -> bool:
+    def docstring_not_empty(x: JSONDict, y: str) -> bool:
         """Check that a docstring is not empty."""
-        return x[y].strip() != ""
+        if y in x:
+            return x[y].strip() != ""  # type: ignore[no-any-return]
+        else:
+            return False
 
     def docstring_rstrip(x: str) -> str:
         """Apply rstrip to a docstring"""

@@ -31,7 +31,14 @@
 
 import json
 from pathlib import Path
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
+
+if TYPE_CHECKING:
+    try:
+        import pyparsing as pp
+    except ImportError:
+        # Import local copy
+        from . import pyparsing as pp  # type: ignore
 
 from ..exceptions import ParselglossyError
 from ..utils import ComplexEncoder, JSONDict, dict_to_list, flatten_list, path_resolver
@@ -39,16 +46,16 @@ from . import getkw
 
 
 # ->->-> SNIP <-<-<-
-def parse_string_to_dict(lexer, s: Union[str, Path]) -> JSONDict:
+def parse_string_to_dict(lexer: "pp.ParserElement", s: str) -> JSONDict:
     """Helper function around parseString(s).asDict()
     that checks whether some keywords or sections were accidentally
     repeated and shadowing earlier keywords/sections.
 
     Parameters
     ----------
-    lexer : JSONDict
+    lexer : pp.ParserElement
          Nested dictionary
-    s : Union[str, Path]
+    s : str
          String to parse
 
     Returns
@@ -60,8 +67,8 @@ def parse_string_to_dict(lexer, s: Union[str, Path]) -> JSONDict:
     ------
     :exc:`ParselglossyError`
     """
-    tokens_dict = lexer.parseString(s).asDict()
-    tokens_list = lexer.parseString(s).asList()
+    tokens_dict = lexer.parseString(s).asDict()  # type: JSONDict
+    tokens_list = lexer.parseString(s).asList()  # type: List[Any]
     if flatten_list(tokens_list) != flatten_list(dict_to_list(tokens_dict)):
         raise ParselglossyError("A keyword is repeated. Please check your input.")
     return tokens_dict
@@ -72,7 +79,7 @@ def parse_string_to_dict(lexer, s: Union[str, Path]) -> JSONDict:
 
 def lex_from_str(
     *,
-    in_str: Union[str, Path],
+    in_str: str,
     grammar: str = "standard",
     ir_file: Optional[Union[str, Path]] = None,
 ) -> JSONDict:
@@ -80,7 +87,7 @@ def lex_from_str(
 
     Parameters
     ----------
-    in_str : Union[str, Path]
+    in_str : str
          The string to be parsed.
     grammar : str
          Grammar to be used. Defaults to "standard".
@@ -112,7 +119,7 @@ def lex_from_str(
     return ir
 
 
-def dispatch_grammar(grammar: str):
+def dispatch_grammar(grammar: str) -> "pp.ParserElement":
     available_grammars = {
         "getkw": getkw.grammar(),
         "standard": getkw.grammar(has_complex=True),

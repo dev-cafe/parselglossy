@@ -60,31 +60,33 @@ def to_bool(x):
     return defined
 
 
-bool_t = functools.reduce(lambda x, y: x ^ y, map(pp.CaselessLiteral, TRUTHY + FALSEY))
-bool_t.setName("bool")
-bool_t.setParseAction(lambda token: to_bool(token[0]))
+bool_t = functools.reduce(
+    lambda x, y: x ^ y, map(pp.CaselessLiteral, TRUTHY + FALSEY)  # type: ignore
+)
+bool_t.set_name("bool")
+bool_t.set_parse_action(lambda token: to_bool(token[0]))
 
 int_t = pp.pyparsing_common.signed_integer
 
 float_t = pp.pyparsing_common.sci_real
 
-quoted_str_t = pp.quotedString.setParseAction(pp.removeQuotes)
+quoted_str_t = pp.quoted_string.set_parse_action(pp.remove_quotes)
 unquoted_str_t = pp.Word(pp.alphas + "_", pp.alphanums + "_")
 """An unquoted string starts with alphabetic characters and underscores,
 followed by alphanumeric characters and underscores."""
 
 I_unit = functools.reduce(
-    lambda x, y: x ^ y, map(pp.CaselessLiteral, ["*j", "*i"])
+    lambda x, y: x ^ y, map(pp.CaselessLiteral, ["*j", "*i"])  # type: ignore
 ).suppress()
 complex_t = pp.OneOrMore(pp.pyparsing_common.number) + I_unit
-complex_t.setParseAction(
+complex_t.set_parse_action(
     lambda token: complex(token[0], token[1])
     if len(token) == 2
     else complex(0.0, token[0])
 )
 
 num_t = complex_t | float_t | int_t
-num_t.setName("numeric")
+num_t.set_name("numeric")
 
 SDATA = pp.Literal("$").suppress()
 EDATA = pp.CaselessLiteral("$end").suppress()
@@ -94,7 +96,7 @@ data_t = pp.Group(
     + EDATA
 )
 
-fortranStyleComment = pp.Regex(r"!.*").setName("Fortran style comment")
+fortran_style_comment = pp.Regex(r"!.*").set_name("Fortran style comment")
 
 
 def make_list_t(
@@ -105,7 +107,7 @@ def make_list_t(
     delimiter: str = ",",
     throw_if_empty: bool = True,
     multiline: bool = True
-) -> Any:
+) -> pp.ParserElement:
     """Atom for lists.
 
     Parameters
@@ -141,13 +143,13 @@ def make_list_t(
         NEWLINE = pp.Literal("\n").suppress()
         list_t = (
             START
-            + pp.Optional(pp.delimitedList(atoms ^ NEWLINE, delim=delimiter))
+            + pp.Optional(pp.delimited_list(atoms ^ NEWLINE, delim=delimiter))
             + END
         )
     else:
-        list_t = START + pp.Optional(pp.delimitedList(atoms, delim=delimiter)) + END
+        list_t = START + pp.Optional(pp.delimited_list(atoms, delim=delimiter)) + END
 
-    return list_t.addCondition(
+    return list_t.add_condition(
         bool, message="Empty lists not allowed", fatal=throw_if_empty
     )
 

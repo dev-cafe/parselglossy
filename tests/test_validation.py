@@ -33,12 +33,12 @@ from pathlib import Path
 from typing import List
 
 import pytest
+from read_in import read_in
 
+from parselglossy.check_template import is_template_valid
 from parselglossy.exceptions import ParselglossyError
 from parselglossy.utils import as_complex
-from parselglossy.check_template import is_template_valid
 from parselglossy.validation import validate_from_dicts
-from read_in import read_in
 
 
 def valid():
@@ -233,7 +233,11 @@ validation_data = (
                 "color": 2.0,
                 "charge": 2.0,
                 "spectator": "nothing to see",
-                "adorable_kitten": {"flavor": 1.0, "color": 1.5, "charge": 1.0,},
+                "adorable_kitten": {
+                    "flavor": 1.0,
+                    "color": 1.5,
+                    "charge": 1.0,
+                },
             },
             [""],
         ),

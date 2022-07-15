@@ -31,13 +31,13 @@
 
 import re
 from copy import deepcopy
-from typing import Tuple, List, Any
+from typing import Any, List, Tuple
 
 import networkx as nx
 
 from .exceptions import Error, ParselglossyError, collate_errors
-from .utils import JSONDict, location_in_dict
 from .types import allowed_types
+from .utils import JSONDict, location_in_dict
 from .views import view_by_default, view_by_default_keywords
 
 

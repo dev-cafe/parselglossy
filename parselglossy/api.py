@@ -31,16 +31,17 @@
 
 import json
 from pathlib import Path
+from shutil import copytree, ignore_patterns
 from typing import List, Optional, Union
 
 from pyparsing import __file__ as ppfile
 
 from . import generation
+from .check_template import is_template_valid
 from .documentation import documentation_generator
 from .exceptions import ParselglossyError
 from .grammars import lexer
-from .utils import JSONDict, as_complex, copier, path_resolver
-from .check_template import is_template_valid
+from .utils import JSONDict, as_complex, copier, folder_permissions, path_resolver
 from .validation import validate_from_dicts
 from .yaml_utils import read_yaml_file
 
@@ -146,11 +147,15 @@ def generate(
         if grammar not in ["standard", "getkw"]:
             raise ParselglossyError(f"Grammar {grammar} not available.")
         for x in [
-            ppfile,
             Path(__file__).parent.absolute() / "grammars/atoms.py",
             Path(__file__).parent.absolute() / "grammars/getkw.py",
         ]:
             copier(x, where_ / "plumbing")
+        # copy pyparsing
+        ppfolder = Path(ppfile).parent
+        dest = where_ / "pyparsing"
+        copytree(ppfolder, dest, ignore=ignore_patterns("__pycache__"))
+        folder_permissions(dest)
         # extract `parse_string_to_dict` and write it into `getkw.py`
         fun = generation.get_parse_string_to_dict()
         with (where_ / "plumbing/getkw.py").open("a") as buf:

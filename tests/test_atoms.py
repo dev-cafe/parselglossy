@@ -34,10 +34,6 @@
 from string import ascii_letters, digits
 
 import pytest
-from hypothesis import example, given
-from hypothesis import strategies as st
-from pyparsing import ParseBaseException
-
 from custom_strategies import (
     complex_numbers,
     floats,
@@ -46,6 +42,10 @@ from custom_strategies import (
     list_of_unquoted_str,
     unquoted_str,
 )
+from hypothesis import example, given
+from hypothesis import strategies as st
+from pyparsing import ParseBaseException
+
 from parselglossy.grammars import atoms
 
 PRINTABLE = ascii_letters + digits + r"!#$%&*+-./:;<>?@^_|~"

@@ -29,14 +29,12 @@
 
 """Getkw grammar generation."""
 
-from typing import Any
-
 from .atoms import (
     bool_t,
     complex_t,
     data_t,
     float_t,
-    fortranStyleComment,
+    fortran_style_comment,
     int_t,
     make_list_t,
     quoted_str_t,
@@ -50,7 +48,7 @@ except ImportError:
     from . import pyparsing as pp  # type: ignore
 
 
-def grammar(*, has_complex: bool = False) -> Any:
+def grammar(*, has_complex: bool = False) -> pp.ParserElement:
     """The Getkw recursive grammar.
 
     Parameters
@@ -76,7 +74,7 @@ def grammar(*, has_complex: bool = False) -> Any:
         scalar = quoted_str_t ^ float_t ^ int_t ^ bool_t ^ unquoted_str_t
     # Coerce lists to be lists
     list_t = make_list_t(scalar)
-    list_t.setParseAction(lambda t: [t])
+    list_t.set_parse_action(lambda t: [t])
 
     # Define key-value pairs, i.e. our keywords
     pair = pp.Group(key + EQ + list_t) | pp.Group(key + EQ + scalar)
@@ -91,7 +89,7 @@ def grammar(*, has_complex: bool = False) -> Any:
     retval = pp.Dict(pp.OneOrMore(section) | pp.OneOrMore(values))
 
     # Ignore Python (#), C/C++ (/* */ and //), and Fortran (!) style comments
-    comment = pp.cppStyleComment | pp.pythonStyleComment | fortranStyleComment
+    comment = pp.cpp_style_comment | pp.python_style_comment | fortran_style_comment
     retval.ignore(comment)
 
     return retval

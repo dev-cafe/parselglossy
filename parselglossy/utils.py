@@ -126,7 +126,17 @@ def copier(src: Path, dest: Path) -> None:
     # copy file
     _ = copy(src, dest, follow_symlinks=True)
     # Ensure we can overwrite, by doing a chmod uga+rw
-    Path(_).chmod(0o666)
+    Path(_).chmod(0o644)
+
+
+def folder_permissions(folder: Path) -> None:
+    """Recursively set permissions with chmod uga+rw"""
+    folder.chmod(0o755)
+    for x in folder.iterdir():
+        if x.is_dir():
+            folder_permissions(x)
+        else:
+            x.chmod(0o644)
 
 
 def flatten_list(nested_list: List[Any]) -> List[Any]:
@@ -191,7 +201,7 @@ def nested_get(d: JSONDict, *ks: str) -> Optional[Any]:
     def _func(x: JSONDict, k: str) -> Optional[JSONDict]:
         return x.get(k, None) if isinstance(x, dict) else None
 
-    return reduce(_func, ks, d)  # type: ignore
+    return reduce(_func, ks, d)
 
 
 def nested_set(d: JSONDict, ks: Tuple[Any, ...], v: Any) -> None:

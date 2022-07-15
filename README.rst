@@ -49,7 +49,7 @@ format from the YAML specification.
 Requirements
 ------------
 
-* Python 3.6 or later.
+* Python 3.7 or later.
 
 
 Features

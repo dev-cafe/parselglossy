@@ -3,7 +3,6 @@
 import pathlib
 import sys
 
-import guzzle_sphinx_theme
 from sphinx.ext.apidoc import main
 
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1]))
@@ -13,7 +12,7 @@ from parselglossy import __author__ as _author  # isort:skip
 
 # -- General configuration ---------------------------------------------
 
-extensions = ["sphinx.ext.napoleon", "sphinx.ext.viewcode", "guzzle_sphinx_theme"]
+extensions = ["sphinx.ext.napoleon", "sphinx.ext.viewcode", "sphinx_inline_tabs", "sphinx_copybutton"]
 templates_path = ["_templates"]
 source_suffix = ".rst"
 master_doc = "index"
@@ -36,11 +35,11 @@ html_show_sourcelink = False
 html_sidebars = {
     "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
 }
-html_theme_path = guzzle_sphinx_theme.html_theme_path()
-html_theme = "guzzle_sphinx_theme"
+html_theme = 'furo'
 html_theme_options = {
-    # Set the name of the project to appear in the sidebar
-    "project_nav_name": "parselglossy"
+    "source_repository": "https://github.com/dev-cafe/parselglossy/",
+    "source_branch": "master",
+    "source_directory": "docs/",
 }
 
 

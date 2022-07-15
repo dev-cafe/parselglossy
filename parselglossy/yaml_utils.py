@@ -51,6 +51,7 @@ def read_yaml_file(file_name: Union[str, Path]) -> JSONDict:
 
     file_name = Path(file_name) if isinstance(file_name, str) else file_name
 
+    d = {}  # type: JSONDict
     with file_name.open("r") as f:
         try:
             d = yaml.safe_load(f)

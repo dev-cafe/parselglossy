@@ -96,7 +96,7 @@ def _document_keyword(keyword: JSONDict) -> str:
     return doc
 
 
-def _rec_documentation_generator(template, *, level: int = 0) -> str:
+def _rec_documentation_generator(template: JSONDict, *, level: int = 0) -> str:
     """Generates documentation from a valid template.
 
     Parameters
