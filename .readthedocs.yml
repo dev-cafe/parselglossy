@@ -1,9 +1,6 @@
 version: 2
-formats:
-  - epub
-  - pdf
 python:
-  version: 3.6
+  version: 3.9
   install:
     - requirements: docs/requirements.txt
     - method: pip
