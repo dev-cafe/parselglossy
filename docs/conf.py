@@ -1,5 +1,32 @@
 # -*- coding: utf-8 -*-
 
+#
+# parselglossy -- Generic input parsing library, speaking in tongues
+# Copyright (C) 2020 Roberto Di Remigio, Radovan Bast, and contributors.
+#
+# This file is part of parselglossy.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# For information on the complete list of contributors to the
+# parselglossy library, see: <http://parselglossy.readthedocs.io/>
+
 import pathlib
 import sys
 
@@ -12,18 +39,23 @@ from parselglossy import __author__ as _author  # isort:skip
 
 # -- General configuration ---------------------------------------------
 
-extensions = ["sphinx.ext.napoleon", "sphinx.ext.viewcode", "sphinx_inline_tabs", "sphinx_copybutton"]
+extensions = [
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx_inline_tabs",
+    "sphinx_copybutton",
+]
 templates_path = ["_templates"]
 source_suffix = ".rst"
 master_doc = "index"
-project = u"parselglossy"
-copyright = u"2018, dev-cafe"
+project = "parselglossy"
+copyright = "2018, dev-cafe"
 author = _author
 # The short X.Y version.
 version = _version
 # The full version, including alpha/beta/rc tags.
 release = _version
-language = None
+language = "en"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 pygments_style = "sphinx"
 todo_include_todos = False
@@ -32,10 +64,8 @@ todo_include_todos = False
 html_title = "parselglossy Documentation"
 html_short_title = f"parselglossy {version}"
 html_show_sourcelink = False
-html_sidebars = {
-    "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
-}
-html_theme = 'furo'
+html_sidebars = {"**": ["globaltoc.html", "localtoc.html"]}
+html_theme = "furo"
 html_theme_options = {
     "source_repository": "https://github.com/dev-cafe/parselglossy/",
     "source_branch": "master",
