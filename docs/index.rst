@@ -1,8 +1,8 @@
 .. title:: parselglossy
 
-==========================
-parselglossy Documentation
-==========================
+============
+parselglossy
+============
 
 .. epigraph::
 
