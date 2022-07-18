@@ -58,13 +58,14 @@ release = _version
 language = "en"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 pygments_style = "sphinx"
+# Furo-specific option
+pygments_dark_style = "monokai"
 todo_include_todos = False
 
 # -- Options for HTML output -------------------------------------------
-html_title = "parselglossy Documentation"
+html_title = "parselglossy"
 html_short_title = f"parselglossy {version}"
 html_show_sourcelink = False
-html_sidebars = {"**": ["globaltoc.html", "localtoc.html"]}
 html_theme = "furo"
 html_theme_options = {
     "source_repository": "https://github.com/dev-cafe/parselglossy/",

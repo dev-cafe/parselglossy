@@ -67,17 +67,17 @@ def type_matches(value: AllowedTypes, expected_type: str) -> Optional[bool]:
     Raises
     ------
     ValueError
-      If expected_type is not among the allowed types.
+      If `expected_type` is not among the allowed types.
 
     Notes
     -----
     Complex numbers are a tad more fastidious, as they *might be* read in as
     strings. To avoid false negatives, we have a nasty hack, for which RDR will
-    forever burn in hell. For complex and List[complex] we will re-run type
+    forever burn in hell. For `complex` and `List[complex]` we will re-run type
     checking after type casting if and only if:
 
-    - We expected complex and List[complex].
-    - We got a str or List[str].
+    - We expected `complex` and `List[complex]`.
+    - We got a `str` or `List[str]`.
     - The string are in the right format for the type casting operator.
     """
 
