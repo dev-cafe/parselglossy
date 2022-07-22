@@ -2,6 +2,12 @@
 History
 =======
 
+0.8.0_ (2022-07-21)
+-------------------
+
+* Upgrade to using `pyparsing`>=3.0 
+
+
 0.7.0_ (2020-08-31)
 -------------------
 
@@ -100,7 +106,8 @@ History
 * First release on PyPI.
 
 
-.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.7.0...HEAD
+.. _Unreleased: https://github.com/dev-cafe/parselglossy/compare/v0.8.0...HEAD
+.. _0.8.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.8.0
 .. _0.7.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.7.0
 .. _0.6.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.6.0
 .. _0.5.0: https://github.com/dev-cafe/parselglossy/releases/tag/v0.5.0
