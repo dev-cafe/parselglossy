@@ -42,15 +42,15 @@ jobs:
 
       - name: Flake8 lints
         run: |
-          python -m pytest --flake8 parselglossy
+          python -m flake8 parselglossy
 
       - name: Black lints
         run: |
-          python -m pytest --black parselglossy
+          python -m black --check parselglossy
 
       - name: Mypy lints
         run: |
-          python -m pytest --mypy parselglossy
+          python -m mypy parselglossy
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
