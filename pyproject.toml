@@ -1,9 +1,5 @@
 [tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-line_length = 88
+profile = "black"
 
 [tool.pytest.ini_options]
 addopts = "-rws --ignore=setup.py"
@@ -78,10 +74,7 @@ test = [
     "coverage",
     "hypothesis",
     "pytest",
-    "pytest-black",
     "pytest-cov",
-    "pytest-flake8",
-    "pytest-mypy",
     "pytest-sugar",
 ]
 dev = [

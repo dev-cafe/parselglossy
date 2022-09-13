@@ -153,7 +153,7 @@ def generate(
             copier(x, where_ / "plumbing")
         # copy pyparsing
         ppfolder = Path(ppfile).parent
-        dest = where_ / "pyparsing"
+        dest = where_ / "plumbing/pyparsing"
         copytree(ppfolder, dest, ignore=ignore_patterns("__pycache__"))
         folder_permissions(dest)
         # extract `parse_string_to_dict` and write it into `getkw.py`
