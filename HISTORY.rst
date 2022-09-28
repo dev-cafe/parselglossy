@@ -2,6 +2,13 @@
 History
 =======
 
+0.8.1_ (2022-07-21)
+-------------------
+
+* Locate hard-copy of `pyparsing` *inside* `plumbing` folder. #117
+* Only import system-installed `pyparsing` if it is >=3.0 
+
+
 0.8.0_ (2022-07-21)
 -------------------
 
